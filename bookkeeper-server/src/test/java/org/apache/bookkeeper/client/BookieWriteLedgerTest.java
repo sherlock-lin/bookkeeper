@@ -82,6 +82,8 @@ import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
@@ -144,6 +146,20 @@ public class BookieWriteLedgerTest extends
         entries1 = new ArrayList<byte[]>(); // initialize the entries list
         entries2 = new ArrayList<byte[]>(); // initialize the entries list
     }
+
+//    @BeforeEach
+//    @CsvSource({"true, true", "true, false", "false, true", "false, false"})
+//    public void setUp(boolean writeJournal, boolean useV2) throws Exception {
+//        System.out.println("每条用例执行前打印一下");
+//        baseConf.setJournalWriteData(writeJournal);
+//        baseClientConf.setUseV2WireProtocol(useV2);
+//
+//        super.setUp();
+//        rng = new Random(0); // Initialize the Random
+//        // Number Generator
+//        entries1 = new ArrayList<byte[]>(); // initialize the entries list
+//        entries2 = new ArrayList<byte[]>(); // initialize the entries list
+//    }
 
     public BookieWriteLedgerTest() {
         super(5, 180);
