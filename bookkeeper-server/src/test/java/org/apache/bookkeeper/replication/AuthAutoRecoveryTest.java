@@ -20,8 +20,8 @@
  */
 package org.apache.bookkeeper.replication;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.apache.bookkeeper.auth.AuthCallbacks;
 import org.apache.bookkeeper.auth.AuthToken;
@@ -31,7 +31,7 @@ import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.proto.ClientConnectionPeer;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,17 +88,17 @@ public class AuthAutoRecoveryTest extends BookKeeperClusterTestCase {
      * test the client role of the auditor
      */
     @Test
-    public void testAuthClientRole() throws Exception {
+    void authClientRole() throws Exception {
         ServerConfiguration config = confByIndex(0);
         assertEquals(AuditorClientAuthInterceptorFactory.class.getName(), config.getClientAuthProviderFactoryClass());
         AutoRecoveryMain main = new AutoRecoveryMain(config);
         try {
             main.start();
             Thread.sleep(500);
-            assertTrue("AuditorElector should be running",
-                main.auditorElector.isRunning());
-            assertTrue("Replication worker should be running",
-                main.replicationWorker.isRunning());
+            assertTrue(main.auditorElector.isRunning(),
+                "AuditorElector should be running");
+            assertTrue(main.replicationWorker.isRunning(),
+                "Replication worker should be running");
         } finally {
             main.shutdown();
         }

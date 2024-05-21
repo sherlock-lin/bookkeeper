@@ -20,9 +20,9 @@
  */
 package org.apache.bookkeeper.proto;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.protobuf.ExtensionRegistry;
 import io.netty.buffer.ByteBuf;
@@ -52,8 +52,8 @@ import org.apache.bookkeeper.proto.BookkeeperInternalCallbacks.ReadEntryCallback
 import org.apache.bookkeeper.proto.PerChannelBookieClient.ConnectionState;
 import org.apache.bookkeeper.stats.StatsLogger;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Assume;
-import org.junit.Test;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +83,7 @@ public class TestPerChannelBookieClient extends BookKeeperClusterTestCase {
      * {@link https://issues.apache.org/jira/browse/BOOKKEEPER-485}.
      */
     @Test
-    public void testConnectCloseRace() throws Exception {
+    void connectCloseRace() throws Exception {
         EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
         OrderedExecutor executor = getOrderedSafeExecutor();
 
@@ -119,7 +119,7 @@ public class TestPerChannelBookieClient extends BookKeeperClusterTestCase {
      * correctly, this causes the netty channel to get orphaned.
      */
     @Test
-    public void testConnectRace() throws Exception {
+    void connectRace() throws Exception {
         GenericCallback<PerChannelBookieClient> nullop = new GenericCallback<PerChannelBookieClient>() {
             @Override
             public void operationComplete(int rc, PerChannelBookieClient pcbc) {
@@ -151,7 +151,7 @@ public class TestPerChannelBookieClient extends BookKeeperClusterTestCase {
      * {@link https://issues.apache.org/jira/browse/BOOKKEEPER-620}
      */
     @Test
-    public void testDisconnectRace() throws Exception {
+    void disconnectRace() throws Exception {
         final GenericCallback<PerChannelBookieClient> nullop = new GenericCallback<PerChannelBookieClient>() {
             @Override
             public void operationComplete(int rc, PerChannelBookieClient client) {
@@ -227,7 +227,7 @@ public class TestPerChannelBookieClient extends BookKeeperClusterTestCase {
         connectThread.join();
         disconnectThread.join();
         checkThread.join();
-        assertFalse("Failure in threads, check logs", shouldFail.get());
+        assertFalse(shouldFail.get(), "Failure in threads, check logs");
         client.close();
         eventLoopGroup.shutdownGracefully();
         executor.shutdown();
@@ -238,7 +238,7 @@ public class TestPerChannelBookieClient extends BookKeeperClusterTestCase {
      * {@link https://issues.apache.org/jira/browse/BOOKKEEPER-668}.
      */
     @Test
-    public void testRequestCompletesAfterDisconnectRace() throws Exception {
+    void requestCompletesAfterDisconnectRace() throws Exception {
         ServerConfiguration conf = killBookie(0);
 
         Bookie delayBookie = new TestBookieImpl(conf) {
@@ -289,7 +289,7 @@ public class TestPerChannelBookieClient extends BookKeeperClusterTestCase {
         client.disconnect();
         client.close();
 
-        assertTrue("Request should have completed", completion.await(5, TimeUnit.SECONDS));
+        assertTrue(completion.await(5, TimeUnit.SECONDS), "Request should have completed");
 
         eventLoopGroup.shutdownGracefully();
         executor.shutdown();
@@ -299,9 +299,9 @@ public class TestPerChannelBookieClient extends BookKeeperClusterTestCase {
      * Test that TCP user timeout is correctly set in EpollEventLoopGroup.
      */
     @Test
-    public void testEpollChannelTcpUserTimeout() throws Exception {
+    void epollChannelTcpUserTimeout() throws Exception {
         // Epoll is needed for this test to work.
-        Assume.assumeTrue(Epoll.isAvailable());
+        Assumptions.assumeTrue(Epoll.isAvailable());
 
         EventLoopGroup eventLoopGroup = new EpollEventLoopGroup();
         OrderedExecutor executor = getOrderedSafeExecutor();
@@ -315,8 +315,8 @@ public class TestPerChannelBookieClient extends BookKeeperClusterTestCase {
                 Mockito.mock(PerChannelBookieClientPool.class), BookieSocketAddress.LEGACY_BOOKIEID_RESOLVER);
 
         // Verify that the configured value has not been set in the channel if does not exist in config.
-        assertEquals(channel.connect().channel().config()
-                .getOption(EpollChannelOption.TCP_USER_TIMEOUT).intValue(), 0);
+        assertEquals(0, channel.connect().channel().config()
+                .getOption(EpollChannelOption.TCP_USER_TIMEOUT).intValue());
         channel.close();
 
         // Create a new channel with new TCP user timeout set.

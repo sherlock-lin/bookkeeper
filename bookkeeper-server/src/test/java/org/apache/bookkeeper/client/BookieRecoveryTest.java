@@ -20,6 +20,7 @@
  */
 package org.apache.bookkeeper.client;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -223,8 +224,8 @@ public class BookieRecoveryTest extends BookKeeperClusterTestCase {
             Enumeration<LedgerEntry> entries = lh.readEntries(startEntryId, endEntryId);
             while (entries.hasMoreElements()) {
                 LedgerEntry entry = entries.nextElement();
-                assertTrue(new String(entry.getEntry()).equals("LedgerId: " + entry.getLedgerId() + ", EntryId: "
-                  + entry.getEntryId()));
+                assertEquals(new String(entry.getEntry()), "LedgerId: " + entry.getLedgerId() + ", EntryId: "
+                        + entry.getEntryId());
             }
         }
 
@@ -239,12 +240,12 @@ public class BookieRecoveryTest extends BookKeeperClusterTestCase {
      * {@link https://issues.apache.org/jira/browse/BOOKKEEPER-667}
      */
     @Test
-    public void testMetadataConflictWithRecovery() throws Exception {
+    void metadataConflictWithRecovery() throws Exception {
         metadataConflictWithRecovery(bkc);
     }
 
     @Test
-    public void testMetadataConflictWhenDelayingEnsembleChange() throws Exception {
+    void metadataConflictWhenDelayingEnsembleChange() throws Exception {
         ClientConfiguration newConf = new ClientConfiguration(baseClientConf);
         newConf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         newConf.setDelayEnsembleChange(true);
@@ -293,7 +294,7 @@ public class BookieRecoveryTest extends BookKeeperClusterTestCase {
      * @throws Exception
      */
     @Test
-    public void testAsyncBookieRecoveryToSpecificBookie() throws Exception {
+    void asyncBookieRecoveryToSpecificBookie() throws Exception {
         // Create the ledgers
         int numLedgers = 3;
         List<LedgerHandle> lhs = createLedgers(numLedgers);
@@ -342,7 +343,7 @@ public class BookieRecoveryTest extends BookKeeperClusterTestCase {
      * @throws Exception
      */
     @Test
-    public void testAsyncBookieRecoveryToRandomBookies() throws Exception {
+    void asyncBookieRecoveryToRandomBookies() throws Exception {
         // Create the ledgers
         int numLedgers = 3;
         List<LedgerHandle> lhs = createLedgers(numLedgers);
@@ -395,7 +396,7 @@ public class BookieRecoveryTest extends BookKeeperClusterTestCase {
      * @throws Exception
      */
     @Test
-    public void testSyncBookieRecoveryToSpecificBookie() throws Exception {
+    void syncBookieRecoveryToSpecificBookie() throws Exception {
         // Create the ledgers
         int numLedgers = 3;
         List<LedgerHandle> lhs = createLedgers(numLedgers);
@@ -436,7 +437,7 @@ public class BookieRecoveryTest extends BookKeeperClusterTestCase {
      * @throws Exception
      */
     @Test
-    public void testSyncBookieRecoveryToRandomBookies() throws Exception {
+    void syncBookieRecoveryToRandomBookies() throws Exception {
         // Create the ledgers
         int numLedgers = 3;
         List<LedgerHandle> lhs = createLedgers(numLedgers);
@@ -582,7 +583,7 @@ public class BookieRecoveryTest extends BookKeeperClusterTestCase {
      * Test recoverying the closed ledgers when the failed bookie server is in the last ensemble.
      */
     @Test
-    public void testBookieRecoveryOnClosedLedgers() throws Exception {
+    void bookieRecoveryOnClosedLedgers() throws Exception {
         // Create the ledgers
         int numLedgers = 3;
         List<LedgerHandle> lhs = createLedgers(numLedgers, numBookies, 2);
@@ -613,7 +614,7 @@ public class BookieRecoveryTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testBookieRecoveryOnOpenedLedgers() throws Exception {
+    void bookieRecoveryOnOpenedLedgers() throws Exception {
         // Create the ledgers
         int numLedgers = 3;
         List<LedgerHandle> lhs = createLedgers(numLedgers, numBookies, 2);
@@ -649,7 +650,7 @@ public class BookieRecoveryTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testBookieRecoveryOnInRecoveryLedger() throws Exception {
+    void bookieRecoveryOnInRecoveryLedger() throws Exception {
         int numMsgs = 10;
         // Create the ledgers
         int numLedgers = 1;
@@ -710,7 +711,7 @@ public class BookieRecoveryTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testAsyncBookieRecoveryToRandomBookiesNotEnoughBookies() throws Exception {
+    void asyncBookieRecoveryToRandomBookiesNotEnoughBookies() throws Exception {
         // Create the ledgers
         int numLedgers = 3;
         List<LedgerHandle> lhs = createLedgers(numLedgers, numBookies, 2);
@@ -739,7 +740,7 @@ public class BookieRecoveryTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testSyncBookieRecoveryToRandomBookiesCheckForDupes() throws Exception {
+    void syncBookieRecoveryToRandomBookiesCheckForDupes() throws Exception {
         Random r = new Random();
 
         // Create the ledgers
@@ -782,7 +783,7 @@ public class BookieRecoveryTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void recoverWithoutPasswordInConf() throws Exception {
+    void recoverWithoutPasswordInConf() throws Exception {
         byte[] passwdCorrect = "AAAAAA".getBytes();
         byte[] passwdBad = "BBBBBB".getBytes();
         DigestType digestCorrect = digestType;

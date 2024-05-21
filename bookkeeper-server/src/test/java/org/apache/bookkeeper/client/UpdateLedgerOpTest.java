@@ -20,10 +20,10 @@
  */
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +41,8 @@ import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.net.BookieSocketAddress;
 import org.apache.bookkeeper.proto.BookieServer;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,15 +77,16 @@ public class UpdateLedgerOpTest extends BookKeeperClusterTestCase {
      * Tests verifies update bookie id to FQDN hostname when there are many ledgers.
      */
     @Test
-    public void testManyLedgersWithFQDNHostname() throws Exception {
+    void manyLedgersWithFQDNHostname() throws Exception {
         testManyLedgers(false);
     }
 
     /**
      * Tests verifies update bookie id to short hostname when there are many ledgers.
      */
-    @Test(timeout = 120000)
-    public void testManyLedgersWithShortHostname() throws Exception {
+    @Test
+    @Timeout(value = 120000, unit = TimeUnit.MILLISECONDS)
+    void manyLedgersWithShortHostname() throws Exception {
         testManyLedgers(true);
     }
 
@@ -116,10 +118,10 @@ public class UpdateLedgerOpTest extends BookKeeperClusterTestCase {
                 lh.close();
                 LedgerHandle openLedger = bk.openLedger(lh.getId(), digestType, PASSWORD.getBytes());
                 ensemble = openLedger.getLedgerMetadata().getEnsembleAt(0);
-                assertTrue("Failed to update the ledger metadata to use bookie host name",
-                        ensemble.contains(toBookieAddr));
-                assertFalse("Failed to update the ledger metadata to use bookie host name",
-                        ensemble.contains(curBookieAddr.toBookieId()));
+                assertTrue(ensemble.contains(toBookieAddr),
+                        "Failed to update the ledger metadata to use bookie host name");
+                assertFalse(ensemble.contains(curBookieAddr.toBookieId()),
+                        "Failed to update the ledger metadata to use bookie host name");
             }
         }
     }
@@ -128,7 +130,7 @@ public class UpdateLedgerOpTest extends BookKeeperClusterTestCase {
      * Tests verifies with limit value lesser than the total number of ledgers.
      */
     @Test
-    public void testLimitLessThanTotalLedgers() throws Exception {
+    void limitLessThanTotalLedgers() throws Exception {
         try (BookKeeper bk = new BookKeeper(baseClientConf, zkc);
             BookKeeperAdmin bkadmin = new BookKeeperAdmin(bk, baseClientConf)) {
 
@@ -151,22 +153,22 @@ public class UpdateLedgerOpTest extends BookKeeperClusterTestCase {
             UpdateLedgerOp updateLedgerOp = new UpdateLedgerOp(bk, bkadmin);
             updateLedgerOp.updateBookieIdInLedgers(curBookieAddr, toBookieAddr, 7, 35, 4, progressable);
             int updatedLedgersCount = getUpdatedLedgersCount(bk, ledgers, toBookieAddr);
-            assertEquals("Failed to update the ledger metadata to use bookie host name", 4, updatedLedgersCount);
+            assertEquals(4, updatedLedgersCount, "Failed to update the ledger metadata to use bookie host name");
 
             // next execution
             updateLedgerOp.updateBookieIdInLedgers(curBookieAddr, toBookieAddr, 2, 10, 10, progressable);
             updatedLedgersCount = getUpdatedLedgersCount(bk, ledgers, toBookieAddr);
-            assertEquals("Failed to update the ledger metadata to use bookie host name", 10, updatedLedgersCount);
+            assertEquals(10, updatedLedgersCount, "Failed to update the ledger metadata to use bookie host name");
 
             // no ledgers
             updateLedgerOp.updateBookieIdInLedgers(curBookieAddr, toBookieAddr, 3, 15, 20, progressable);
             updatedLedgersCount = getUpdatedLedgersCount(bk, ledgers, toBookieAddr);
-            assertEquals("Failed to update the ledger metadata to use bookie host name", 10, updatedLedgersCount);
+            assertEquals(10, updatedLedgersCount, "Failed to update the ledger metadata to use bookie host name");
 
             // no ledgers
             updateLedgerOp.updateBookieIdInLedgers(curBookieAddr, toBookieAddr, 3, 15, Integer.MIN_VALUE, progressable);
             updatedLedgersCount = getUpdatedLedgersCount(bk, ledgers, toBookieAddr);
-            assertEquals("Failed to update the ledger metadata to use bookie host name", 10, updatedLedgersCount);
+            assertEquals(10, updatedLedgersCount, "Failed to update the ledger metadata to use bookie host name");
         }
     }
 
@@ -175,7 +177,7 @@ public class UpdateLedgerOpTest extends BookKeeperClusterTestCase {
      * FQDN hostname in the existing ensemble.
      */
     @Test
-    public void testChangeEnsembleAfterRenamingToFQDNHostname() throws Exception {
+    void changeEnsembleAfterRenamingToFQDNHostname() throws Exception {
         testChangeEnsembleAfterRenaming(false);
     }
 
@@ -183,8 +185,9 @@ public class UpdateLedgerOpTest extends BookKeeperClusterTestCase {
      * Tests verifies the ensemble reformation after updating the bookie id to
      * short hostname in the existing ensemble.
      */
-    @Test(timeout = 120000)
-    public void testChangeEnsembleAfterRenamingToShortHostname() throws Exception {
+    @Test
+    @Timeout(value = 120000, unit = TimeUnit.MILLISECONDS)
+    void changeEnsembleAfterRenamingToShortHostname() throws Exception {
         testChangeEnsembleAfterRenaming(true);
     }
 
@@ -205,7 +208,7 @@ public class UpdateLedgerOpTest extends BookKeeperClusterTestCase {
                     curBookieAddr = resolved;
                 }
             }
-            assertNotNull("Couldn't find the bookie in ledger metadata!", curBookieAddr);
+            assertNotNull(curBookieAddr, "Couldn't find the bookie in ledger metadata!");
             baseConf.setUseHostNameAsBookieID(true);
             baseConf.setUseShortHostName(useShortHostName);
             BookieSocketAddress toBookieId = BookieImpl.getBookieAddress(baseConf);
@@ -237,10 +240,10 @@ public class UpdateLedgerOpTest extends BookKeeperClusterTestCase {
             lh.close();
             LedgerHandle openLedger = bk.openLedger(lh.getId(), digestType, PASSWORD.getBytes());
             final LedgerMetadata ledgerMetadata = openLedger.getLedgerMetadata();
-            assertEquals("Failed to reform ensemble!", 2, ledgerMetadata.getAllEnsembles().size());
+            assertEquals(2, ledgerMetadata.getAllEnsembles().size(), "Failed to reform ensemble!");
             ensemble = ledgerMetadata.getEnsembleAt(0);
-            assertTrue("Failed to update the ledger metadata to use bookie host name",
-                    ensemble.contains(toBookieAddr));
+            assertTrue(ensemble.contains(toBookieAddr),
+                    "Failed to update the ledger metadata to use bookie host name");
         }
     }
 
@@ -249,7 +252,7 @@ public class UpdateLedgerOpTest extends BookKeeperClusterTestCase {
      * bookie id.
      */
     @Test
-    public void testRenameWhenAddEntryInProgress() throws Exception {
+    void renameWhenAddEntryInProgress() throws Exception {
         try (final BookKeeper bk = new BookKeeper(baseClientConf, zkc);
             BookKeeperAdmin bkadmin = new BookKeeperAdmin(bk, baseClientConf)) {
 
@@ -292,8 +295,8 @@ public class UpdateLedgerOpTest extends BookKeeperClusterTestCase {
             lh.close();
             LedgerHandle openLedger = bk.openLedger(lh.getId(), digestType, PASSWORD.getBytes());
             ensemble = openLedger.getLedgerMetadata().getEnsembleAt(0);
-            assertTrue("Failed to update the ledger metadata to use bookie host name",
-                    ensemble.contains(toBookieAddr));
+            assertTrue(ensemble.contains(toBookieAddr),
+                    "Failed to update the ledger metadata to use bookie host name");
         }
     }
 

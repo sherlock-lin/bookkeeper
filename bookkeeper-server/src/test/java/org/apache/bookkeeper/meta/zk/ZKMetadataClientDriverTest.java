@@ -18,8 +18,8 @@
  */
 package org.apache.bookkeeper.meta.zk;
 
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -37,22 +37,22 @@ import org.apache.bookkeeper.discover.RegistrationClient;
 import org.apache.bookkeeper.discover.ZKRegistrationClient;
 import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.zookeeper.ZooKeeper;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Unit test {@link ZKMetadataClientDriver}.
  */
-@RunWith(MockitoJUnitRunner.class)
-public class ZKMetadataClientDriverTest extends ZKMetadataDriverTestBase {
+@ExtendWith(MockitoExtension.class)
+class ZKMetadataClientDriverTest extends ZKMetadataDriverTestBase {
 
     private ZKMetadataClientDriver driver;
     private ClientConfiguration conf;
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    void setup() throws Exception {
         this.conf = new ClientConfiguration();
         super.setup(conf);
 
@@ -60,7 +60,7 @@ public class ZKMetadataClientDriverTest extends ZKMetadataDriverTestBase {
     }
 
     @Test
-    public void testGetRegClient() throws Exception {
+    void getRegClient() throws Exception {
         ScheduledExecutorService mockExecutor = mock(ScheduledExecutorService.class);
         driver.initialize(conf, mockExecutor, NullStatsLogger.INSTANCE, Optional.empty());
 

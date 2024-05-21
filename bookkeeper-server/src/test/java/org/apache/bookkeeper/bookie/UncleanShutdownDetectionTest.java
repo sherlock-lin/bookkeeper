@@ -20,8 +20,9 @@
  */
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,20 +31,19 @@ import java.util.List;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.conf.TestBKConfiguration;
 import org.apache.bookkeeper.util.DiskChecker;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Test the unclean shutdown implementation.
  */
 public class UncleanShutdownDetectionTest {
 
-    @Rule
-    public TemporaryFolder tempDir = new TemporaryFolder();
+    @TempDir
+    public File tempDir;
 
     @Test
-    public void testRegisterStartWithoutRegisterShutdownEqualsUncleanShutdown() throws IOException {
+    void registerStartWithoutRegisterShutdownEqualsUncleanShutdown() throws IOException {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         DiskChecker diskChecker = new DiskChecker(conf.getDiskUsageThreshold(), conf.getDiskUsageWarnThreshold());
         LedgerDirsManager ledgerDirsManager = new LedgerDirsManager(
@@ -56,7 +56,7 @@ public class UncleanShutdownDetectionTest {
     }
 
     @Test
-    public void testRegisterStartWithRegisterShutdownEqualsCleanShutdown() throws IOException {
+    void registerStartWithRegisterShutdownEqualsCleanShutdown() throws IOException {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         DiskChecker diskChecker = new DiskChecker(conf.getDiskUsageThreshold(), conf.getDiskUsageWarnThreshold());
         LedgerDirsManager ledgerDirsManager = new LedgerDirsManager(
@@ -70,10 +70,10 @@ public class UncleanShutdownDetectionTest {
     }
 
     @Test
-    public void testRegisterStartWithoutRegisterShutdownEqualsUncleanShutdownMultipleDirs() throws IOException {
-        File ledgerDir1 = tempDir.newFolder("l1");
-        File ledgerDir2 = tempDir.newFolder("l2");
-        File ledgerDir3 = tempDir.newFolder("l3");
+    void registerStartWithoutRegisterShutdownEqualsUncleanShutdownMultipleDirs() throws IOException {
+        File ledgerDir1 = newFolder(tempDir, "l1");
+        File ledgerDir2 = newFolder(tempDir, "l2");
+        File ledgerDir3 = newFolder(tempDir, "l3");
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration()
                 .setLedgerDirNames(new String[] {ledgerDir1.getAbsolutePath(), ledgerDir2.getAbsolutePath(),
                         ledgerDir3.getAbsolutePath()});
@@ -88,10 +88,10 @@ public class UncleanShutdownDetectionTest {
     }
 
     @Test
-    public void testRegisterStartWithRegisterShutdownEqualsCleanShutdownMultipleDirs() throws IOException {
-        File ledgerDir1 = tempDir.newFolder("l1");
-        File ledgerDir2 = tempDir.newFolder("l2");
-        File ledgerDir3 = tempDir.newFolder("l3");
+    void registerStartWithRegisterShutdownEqualsCleanShutdownMultipleDirs() throws IOException {
+        File ledgerDir1 = newFolder(tempDir, "l1");
+        File ledgerDir2 = newFolder(tempDir, "l2");
+        File ledgerDir3 = newFolder(tempDir, "l3");
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration()
                 .setLedgerDirNames(new String[] {ledgerDir1.getAbsolutePath(), ledgerDir2.getAbsolutePath(),
                         ledgerDir3.getAbsolutePath()});
@@ -107,10 +107,10 @@ public class UncleanShutdownDetectionTest {
     }
 
     @Test
-    public void testRegisterStartWithPartialRegisterShutdownEqualsUncleanShutdownMultipleDirs() throws IOException {
-        File ledgerDir1 = tempDir.newFolder("l1");
-        File ledgerDir2 = tempDir.newFolder("l2");
-        File ledgerDir3 = tempDir.newFolder("l3");
+    void registerStartWithPartialRegisterShutdownEqualsUncleanShutdownMultipleDirs() throws IOException {
+        File ledgerDir1 = newFolder(tempDir, "l1");
+        File ledgerDir2 = newFolder(tempDir, "l2");
+        File ledgerDir3 = newFolder(tempDir, "l3");
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration()
                 .setLedgerDirNames(new String[] {ledgerDir1.getAbsolutePath(), ledgerDir2.getAbsolutePath(),
                         ledgerDir3.getAbsolutePath()});
@@ -128,14 +128,16 @@ public class UncleanShutdownDetectionTest {
         assertTrue(uncleanShutdownDetection.lastShutdownWasUnclean());
     }
 
-    @Test(expected = IOException.class)
-    public void testRegisterStartFailsToCreateDirtyFilesAndThrowsIOException() throws IOException {
-        ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
-        DiskChecker diskChecker = new DiskChecker(conf.getDiskUsageThreshold(), conf.getDiskUsageWarnThreshold());
-        LedgerDirsManager ledgerDirsManager = new MockLedgerDirsManager(conf, conf.getLedgerDirs(), diskChecker);
+    @Test
+    void registerStartFailsToCreateDirtyFilesAndThrowsIOException() throws IOException {
+        assertThrows(IOException.class, () -> {
+            ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
+            DiskChecker diskChecker = new DiskChecker(conf.getDiskUsageThreshold(), conf.getDiskUsageWarnThreshold());
+            LedgerDirsManager ledgerDirsManager = new MockLedgerDirsManager(conf, conf.getLedgerDirs(), diskChecker);
 
-        UncleanShutdownDetection uncleanShutdownDetection = new UncleanShutdownDetectionImpl(ledgerDirsManager);
-        uncleanShutdownDetection.registerStartUp();
+            UncleanShutdownDetection uncleanShutdownDetection = new UncleanShutdownDetectionImpl(ledgerDirsManager);
+            uncleanShutdownDetection.registerStartUp();
+        });
     }
 
     private class MockLedgerDirsManager extends LedgerDirsManager {
@@ -150,5 +152,23 @@ public class UncleanShutdownDetectionTest {
             dirs.add(new File("does_not_exist"));
             return dirs;
         }
+
+        private static File newFolder(File root, String... subDirs) throws IOException {
+            String subFolder = String.join("/", subDirs);
+            File result = new File(root, subFolder);
+            if (!result.mkdirs()) {
+                throw new IOException("Couldn't create folders " + root);
+            }
+            return result;
+        }
+    }
+
+    private static File newFolder(File root, String... subDirs) throws IOException {
+        String subFolder = String.join("/", subDirs);
+        File result = new File(root, subFolder);
+        if (!result.mkdirs()) {
+            throw new IOException("Couldn't create folders " + root);
+        }
+        return result;
     }
 }

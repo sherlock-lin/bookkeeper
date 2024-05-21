@@ -20,6 +20,14 @@
  */
 package org.apache.bookkeeper.zookeeper;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.getName;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -28,7 +36,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import junit.framework.TestCase;
 import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.test.ZooKeeperCluster;
 import org.apache.bookkeeper.test.ZooKeeperClusterUtil;
@@ -50,10 +57,9 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
@@ -63,7 +69,7 @@ import org.slf4j.LoggerFactory;
  * Test the wrapper of {@link org.apache.zookeeper.ZooKeeper} client.
  */
 @RunWith(Parameterized.class)
-public abstract class TestZooKeeperClient extends TestCase {
+public abstract class TestZooKeeperClient {
 
     static {
         ZooKeeperClusterUtil.enableZookeeperTestEnvVariables();
@@ -92,15 +98,15 @@ public abstract class TestZooKeeperClient extends TestCase {
         }
     }
 
-    @Before
-    @Override
+    @BeforeEach
+    @BeforeEach
     public void setUp() throws Exception {
         logger.info("Setting up test {}.", getName());
         zkUtil.startCluster();
     }
 
-    @After
-    @Override
+    @AfterEach
+    @AfterEach
     public void tearDown() throws Exception {
         zkUtil.killCluster();
         logger.info("Teared down test {}.", getName());
@@ -157,7 +163,7 @@ public abstract class TestZooKeeperClient extends TestCase {
     }
 
     @Test
-    public void testReconnectAfterExipred() throws Exception {
+    public void reconnectAfterExipred() throws Exception {
         final CountDownLatch expireLatch = new CountDownLatch(1);
         Watcher testWatcher = new Watcher() {
 
@@ -180,21 +186,21 @@ public abstract class TestZooKeeperClient extends TestCase {
                         ? new BoundExponentialBackoffRetryPolicy(timeout, timeout, 0) :
                         new ExponentialBackOffWithDeadlinePolicy(100, 20 * 1000, 0)));
         client.waitForConnection();
-        Assert.assertTrue("Client failed to connect an alive ZooKeeper.",
-                client.getState().isConnected());
+        assertTrue(client.getState().isConnected(),
+                "Client failed to connect an alive ZooKeeper.");
         logger.info("Expire zookeeper client");
         expireZooKeeperSession(client, timeout);
 
         // wait until session expire
-        Assert.assertTrue("Client registered watcher should receive expire event.",
-                expireLatch.await(2 * timeout, TimeUnit.MILLISECONDS));
+        assertTrue(expireLatch.await(2 * timeout, TimeUnit.MILLISECONDS),
+                "Client registered watcher should receive expire event.");
 
-        Assert.assertFalse("Client doesn't receive expire event from ZooKeeper.",
-                client.getState().isConnected());
+        assertFalse(client.getState().isConnected(),
+                "Client doesn't receive expire event from ZooKeeper.");
 
         try {
             client.exists("/tmp", false);
-            Assert.fail("Should fail due to connection loss.");
+            fail("Should fail due to connection loss.");
         } catch (KeeperException.ConnectionLossException cle) {
             // expected
         } catch (KeeperException.SessionExpiredException cle) {
@@ -205,24 +211,24 @@ public abstract class TestZooKeeperClient extends TestCase {
 
         // wait for a reconnect cycle
         Thread.sleep(2 * timeout);
-        Assert.assertTrue("Client failed to connect zookeeper even it was back.",
-                client.getState().isConnected());
+        assertTrue(client.getState().isConnected(),
+                "Client failed to connect zookeeper even it was back.");
         try {
             client.exists("/tmp", false);
         } catch (KeeperException.ConnectionLossException cle) {
-            Assert.fail("Should not throw ConnectionLossException");
+            fail("Should not throw ConnectionLossException");
         } catch (KeeperException.SessionExpiredException cle) {
-            Assert.fail("Should not throw SessionExpiredException");
+            fail("Should not throw SessionExpiredException");
         }
     }
 
     @Test
-    public void testRetrySyncOperations() throws Exception {
+    public void retrySyncOperations() throws Exception {
         final int timeout = 2000;
         ZooKeeperClient client = ZooKeeperClient.createConnectedZooKeeperClient(
                 zkUtil.getZooKeeperConnectString(), timeout, new HashSet<Watcher>(), retryPolicy);
-        Assert.assertTrue("Client failed to connect an alive ZooKeeper.",
-                client.getState().isConnected());
+        assertTrue(client.getState().isConnected(),
+                "Client failed to connect an alive ZooKeeper.");
 
         String path = "/a";
         byte[] data = "test".getBytes();
@@ -235,13 +241,13 @@ public abstract class TestZooKeeperClient extends TestCase {
         expireZooKeeperSession(client, timeout);
         logger.info("Exists znode " + path);
         Stat stat = client.exists(path, false);
-        Assert.assertNotNull("znode doesn't existed", stat);
+        assertNotNull(stat, "znode doesn't existed");
 
         expireZooKeeperSession(client, timeout);
         logger.info("Get data from znode " + path);
         Stat newStat = new Stat();
         client.getData(path, false, newStat);
-        Assert.assertEquals(stat, newStat);
+        assertEquals(stat, newStat);
 
         expireZooKeeperSession(client, timeout);
         logger.info("Create children under znode " + path);
@@ -253,9 +259,9 @@ public abstract class TestZooKeeperClient extends TestCase {
 
         expireZooKeeperSession(client, timeout);
         List<String> children = client.getChildren(path, false, newStat);
-        Assert.assertEquals(2, children.size());
-        Assert.assertTrue(children.contains("children"));
-        Assert.assertTrue(children.contains("children2"));
+        assertEquals(2, children.size());
+        assertTrue(children.contains("children"));
+        assertTrue(children.contains("children2"));
         logger.info("Get children under znode " + path);
 
         expireZooKeeperSession(client, timeout);
@@ -264,11 +270,11 @@ public abstract class TestZooKeeperClient extends TestCase {
     }
 
     @Test
-    public void testSyncAfterSessionExpiry() throws Exception {
+    public void syncAfterSessionExpiry() throws Exception {
         final int timeout = 2000;
         ZooKeeperClient client = ZooKeeperClient.createConnectedZooKeeperClient(zkUtil.getZooKeeperConnectString(),
                 timeout, new HashSet<Watcher>(), retryPolicy);
-        Assert.assertTrue("Client failed to connect an alive ZooKeeper.", client.getState().isConnected());
+        assertTrue(client.getState().isConnected(), "Client failed to connect an alive ZooKeeper.");
 
         String path = "/testSyncAfterSessionExpiry";
         byte[] data = "test".getBytes();
@@ -283,7 +289,7 @@ public abstract class TestZooKeeperClient extends TestCase {
         expireZooKeeperSession(client, timeout);
 
         // the current Client connection should be in connected state even after the session expiry
-        Assert.assertTrue("Client failed to connect an alive ZooKeeper.", client.getState().isConnected());
+        assertTrue(client.getState().isConnected(), "Client failed to connect an alive ZooKeeper.");
 
         // even after the previous session expiry client should be able to sync
         CountDownLatch latch = new CountDownLatch(1);
@@ -296,10 +302,10 @@ public abstract class TestZooKeeperClient extends TestCase {
                 cdLatch.countDown();
             }
         }, latch);
-        Assert.assertTrue("client.sync operation should have completed successfully",
-                latch.await(6000, TimeUnit.MILLISECONDS));
+        assertTrue(latch.await(6000, TimeUnit.MILLISECONDS),
+                "client.sync operation should have completed successfully");
         if (rcArray[0] != KeeperException.Code.OK.intValue()) {
-            Assert.fail("Sync failed because of exception - " + KeeperException.Code.get(rcArray[0]));
+            fail("Sync failed because of exception - " + KeeperException.Code.get(rcArray[0]));
         }
 
         // delete the node
@@ -307,11 +313,11 @@ public abstract class TestZooKeeperClient extends TestCase {
     }
 
     @Test
-    public void testACLSetAndGet() throws Exception {
+    public void aclSetAndGet() throws Exception {
         final int timeout = 2000;
         ZooKeeperClient client = ZooKeeperClient.createConnectedZooKeeperClient(zkUtil.getZooKeeperConnectString(),
                 timeout, new HashSet<Watcher>(), retryPolicy);
-        Assert.assertTrue("Client failed to connect an alive ZooKeeper.", client.getState().isConnected());
+        assertTrue(client.getState().isConnected(), "Client failed to connect an alive ZooKeeper.");
 
         String path = "/testACLSetAndGet";
         byte[] data = "test".getBytes();
@@ -323,7 +329,7 @@ public abstract class TestZooKeeperClient extends TestCase {
         client.create(path, data, setACLList, CreateMode.PERSISTENT);
         Stat status = new Stat();
         List<ACL> receivedACLList = client.getACL(path, status);
-        Assert.assertEquals("Test1 - ACLs are expected to match", setACLList, receivedACLList);
+        assertEquals(setACLList, receivedACLList, "Test1 - ACLs are expected to match");
 
         // update node's ACL and call getACL to verify the received ACL
         setACLList.clear();
@@ -331,7 +337,7 @@ public abstract class TestZooKeeperClient extends TestCase {
         setACLList.addAll(Ids.READ_ACL_UNSAFE);
         status = client.setACL(path, setACLList, status.getAversion());
         receivedACLList = client.getACL(path, status);
-        Assert.assertEquals("Test2 - ACLs are expected to match", setACLList, receivedACLList);
+        assertEquals(setACLList, receivedACLList, "Test2 - ACLs are expected to match");
 
         // update node's ACL by calling async setACL and call async getACL to verify the received ACL
         setACLList.clear();
@@ -350,7 +356,7 @@ public abstract class TestZooKeeperClient extends TestCase {
         }, latch);
         latch.await(3000, TimeUnit.MILLISECONDS);
         if (rcArray[0] != KeeperException.Code.OK.intValue()) {
-            Assert.fail("Test3 - SetACL call failed because of exception - " + KeeperException.Code.get(rcArray[0]));
+            fail("Test3 - SetACL call failed because of exception - " + KeeperException.Code.get(rcArray[0]));
         }
         status = statArray[0];
         latch = new CountDownLatch(1);
@@ -370,22 +376,22 @@ public abstract class TestZooKeeperClient extends TestCase {
         }, latch);
         latch.await(3000, TimeUnit.MILLISECONDS);
         if (rcArray[0] != KeeperException.Code.OK.intValue()) {
-            Assert.fail("Test4 - GetACL call failed because of exception - " + KeeperException.Code.get(rcArray[0]));
+            fail("Test4 - GetACL call failed because of exception - " + KeeperException.Code.get(rcArray[0]));
         }
         status = statArray[0];
         receivedACLList = aclListArray.get(0);
-        Assert.assertEquals("Test5 - ACLs are expected to match", setACLList, receivedACLList);
+        assertEquals(setACLList, receivedACLList, "Test5 - ACLs are expected to match");
 
         // delete the node
         client.delete(path, status.getVersion());
     }
 
     @Test
-    public void testACLSetAndGetAfterSessionExpiry() throws Exception {
+    public void aclSetAndGetAfterSessionExpiry() throws Exception {
         final int timeout = 2000;
         ZooKeeperClient client = ZooKeeperClient.createConnectedZooKeeperClient(zkUtil.getZooKeeperConnectString(),
                 timeout, new HashSet<Watcher>(), retryPolicy);
-        Assert.assertTrue("Client failed to connect an alive ZooKeeper.", client.getState().isConnected());
+        assertTrue(client.getState().isConnected(), "Client failed to connect an alive ZooKeeper.");
 
         String path = "/testACLSetAndGetAfterSessionExpiry";
         byte[] data = "test".getBytes();
@@ -402,7 +408,7 @@ public abstract class TestZooKeeperClient extends TestCase {
         // call getACL and verify if it returns the previously set ACL
         Stat status = new Stat();
         List<ACL> receivedACLList = client.getACL(path, status);
-        Assert.assertEquals("Test1 - ACLs are expected to match", setACLList, receivedACLList);
+        assertEquals(setACLList, receivedACLList, "Test1 - ACLs are expected to match");
 
         // update ACL of that node
         setACLList.clear();
@@ -415,7 +421,7 @@ public abstract class TestZooKeeperClient extends TestCase {
 
         // call getACL and verify if it returns the previously set ACL
         receivedACLList = client.getACL(path, status);
-        Assert.assertEquals("Test2 - ACLs are expected to match", setACLList, receivedACLList);
+        assertEquals(setACLList, receivedACLList, "Test2 - ACLs are expected to match");
 
         // update the ACL of node by calling async setACL
         setACLList.clear();
@@ -434,7 +440,7 @@ public abstract class TestZooKeeperClient extends TestCase {
         }, latch);
         latch.await(3000, TimeUnit.MILLISECONDS);
         if (rcArray[0] != KeeperException.Code.OK.intValue()) {
-            Assert.fail("Test3 - SetACL call failed because of exception - " + KeeperException.Code.get(rcArray[0]));
+            fail("Test3 - SetACL call failed because of exception - " + KeeperException.Code.get(rcArray[0]));
         }
         status = statArray[0];
 
@@ -457,24 +463,24 @@ public abstract class TestZooKeeperClient extends TestCase {
             }
 
         }, latch);
-        Assert.assertTrue("getACL operation should have completed successfully",
-                latch.await(6000, TimeUnit.MILLISECONDS));
+        assertTrue(latch.await(6000, TimeUnit.MILLISECONDS),
+                "getACL operation should have completed successfully");
         if (rcArray[0] != KeeperException.Code.OK.intValue()) {
-            Assert.fail("Test4 - GetACL call failed because of exception - " + KeeperException.Code.get(rcArray[0]));
+            fail("Test4 - GetACL call failed because of exception - " + KeeperException.Code.get(rcArray[0]));
         }
         status = statArray[0];
         receivedACLList = aclListArray.get(0);
-        Assert.assertEquals("Test5 - ACLs are expected to match", setACLList, receivedACLList);
+        assertEquals(setACLList, receivedACLList, "Test5 - ACLs are expected to match");
 
         client.delete(path, status.getVersion());
     }
 
     @Test
-    public void testZnodeExists() throws Exception {
+    public void znodeExists() throws Exception {
         final int timeout = 2000;
         ZooKeeperClient client = ZooKeeperClient.createConnectedZooKeeperClient(zkUtil.getZooKeeperConnectString(),
                 timeout, new HashSet<Watcher>(), retryPolicy);
-        Assert.assertTrue("Client failed to connect an alive ZooKeeper.", client.getState().isConnected());
+        assertTrue(client.getState().isConnected(), "Client failed to connect an alive ZooKeeper.");
 
         String path = "/testZnodeExists";
         byte[] data = "test".getBytes();
@@ -496,12 +502,12 @@ public abstract class TestZooKeeperClient extends TestCase {
                 }
             }
         });
-        Assert.assertNotNull("node with path " + path + " should exists", stat);
+        assertNotNull(stat, "node with path " + path + " should exists");
 
         // now delete the znode and verify if the Watcher is called
         client.delete(path, stat.getVersion());
         latch.await(5000, TimeUnit.MILLISECONDS);
-        Assert.assertTrue("The watcher on the node should have been called", isDeleted.get());
+        assertTrue(isDeleted.get(), "The watcher on the node should have been called");
 
         // calling async exists method and verifying the return values
         CountDownLatch latch2 = new CountDownLatch(1);
@@ -518,19 +524,19 @@ public abstract class TestZooKeeperClient extends TestCase {
         }, latch2);
         latch2.await(3000, TimeUnit.MILLISECONDS);
         if (rcArray[0] != KeeperException.Code.NONODE.intValue()) {
-            Assert.fail("exists call is supposed to return NONODE rcvalue, but it returned - "
+            fail("exists call is supposed to return NONODE rcvalue, but it returned - "
                     + KeeperException.Code.get(rcArray[0]));
         }
-        Assert.assertTrue("exists is supposed to return null for Stat,"
-                + " since the node is already deleted", statIsnull[0]);
+        assertTrue(statIsnull[0], "exists is supposed to return null for Stat,"
+                + " since the node is already deleted");
     }
 
     @Test
-    public void testGetSetData() throws Exception {
+    public void getSetData() throws Exception {
         final int timeout = 2000;
         ZooKeeperClient client = ZooKeeperClient.createConnectedZooKeeperClient(zkUtil.getZooKeeperConnectString(),
                 timeout, new HashSet<Watcher>(), retryPolicy);
-        Assert.assertTrue("Client failed to connect an alive ZooKeeper.", client.getState().isConnected());
+        assertTrue(client.getState().isConnected(), "Client failed to connect an alive ZooKeeper.");
 
         String path = "/testGetSetData";
         byte[] data = "test".getBytes();
@@ -554,9 +560,9 @@ public abstract class TestZooKeeperClient extends TestCase {
         }, latch);
         latch.await(3000, TimeUnit.MILLISECONDS);
         if (rcArray[0] != KeeperException.Code.OK.intValue()) {
-            Assert.fail("Test1 - getData call failed because of exception - " + KeeperException.Code.get(rcArray[0]));
+            fail("Test1 - getData call failed because of exception - " + KeeperException.Code.get(rcArray[0]));
         }
-        Assert.assertArrayEquals("Test1 - getData output - ", data, dataArray[0]);
+        assertArrayEquals(data, dataArray[0], "Test1 - getData output - ");
         Stat stat = statArray[0];
 
         // expire the ZKClient session and then call async setData with new data
@@ -572,16 +578,16 @@ public abstract class TestZooKeeperClient extends TestCase {
                 cdlatch.countDown();
             }
         }, latch);
-        Assert.assertTrue("setData operation should have completed successfully",
-                latch.await(6000, TimeUnit.MILLISECONDS));
+        assertTrue(latch.await(6000, TimeUnit.MILLISECONDS),
+                "setData operation should have completed successfully");
         if (rcArray[0] != KeeperException.Code.OK.intValue()) {
-            Assert.fail("Test2 - setData call failed because of exception - " + KeeperException.Code.get(rcArray[0]));
+            fail("Test2 - setData call failed because of exception - " + KeeperException.Code.get(rcArray[0]));
         }
         stat = statArray[0];
 
         // call getData
         byte[] getDataRet = client.getData(path, null, stat);
-        Assert.assertArrayEquals("Test3 - getData output - ", data, getDataRet);
+        assertArrayEquals(data, getDataRet, "Test3 - getData output - ");
 
         // call setdata and then async getData call
         data = "newesttest".getBytes();
@@ -599,20 +605,20 @@ public abstract class TestZooKeeperClient extends TestCase {
         }, latch);
         latch.await(3000, TimeUnit.MILLISECONDS);
         if (rcArray[0] != KeeperException.Code.OK.intValue()) {
-            Assert.fail("Test4 - getData call failed because of exception - " + KeeperException.Code.get(rcArray[0]));
+            fail("Test4 - getData call failed because of exception - " + KeeperException.Code.get(rcArray[0]));
         }
-        Assert.assertArrayEquals("Test4 - getData output - ", data, dataArray[0]);
+        assertArrayEquals(data, dataArray[0], "Test4 - getData output - ");
         stat = statArray[0];
 
         client.delete(path, stat.getVersion());
     }
 
     @Test
-    public void testGetChildren() throws Exception {
+    public void getChildren() throws Exception {
         final int timeout = 2000;
         ZooKeeperClient client = ZooKeeperClient.createConnectedZooKeeperClient(zkUtil.getZooKeeperConnectString(),
                 timeout, new HashSet<Watcher>(), retryPolicy);
-        Assert.assertTrue("Client failed to connect an alive ZooKeeper.", client.getState().isConnected());
+        assertTrue(client.getState().isConnected(), "Client failed to connect an alive ZooKeeper.");
 
         // create a root node
         String root = "/testGetChildren";
@@ -633,7 +639,7 @@ public abstract class TestZooKeeperClient extends TestCase {
         // call getChildren method and verify its return value
         Stat rootStat = new Stat();
         List<String> children = client.getChildren(root, null, rootStat);
-        Assert.assertEquals("Test1 - children size", 2, children.size());
+        assertEquals(2, children.size(), "Test1 - children size");
 
         // create a child3 node
         String child3 = root + "/" + "child3";
@@ -643,7 +649,7 @@ public abstract class TestZooKeeperClient extends TestCase {
 
         // call getChildren method and verify its return value
         children = client.getChildren(root, true, rootStat);
-        Assert.assertEquals("Test2 - children size", 3, children.size());
+        assertEquals(3, children.size(), "Test2 - children size");
 
         // call async getChildren method and verify its return value
         CountDownLatch latch = new CountDownLatch(1);
@@ -662,10 +668,10 @@ public abstract class TestZooKeeperClient extends TestCase {
         }, latch);
         latch.await(3000, TimeUnit.MILLISECONDS);
         if (rcArray[0] != KeeperException.Code.OK.intValue()) {
-            Assert.fail(
+            fail(
                     "Test3 - getChildren call failed because of exception - " + KeeperException.Code.get(rcArray[0]));
         }
-        Assert.assertEquals("Test3 - children size", 3, childrenCount[0]);
+        assertEquals(3, childrenCount[0], "Test3 - children size");
         rootStat = statArray[0];
 
         // call async getChildren method and verify its return value
@@ -682,10 +688,10 @@ public abstract class TestZooKeeperClient extends TestCase {
         }, latch);
         latch.await(3000, TimeUnit.MILLISECONDS);
         if (rcArray[0] != KeeperException.Code.OK.intValue()) {
-            Assert.fail(
+            fail(
                     "Test4 - getChildren call failed because of exception - " + KeeperException.Code.get(rcArray[0]));
         }
-        Assert.assertEquals("Test4 - children size", 3, childrenCount[0]);
+        assertEquals(3, childrenCount[0], "Test4 - children size");
         rootStat = statArray[0];
 
         // expire the ZKClient session and then call async setData with new data
@@ -693,7 +699,7 @@ public abstract class TestZooKeeperClient extends TestCase {
 
         // this is after previous session expiry. call getChildren method and verify its return value
         children = client.getChildren(root, null, rootStat);
-        Assert.assertEquals("Test5 - children size", 3, children.size());
+        assertEquals(3, children.size(), "Test5 - children size");
 
         // create a child4 node
         String child4 = root + "/" + "child4";
@@ -715,10 +721,10 @@ public abstract class TestZooKeeperClient extends TestCase {
         }, latch);
         latch.await(3000, TimeUnit.MILLISECONDS);
         if (rcArray[0] != KeeperException.Code.OK.intValue()) {
-            Assert.fail(
+            fail(
                     "Test6 - getChildren call failed because of exception - " + KeeperException.Code.get(rcArray[0]));
         }
-        Assert.assertEquals("Test6 - children size", 4, childrenCount[0]);
+        assertEquals(4, childrenCount[0], "Test6 - children size");
         rootStat = statArray[0];
 
         // expire the ZKClient session and then call async setData with new data
@@ -726,11 +732,11 @@ public abstract class TestZooKeeperClient extends TestCase {
 
         // call getChildren method and verify its return value
         children = client.getChildren(root, null);
-        Assert.assertEquals("Test7 - children size", 4, children.size());
+        assertEquals(4, children.size(), "Test7 - children size");
 
         // call getChildren method and verify its return value
         children = client.getChildren(root, true);
-        Assert.assertEquals("Test8 - children size", 4, children.size());
+        assertEquals(4, children.size(), "Test8 - children size");
 
         // call async getChildren method and verify its return value
         latch = new CountDownLatch(1);
@@ -746,19 +752,19 @@ public abstract class TestZooKeeperClient extends TestCase {
         }, latch);
         latch.await(3000, TimeUnit.MILLISECONDS);
         if (rcArray[0] != KeeperException.Code.OK.intValue()) {
-            Assert.fail(
+            fail(
                     "Test9 - getChildren call failed because of exception - " + KeeperException.Code.get(rcArray[0]));
         }
-        Assert.assertEquals("Test9 - children size", 4, childrenCount[0]);
+        assertEquals(4, childrenCount[0], "Test9 - children size");
     }
 
     @Test
-    public void testRetryOnCreatingEphemeralZnode() throws Exception {
+    public void retryOnCreatingEphemeralZnode() throws Exception {
         final int timeout = 2000;
         ZooKeeperClient client = ZooKeeperClient.createConnectedZooKeeperClient(
                 zkUtil.getZooKeeperConnectString(), timeout, new HashSet<Watcher>(), retryPolicy);
-        Assert.assertTrue("Client failed to connect an alive ZooKeeper.",
-                client.getState().isConnected());
+        assertTrue(client.getState().isConnected(),
+                "Client failed to connect an alive ZooKeeper.");
 
         String path = "/a";
         byte[] data = "test".getBytes();
@@ -774,12 +780,12 @@ public abstract class TestZooKeeperClient extends TestCase {
     }
 
     @Test
-    public void testRetryAsyncOperations() throws Exception {
+    public void retryAsyncOperations() throws Exception {
         final int timeout = 2000;
         ZooKeeperClient client = ZooKeeperClient.createConnectedZooKeeperClient(
                 zkUtil.getZooKeeperConnectString(), timeout, new HashSet<Watcher>(), retryPolicy);
-        Assert.assertTrue("Client failed to connect an alive ZooKeeper.",
-                client.getState().isConnected());
+        assertTrue(client.getState().isConnected(),
+                "Client failed to connect an alive ZooKeeper.");
 
         String path = "/a";
         byte[] data = "test".getBytes();
@@ -874,9 +880,9 @@ public abstract class TestZooKeeperClient extends TestCase {
 
         }, null);
         getChildLatch.await();
-        Assert.assertNotNull(children.get());
-        Assert.assertEquals(1, children.get().size());
-        Assert.assertEquals("children", children.get().get(0));
+        assertNotNull(children.get());
+        assertEquals(1, children.get().size());
+        assertEquals("children", children.get().get(0));
         logger.info("Get children under znode " + path);
 
         expireZooKeeperSession(client, timeout);

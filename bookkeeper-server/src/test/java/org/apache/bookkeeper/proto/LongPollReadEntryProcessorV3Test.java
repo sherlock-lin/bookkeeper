@@ -40,34 +40,32 @@ import org.apache.bookkeeper.proto.BookkeeperProtocol.ProtocolVersion;
 import org.apache.bookkeeper.proto.BookkeeperProtocol.ReadRequest;
 import org.apache.bookkeeper.proto.BookkeeperProtocol.Request;
 import org.apache.bookkeeper.stats.NullStatsLogger;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 
 /**
  * Unit test {@link LongPollReadEntryProcessorV3}.
  */
-public class LongPollReadEntryProcessorV3Test {
+class LongPollReadEntryProcessorV3Test {
     ExecutorService executor;
     HashedWheelTimer timer;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         executor = Executors.newSingleThreadExecutor();
         timer = new HashedWheelTimer();
     }
 
-    @After
-    public void teardown() {
+    @AfterEach
+    void teardown() {
         timer.stop();
         executor.shutdownNow();
     }
 
     @Test
-    public void testWatchIsCancelledOnTimeout() throws Exception {
+    void watchIsCancelledOnTimeout() throws Exception {
         Request request = Request.newBuilder()
             .setHeader(BKPacketHeader.newBuilder()
                        .setTxnId(System.currentTimeMillis())

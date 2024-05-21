@@ -21,9 +21,9 @@
 package org.apache.bookkeeper.sasl;
 
 import static org.apache.bookkeeper.sasl.SaslConstants.JAAS_CLIENT_ALLOWED_IDS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.util.Arrays;
@@ -38,8 +38,8 @@ import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.proto.BookieServer;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.AfterClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,8 +102,8 @@ public class MD5DigestBookKeeperTest extends BookKeeperClusterTestCase {
             int count = 0;
             while (e.hasMoreElements()) {
                 count++;
-                assertTrue("Should match what we wrote",
-                    Arrays.equals(e.nextElement().getEntry(), ENTRY));
+                assertTrue(Arrays.equals(e.nextElement().getEntry(), ENTRY),
+                    "Should match what we wrote");
             }
             return count;
         }
@@ -113,7 +113,7 @@ public class MD5DigestBookKeeperTest extends BookKeeperClusterTestCase {
      * Test an connection will authorize with a single message to the server and a single response.
      */
     @Test
-    public void testSingleMessageAuth() throws Exception {
+    void singleMessageAuth() throws Exception {
         ServerConfiguration bookieConf = newServerConfiguration();
         bookieConf.setBookieAuthProviderFactoryClass(
             SASLBookieAuthProviderFactory.class.getName());
@@ -129,15 +129,15 @@ public class MD5DigestBookKeeperTest extends BookKeeperClusterTestCase {
         connectAndWriteToBookie(clientConf, ledgerId); // should succeed
 
         assertFalse(ledgerId.get() == -1);
-        assertEquals("Should have entry", 1, entryCount(ledgerId.get(), bookieConf, clientConf));
+        assertEquals(1, entryCount(ledgerId.get(), bookieConf, clientConf), "Should have entry");
     }
 
     BookieServer startAndStoreBookie(ServerConfiguration conf) throws Exception {
         return startAndAddBookie(conf).getServer();
     }
 
-    @AfterClass
-    public static void resetJAAS() {
+    @AfterAll
+    static void resetJAAS() {
         System.clearProperty("java.security.auth.login.config");
         Configuration.getConfiguration().refresh();
     }

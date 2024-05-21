@@ -22,11 +22,11 @@ package org.apache.bookkeeper.client;
 
 import static org.apache.bookkeeper.client.BookKeeperClientStats.CLIENT_SCOPE;
 import static org.apache.bookkeeper.client.BookKeeperClientStats.SPECULATIVE_READ_COUNT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.BitSet;
 import java.util.Enumeration;
@@ -42,7 +42,7 @@ import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.test.TestStatsProvider;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,7 +132,7 @@ public class TestSpeculativeBatchRead extends BookKeeperClusterTestCase {
      *   non spec client should hang.
      */
     @Test
-    public void testSpeculativeRead() throws Exception {
+    void speculativeRead() throws Exception {
         long id = getLedgerToRead(3, 2);
         BookKeeperTestClient bknospec = createClient(0); // disabled
         BookKeeperTestClient bkspec = createClient(2000);
@@ -164,16 +164,16 @@ public class TestSpeculativeBatchRead extends BookKeeperClusterTestCase {
             nospeccb.expectTimeout(4000);
             // Check that the second bookie is registered as slow at entryId 1
             RackawareEnsemblePlacementPolicy rep = (RackawareEnsemblePlacementPolicy) bkspec.getPlacementPolicy();
-            assertTrue(rep.slowBookies.asMap().size() == 1);
+            assertEquals(1, rep.slowBookies.asMap().size());
 
             assertTrue(
-                    "Stats should not reflect speculative reads if disabled",
                     bknospec.getTestStatsProvider()
-                            .getCounter(CLIENT_SCOPE + "." + SPECULATIVE_READ_COUNT).get() == 0);
+                            .getCounter(CLIENT_SCOPE + "." + SPECULATIVE_READ_COUNT).get() == 0,
+                    "Stats should not reflect speculative reads if disabled");
             assertTrue(
-                    "Stats should reflect speculative reads",
                     bkspec.getTestStatsProvider()
-                            .getCounter(CLIENT_SCOPE + "." + SPECULATIVE_READ_COUNT).get() > 0);
+                            .getCounter(CLIENT_SCOPE + "." + SPECULATIVE_READ_COUNT).get() > 0,
+                    "Stats should reflect speculative reads");
         } finally {
             sleepLatch.countDown();
             lspec.close();
@@ -188,7 +188,7 @@ public class TestSpeculativeBatchRead extends BookKeeperClusterTestCase {
      * size is larger than the number of down replicas.
      */
     @Test
-    public void testSpeculativeReadMultipleReplicasDown() throws Exception {
+    void speculativeReadMultipleReplicasDown() throws Exception {
         long id = getLedgerToRead(5, 5);
         int timeout = 5000;
         BookKeeper bkspec = createClient(timeout);
@@ -215,9 +215,9 @@ public class TestSpeculativeBatchRead extends BookKeeperClusterTestCase {
             latch1.expectTimeout(timeout);
             latch1.expectSuccess(timeout * 2);
             LOG.info("Timeout {} latch1 duration {}", timeout, latch1.getDuration());
-            assertTrue("should have taken longer than two timeouts, but less than 3",
-                       latch1.getDuration() >= timeout * 2
-                       && latch1.getDuration() < timeout * 3);
+            assertTrue(latch1.getDuration() >= timeout * 2
+                       && latch1.getDuration() < timeout * 3,
+                       "should have taken longer than two timeouts, but less than 3");
 
             // bookies 1 & 2 should be registered as slow bookies because of speculative reads
             Set<BookieId> expectedSlowBookies = new HashSet<>();
@@ -245,9 +245,9 @@ public class TestSpeculativeBatchRead extends BookKeeperClusterTestCase {
             latch4.expectTimeout(timeout / 2);
             latch4.expectSuccess(timeout);
             LOG.info("Timeout {} latch4 duration {}", timeout, latch4.getDuration());
-            assertTrue("should have taken longer than one timeout, but less than 2",
-                       latch4.getDuration() >= timeout
-                       && latch4.getDuration() < timeout * 2);
+            assertTrue(latch4.getDuration() >= timeout
+                       && latch4.getDuration() < timeout * 2,
+                       "should have taken longer than one timeout, but less than 2");
         } finally {
             sleepLatch.countDown();
             l.close();
@@ -260,7 +260,7 @@ public class TestSpeculativeBatchRead extends BookKeeperClusterTestCase {
      * nothing bad happens.
      */
     @Test
-    public void testSpeculativeReadFirstReadCompleteIsOk() throws Exception {
+    void speculativeReadFirstReadCompleteIsOk() throws Exception {
         long id = getLedgerToRead(2, 2);
         int timeout = 1000;
         BookKeeper bkspec = createClient(timeout);
@@ -303,7 +303,7 @@ public class TestSpeculativeBatchRead extends BookKeeperClusterTestCase {
      * on successful read.
      */
     @Test
-    public void testSpeculativeReadScheduledTaskCancel() throws Exception {
+    void speculativeReadScheduledTaskCancel() throws Exception {
         long id = getLedgerToRead(3, 2);
         int timeout = 1000;
         BookKeeper bkspec = createClient(timeout);
@@ -314,7 +314,7 @@ public class TestSpeculativeBatchRead extends BookKeeperClusterTestCase {
             op.initiate();
             op.future().get();
         } finally {
-            assertNull("Speculative Read tasks must be null", op.getSpeculativeTask());
+            assertNull(op.getSpeculativeTask(), "Speculative Read tasks must be null");
         }
     }
 
@@ -322,7 +322,7 @@ public class TestSpeculativeBatchRead extends BookKeeperClusterTestCase {
      * Unit test for the speculative read scheduling method.
      */
     @Test
-    public void testSpeculativeReadScheduling() throws Exception {
+    void speculativeReadScheduling() throws Exception {
         long id = getLedgerToRead(3, 2);
         int timeout = 1000;
         BookKeeper bkspec = createClient(timeout);
@@ -343,26 +343,22 @@ public class TestSpeculativeBatchRead extends BookKeeperClusterTestCase {
             // if we've already heard from all hosts,
             // we only send the initial read
             req0 = op.new SequenceReadRequest(ensemble, l.getId(), 0, 1, 1024);
-            assertTrue("Should have sent to first",
-                       req0.maybeSendSpeculativeRead(allHosts).equals(ensemble.get(0)));
-            assertNull("Should not have sent another",
-                       req0.maybeSendSpeculativeRead(allHosts));
+            assertEquals(req0.maybeSendSpeculativeRead(allHosts), ensemble.get(0), "Should have sent to first");
+            assertNull(req0.maybeSendSpeculativeRead(allHosts),
+                       "Should not have sent another");
 
             // if we have heard from some hosts, but not one we have sent to
             // send again
             req2 = op.new SequenceReadRequest(ensemble, l.getId(), 2, 1, 1024);
-            assertTrue("Should have sent to third",
-                       req2.maybeSendSpeculativeRead(noHost).equals(ensemble.get(2)));
-            assertTrue("Should have sent to first",
-                       req2.maybeSendSpeculativeRead(secondHostOnly).equals(ensemble.get(0)));
+            assertEquals(req2.maybeSendSpeculativeRead(noHost), ensemble.get(2), "Should have sent to third");
+            assertEquals(req2.maybeSendSpeculativeRead(secondHostOnly), ensemble.get(0), "Should have sent to first");
 
             // if we have heard from some hosts, which includes one we sent to
             // do not read again
             req4 = op.new SequenceReadRequest(ensemble, l.getId(), 4, 1, 1024);
-            assertTrue("Should have sent to second",
-                       req4.maybeSendSpeculativeRead(noHost).equals(ensemble.get(1)));
-            assertNull("Should not have sent another",
-                       req4.maybeSendSpeculativeRead(secondHostOnly));
+            assertEquals(req4.maybeSendSpeculativeRead(noHost), ensemble.get(1), "Should have sent to second");
+            assertNull(req4.maybeSendSpeculativeRead(secondHostOnly),
+                       "Should not have sent another");
         } finally {
             for (BatchedReadOp.LedgerEntryRequest req
                      : new BatchedReadOp.LedgerEntryRequest[] { req0, req2, req4 }) {
@@ -374,7 +370,7 @@ public class TestSpeculativeBatchRead extends BookKeeperClusterTestCase {
                         }
                         Thread.sleep(1000);
                     }
-                    assertTrue("Request should be done", req.isComplete());
+                    assertTrue(req.isComplete(), "Request should be done");
                 }
             }
 
@@ -384,7 +380,7 @@ public class TestSpeculativeBatchRead extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testSequenceReadLocalEnsemble() throws Exception {
+    void sequenceReadLocalEnsemble() throws Exception {
         ClientConfiguration conf = new ClientConfiguration()
                 .setSpeculativeReadTimeout(1000)
                 .setEnsemblePlacementPolicy(LocalBookieEnsemblePlacementPolicy.class)

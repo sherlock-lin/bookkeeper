@@ -18,7 +18,7 @@
 package org.apache.bookkeeper.replication;
 
 import static org.apache.bookkeeper.replication.ReplicationStats.AUDITOR_SCOPE;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -48,13 +48,13 @@ import org.apache.bookkeeper.stats.OpStatsLogger;
 import org.apache.bookkeeper.test.TestStatsProvider;
 import org.apache.bookkeeper.versioning.LongVersion;
 import org.apache.bookkeeper.versioning.Versioned;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test {@link AuditorBookieCheckTask}.
  */
-public class AuditorBookieCheckTaskTest {
+class AuditorBookieCheckTaskTest {
 
     private AuditorStats auditorStats;
     private BookKeeperAdmin admin;
@@ -66,8 +66,8 @@ public class AuditorBookieCheckTaskTest {
     private final AuditorTask.ShutdownTaskHandler shutdownTaskHandler = () -> shutdownCompleted.set(true);
     private long startLedgerId = 0;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         ServerConfiguration conf = mock(ServerConfiguration.class);
         TestStatsProvider statsProvider = new TestStatsProvider();
         TestStatsProvider.TestStatsLogger statsLogger = statsProvider.getStatsLogger(AUDITOR_SCOPE);
@@ -84,18 +84,18 @@ public class AuditorBookieCheckTaskTest {
     }
 
     @Test
-    public void testShutdownAuditBookiesException()
+    void shutdownAuditBookiesException()
             throws BKException, ReplicationException.BKAuditException, InterruptedException {
         doThrow(new ReplicationException.BKAuditException("test failed"))
                 .when(bookieCheckTask)
                 .auditBookies();
         bookieCheckTask.startAudit(true);
 
-        assertTrue("shutdownTaskHandler should be execute.", shutdownCompleted.get());
+        assertTrue(shutdownCompleted.get(), "shutdownTaskHandler should be execute.");
     }
 
     @Test
-    public void testAuditBookies()
+    void auditBookies()
             throws ReplicationException.UnavailableException, ReplicationException.BKAuditException, BKException {
         final String bookieId1 = "127.0.0.1:1000";
         final String bookieId2 = "127.0.0.1:1001";

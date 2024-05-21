@@ -27,22 +27,18 @@ import org.apache.bookkeeper.test.ZooKeeperCluster;
 import org.apache.bookkeeper.test.ZooKeeperClusterUtil;
 import org.apache.bookkeeper.test.ZooKeeperUtil;
 import org.apache.zookeeper.KeeperException;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 /**
  * Test zk client resiliency with ExponentialBackOffWithDeadlinePolicy.
  */
-@RunWith(Parameterized.class)
 public class TestZKClientExpBackoffWithDeadlineRP extends TestZooKeeperClient {
 
-    public TestZKClientExpBackoffWithDeadlineRP(Class<? extends ZooKeeperCluster> zooKeeperUtilClass,
+    public void initTestZKClientExpBackoffWithDeadlineRP(Class<? extends ZooKeeperCluster> zooKeeperUtilClass,
                                                 Class<? extends RetryPolicy> retryPolicyClass)
             throws IOException, KeeperException, InterruptedException {
         super(zooKeeperUtilClass, retryPolicyClass);
     }
 
-    @Parameterized.Parameters
     public static Collection<Object[]> zooKeeperUtilClass() {
         return Arrays.asList(new Object[][] { { ZooKeeperUtil.class, ExponentialBackOffWithDeadlinePolicy.class },
                 { ZooKeeperClusterUtil.class, ExponentialBackOffWithDeadlinePolicy.class } });

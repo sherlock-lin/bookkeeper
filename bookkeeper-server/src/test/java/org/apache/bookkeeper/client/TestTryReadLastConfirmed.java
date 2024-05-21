@@ -17,9 +17,9 @@
  */
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +47,7 @@ public class TestTryReadLastConfirmed extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testTryReadLACWhenAllBookiesUp() throws Exception {
+    void tryReadLACWhenAllBookiesUp() throws Exception {
         final int numEntries = 3;
 
         final LedgerHandle lh = bkc.createLedger(3, 3, 1, digestType, "".getBytes());
@@ -75,7 +75,7 @@ public class TestTryReadLastConfirmed extends BookKeeperClusterTestCase {
         latch1.await();
         TimeUnit.SECONDS.sleep(2);
         assertTrue(success.get());
-        assertTrue(numCallbacks.get() == 1);
+        assertEquals(1, numCallbacks.get());
         assertEquals(numEntries - 2, readLh.getLastAddConfirmed());
         // try read last confirmed again
         success.set(false);
@@ -96,7 +96,7 @@ public class TestTryReadLastConfirmed extends BookKeeperClusterTestCase {
         latch2.await();
         TimeUnit.SECONDS.sleep(2);
         assertTrue(success.get());
-        assertTrue(numCallbacks.get() == 1);
+        assertEquals(1, numCallbacks.get());
         assertEquals(numEntries - 2, readLh.getLastAddConfirmed());
 
         lh.close();
@@ -104,7 +104,7 @@ public class TestTryReadLastConfirmed extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testTryReadLaCWhenSomeBookiesDown() throws Exception {
+    void tryReadLaCWhenSomeBookiesDown() throws Exception {
         final int numEntries = 3;
         final int ensembleSize = 3;
         final LedgerHandle lh = bkc.createLedger(ensembleSize, 1, 1, digestType, "".getBytes());
@@ -139,7 +139,7 @@ public class TestTryReadLastConfirmed extends BookKeeperClusterTestCase {
             }, null);
             latch.await();
             assertTrue(success.get());
-            assertTrue(numCallbacks.get() == 1);
+            assertEquals(1, numCallbacks.get());
 
             // start the bookies
             for (ServerConfiguration conf : confs) {
@@ -151,7 +151,7 @@ public class TestTryReadLastConfirmed extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testTryReadLACWhenAllBookiesDown() throws Exception {
+    void tryReadLACWhenAllBookiesDown() throws Exception {
         final int numEntries = 2;
         final int ensembleSize = 3;
         final LedgerHandle lh = bkc.createLedger(ensembleSize, 1, 1, digestType, "".getBytes());
@@ -183,7 +183,7 @@ public class TestTryReadLastConfirmed extends BookKeeperClusterTestCase {
         latch.await();
         TimeUnit.SECONDS.sleep(2);
         assertFalse(success.get());
-        assertTrue(numCallbacks.get() == 1);
+        assertEquals(1, numCallbacks.get());
 
         lh.close();
         readLh.close();

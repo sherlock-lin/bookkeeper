@@ -20,9 +20,9 @@
  */
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +32,7 @@ import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.proto.BookkeeperInternalCallbacks.ReadEntryListener;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -151,12 +151,12 @@ public class TestReadEntryListener extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testBasicEnableParallelRead() throws Exception {
+    void basicEnableParallelRead() throws Exception {
         basicReadTest(true);
     }
 
     @Test
-    public void testBasicDisableParallelRead() throws Exception {
+    void basicDisableParallelRead() throws Exception {
         basicReadTest(false);
     }
 
@@ -214,12 +214,12 @@ public class TestReadEntryListener extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testReadMissingEntriesEnableParallelRead() throws Exception {
+    void readMissingEntriesEnableParallelRead() throws Exception {
         readMissingEntriesTest(true);
     }
 
     @Test
-    public void testReadMissingEntriesDisableParallelRead() throws Exception {
+    void readMissingEntriesDisableParallelRead() throws Exception {
         readMissingEntriesTest(false);
     }
 
@@ -253,12 +253,12 @@ public class TestReadEntryListener extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testReadWithFailedBookiesEnableParallelRead() throws Exception {
+    void readWithFailedBookiesEnableParallelRead() throws Exception {
         readWithFailedBookiesTest(true);
     }
 
     @Test
-    public void testReadWithFailedBookiesDisableParallelRead() throws Exception {
+    void readWithFailedBookiesDisableParallelRead() throws Exception {
         readWithFailedBookiesTest(false);
     }
 
@@ -297,12 +297,12 @@ public class TestReadEntryListener extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testReadFailureWithFailedBookiesEnableParallelRead() throws Exception {
+    void readFailureWithFailedBookiesEnableParallelRead() throws Exception {
         readFailureWithFailedBookiesTest(true);
     }
 
     @Test
-    public void testReadFailureWithFailedBookiesDisableParallelRead() throws Exception {
+    void readFailureWithFailedBookiesDisableParallelRead() throws Exception {
         readFailureWithFailedBookiesTest(false);
     }
 }

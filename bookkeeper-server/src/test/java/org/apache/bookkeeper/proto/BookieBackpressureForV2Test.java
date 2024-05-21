@@ -20,14 +20,14 @@ package org.apache.bookkeeper.proto;
 
 import org.apache.bookkeeper.client.BookKeeperTestClient;
 import org.apache.bookkeeper.test.TestStatsProvider;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * Tests for bckpressure handling on the server side with V2 protocol.
  */
-public class BookieBackpressureForV2Test extends BookieBackpressureTest {
+class BookieBackpressureForV2Test extends BookieBackpressureTest {
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();

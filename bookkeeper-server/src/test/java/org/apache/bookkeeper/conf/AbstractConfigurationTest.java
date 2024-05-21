@@ -18,7 +18,8 @@
  */
 package org.apache.bookkeeper.conf;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 
@@ -28,13 +29,13 @@ import org.apache.bookkeeper.meta.HierarchicalLedgerManagerFactory;
 import org.apache.bookkeeper.meta.LedgerManagerFactory;
 import org.apache.bookkeeper.meta.LongHierarchicalLedgerManagerFactory;
 import org.apache.commons.configuration.ConfigurationException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test of {@link AbstractConfiguration}.
  */
-public class AbstractConfigurationTest {
+class AbstractConfigurationTest {
 
     private static final String DEFAULT_METADATA_SERVICE_URI =
         "zk+null://127.0.0.1/path/to/ledgers";
@@ -49,72 +50,74 @@ public class AbstractConfigurationTest {
 
     private AbstractConfiguration conf;
 
-    @Before
+    @BeforeEach
     @SuppressWarnings("deprecation")
-    public void setup() {
+    void setup() {
         this.conf = new ClientConfiguration();
         this.conf.setZkServers("127.0.0.1");
         this.conf.setZkLedgersRootPath("/path/to/ledgers");
     }
 
     @Test
-    public void testDefaultServiceUri() throws Exception {
+    void defaultServiceUri() throws Exception {
         assertEquals(
             DEFAULT_METADATA_SERVICE_URI,
             conf.getMetadataServiceUri());
     }
 
     @Test
-    public void testSetMetadataServiceUri() throws Exception {
+    void setMetadataServiceUri() throws Exception {
         assertEquals(
             DEFAULT_METADATA_SERVICE_URI,
             conf.getMetadataServiceUri());
         String serviceUri = "etcd://128.0.0.1/key/prefix";
         conf.setMetadataServiceUri(serviceUri);
         assertEquals(
-            "Service URI should be changed to " + serviceUri,
             serviceUri,
-            conf.getMetadataServiceUri());
+            conf.getMetadataServiceUri(),
+            "Service URI should be changed to " + serviceUri);
     }
 
-    @SuppressWarnings({ "unchecked" })
-    @Test(expected = ConfigurationException.class)
-    public void testUnsupportedLedgerManagerFactory() throws Exception {
-        LedgerManagerFactory mockFactory = mock(LedgerManagerFactory.class, CALLS_REAL_METHODS);
-        conf.setLedgerManagerFactoryClass(mockFactory.getClass());
-        conf.getMetadataServiceUri();
-    }
-
-    @SuppressWarnings({ "deprecation", "unchecked" })
+    @SuppressWarnings({"unchecked"})
     @Test
-    public void testFlatLedgerManagerUri() throws Exception {
+    void unsupportedLedgerManagerFactory() throws Exception {
+        assertThrows(ConfigurationException.class, () -> {
+            LedgerManagerFactory mockFactory = mock(LedgerManagerFactory.class, CALLS_REAL_METHODS);
+            conf.setLedgerManagerFactoryClass(mockFactory.getClass());
+            conf.getMetadataServiceUri();
+        });
+    }
+
+    @SuppressWarnings({"deprecation", "unchecked"})
+    @Test
+    void flatLedgerManagerUri() throws Exception {
         conf.setLedgerManagerFactoryClass(org.apache.bookkeeper.meta.FlatLedgerManagerFactory.class);
         assertEquals(
             FLAT_METADATA_SERVICE_URI,
             conf.getMetadataServiceUri());
     }
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings({"unchecked"})
     @Test
-    public void testHierarchicalLedgerManagerUri() throws Exception {
+    void hierarchicalLedgerManagerUri() throws Exception {
         conf.setLedgerManagerFactoryClass(HierarchicalLedgerManagerFactory.class);
         assertEquals(
             HIERARCHICAL_METADATA_SERVICE_URI,
             conf.getMetadataServiceUri());
     }
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings({"unchecked"})
     @Test
-    public void testLongHierarchicalLedgerManagerUri() throws Exception {
+    void longHierarchicalLedgerManagerUri() throws Exception {
         conf.setLedgerManagerFactoryClass(LongHierarchicalLedgerManagerFactory.class);
         assertEquals(
             LONGHIERARCHICAL_METADATA_SERVICE_URI,
             conf.getMetadataServiceUri());
     }
 
-    @SuppressWarnings({ "unchecked", "deprecation" })
+    @SuppressWarnings({"unchecked", "deprecation"})
     @Test
-    public void testMsLedgerManagerUri() throws Exception {
+    void msLedgerManagerUri() throws Exception {
         conf.setLedgerManagerFactoryClass(
             org.apache.bookkeeper.meta.MSLedgerManagerFactory.class);
         assertEquals(
@@ -122,17 +125,19 @@ public class AbstractConfigurationTest {
             conf.getMetadataServiceUri());
     }
 
-    @SuppressWarnings({ "unchecked" })
-    @Test(expected = IllegalArgumentException.class)
-    public void testUnknownZkLedgerManagerFactory() throws Exception {
-        AbstractZkLedgerManagerFactory mockZkFactory =
-            mock(AbstractZkLedgerManagerFactory.class, CALLS_REAL_METHODS);
-        conf.setLedgerManagerFactoryClass(mockZkFactory.getClass());
-        conf.getMetadataServiceUri();
+    @SuppressWarnings({"unchecked"})
+    @Test
+    void unknownZkLedgerManagerFactory() throws Exception {
+        assertThrows(IllegalArgumentException.class, () -> {
+            AbstractZkLedgerManagerFactory mockZkFactory =
+                    mock(AbstractZkLedgerManagerFactory.class, CALLS_REAL_METHODS);
+            conf.setLedgerManagerFactoryClass(mockZkFactory.getClass());
+            conf.getMetadataServiceUri();
+        });
     }
 
     @Test
-    public void testAllocatorLeakDetectionPolicy() {
+    void allocatorLeakDetectionPolicy() {
         String nettyOldLevelKey = "io.netty.leakDetectionLevel";
         String nettyLevelKey = "io.netty.leakDetection.level";
 

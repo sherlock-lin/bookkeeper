@@ -33,12 +33,12 @@ import io.netty.channel.ChannelOutboundInvoker;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.VoidChannelPromise;
 import java.nio.charset.StandardCharsets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class NettyChannelUtilTest {
+class NettyChannelUtilTest {
 
     @Test
-    public void testWriteAndFlushWithVoidPromise() {
+    void writeAndFlushWithVoidPromise() {
         final ChannelOutboundInvoker ctx = mock(ChannelOutboundInvoker.class);
         final VoidChannelPromise voidChannelPromise = new VoidChannelPromise(mock(Channel.class), true);
         when(ctx.voidPromise()).thenReturn(voidChannelPromise);
@@ -54,7 +54,7 @@ public class NettyChannelUtilTest {
     }
 
     @Test
-    public void testWriteAndFlushWithClosePromise() {
+    void writeAndFlushWithClosePromise() {
         final ChannelOutboundInvoker ctx = mock(ChannelOutboundInvoker.class);
         final ChannelPromise promise = mock(ChannelPromise.class);
 

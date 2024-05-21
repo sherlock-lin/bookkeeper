@@ -20,9 +20,9 @@
  */
 package org.apache.bookkeeper.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,14 +31,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.PrimitiveIterator;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Testsuite for AvailabilityOfEntriesOfLedger.
  */
-public class AvailabilityOfEntriesOfLedgerTest {
+class AvailabilityOfEntriesOfLedgerTest {
     @Test
-    public void testWithItrConstructor() {
+    void withItrConstructor() {
         long[][] arrays = {
                 { 0, 1, 2 },
                 { 1, 2},
@@ -55,17 +55,18 @@ public class AvailabilityOfEntriesOfLedgerTest {
             PrimitiveIterator.OfLong primitiveIterator = Arrays.stream(tempArray).iterator();
             AvailabilityOfEntriesOfLedger availabilityOfEntriesOfLedger = new AvailabilityOfEntriesOfLedger(
                     primitiveIterator);
-            assertEquals("Expected total number of entries", tempArray.length,
-                    availabilityOfEntriesOfLedger.getTotalNumOfAvailableEntries());
+            assertEquals(tempArray.length,
+                    availabilityOfEntriesOfLedger.getTotalNumOfAvailableEntries(),
+                    "Expected total number of entries");
             for (int j = 0; j < tempArray.length; j++) {
-                assertTrue(tempArray[j] + " is supposed to be available",
-                        availabilityOfEntriesOfLedger.isEntryAvailable(tempArray[j]));
+                assertTrue(availabilityOfEntriesOfLedger.isEntryAvailable(tempArray[j]),
+                        tempArray[j] + " is supposed to be available");
             }
         }
     }
 
     @Test
-    public void testWithItrConstructorWithDuplicates() {
+    void withItrConstructorWithDuplicates() {
         long[][] arrays = {
                 { 1, 2, 2, 3 },
                 { 1, 2, 3, 5, 5, 6, 7, 8, 8 },
@@ -84,17 +85,18 @@ public class AvailabilityOfEntriesOfLedgerTest {
             PrimitiveIterator.OfLong primitiveIterator = Arrays.stream(tempArray).iterator();
             AvailabilityOfEntriesOfLedger availabilityOfEntriesOfLedger = new AvailabilityOfEntriesOfLedger(
                     primitiveIterator);
-            assertEquals("Expected total number of entries", tempSet.size(),
-                    availabilityOfEntriesOfLedger.getTotalNumOfAvailableEntries());
+            assertEquals(tempSet.size(),
+                    availabilityOfEntriesOfLedger.getTotalNumOfAvailableEntries(),
+                    "Expected total number of entries");
             for (int j = 0; j < tempArray.length; j++) {
-                assertTrue(tempArray[j] + " is supposed to be available",
-                        availabilityOfEntriesOfLedger.isEntryAvailable(tempArray[j]));
+                assertTrue(availabilityOfEntriesOfLedger.isEntryAvailable(tempArray[j]),
+                        tempArray[j] + " is supposed to be available");
             }
         }
     }
 
     @Test
-    public void testSerializeDeserialize() {
+    void serializeDeserialize() {
         long[][] arrays = {
                 { 0, 1, 2 },
                 { 1, 2 },
@@ -114,17 +116,18 @@ public class AvailabilityOfEntriesOfLedgerTest {
             byte[] serializedState = availabilityOfEntriesOfLedger.serializeStateOfEntriesOfLedger();
             AvailabilityOfEntriesOfLedger availabilityOfEntriesOfLedgerUsingSer = new AvailabilityOfEntriesOfLedger(
                     serializedState);
-            assertEquals("Expected total number of entries", tempArray.length,
-                    availabilityOfEntriesOfLedgerUsingSer.getTotalNumOfAvailableEntries());
+            assertEquals(tempArray.length,
+                    availabilityOfEntriesOfLedgerUsingSer.getTotalNumOfAvailableEntries(),
+                    "Expected total number of entries");
             for (int j = 0; j < tempArray.length; j++) {
-                assertTrue(tempArray[j] + " is supposed to be available",
-                        availabilityOfEntriesOfLedgerUsingSer.isEntryAvailable(tempArray[j]));
+                assertTrue(availabilityOfEntriesOfLedgerUsingSer.isEntryAvailable(tempArray[j]),
+                        tempArray[j] + " is supposed to be available");
             }
         }
     }
 
     @Test
-    public void testSerializeDeserializeWithItrConstructorWithDuplicates() {
+    void serializeDeserializeWithItrConstructorWithDuplicates() {
         long[][] arrays = {
                 { 1, 2, 2, 3 },
                 { 1, 2, 3, 5, 5, 6, 7, 8, 8 },
@@ -146,17 +149,18 @@ public class AvailabilityOfEntriesOfLedgerTest {
             byte[] serializedState = availabilityOfEntriesOfLedger.serializeStateOfEntriesOfLedger();
             AvailabilityOfEntriesOfLedger availabilityOfEntriesOfLedgerUsingSer = new AvailabilityOfEntriesOfLedger(
                     serializedState);
-            assertEquals("Expected total number of entries", tempSet.size(),
-                    availabilityOfEntriesOfLedgerUsingSer.getTotalNumOfAvailableEntries());
+            assertEquals(tempSet.size(),
+                    availabilityOfEntriesOfLedgerUsingSer.getTotalNumOfAvailableEntries(),
+                    "Expected total number of entries");
             for (int j = 0; j < tempArray.length; j++) {
-                assertTrue(tempArray[j] + " is supposed to be available",
-                        availabilityOfEntriesOfLedgerUsingSer.isEntryAvailable(tempArray[j]));
+                assertTrue(availabilityOfEntriesOfLedgerUsingSer.isEntryAvailable(tempArray[j]),
+                        tempArray[j] + " is supposed to be available");
             }
         }
     }
 
     @Test
-    public void testNonExistingEntries() {
+    void nonExistingEntries() {
         long[][] arrays = {
                 { 0, 1, 2 },
                 { 1, 2, 3, 5, 6, 7, 8 },
@@ -186,14 +190,14 @@ public class AvailabilityOfEntriesOfLedgerTest {
                     primitiveIterator);
 
             for (int j = 0; j < nonExistingElementsTempArray.length; j++) {
-                assertFalse(nonExistingElementsTempArray[j] + " is not supposed to be available",
-                        availabilityOfEntriesOfLedger.isEntryAvailable(nonExistingElementsTempArray[j]));
+                assertFalse(availabilityOfEntriesOfLedger.isEntryAvailable(nonExistingElementsTempArray[j]),
+                        nonExistingElementsTempArray[j] + " is not supposed to be available");
             }
         }
     }
 
     @Test
-    public void testGetUnavailableEntries() {
+    void getUnavailableEntries() {
         /*
          * AvailabilityOfEntriesOfLedger is going to be created with this
          * entries. It is equivalent to considering that Bookie has these
@@ -272,15 +276,15 @@ public class AvailabilityOfEntriesOfLedgerTest {
 
             List<Long> actualUnavailableEntries = availabilityOfEntriesOfLedger.getUnavailableEntries(startEntryId,
                     lastEntryId, expectedToContainEntriesBitSet);
-            assertEquals("Unavailable Entries", unavailableEntriesTempList, actualUnavailableEntries);
+            assertEquals(unavailableEntriesTempList, actualUnavailableEntries, "Unavailable Entries");
         }
     }
 
     @Test
-    public void testEmptyAvailabilityOfEntriesOfLedger() {
+    void emptyAvailabilityOfEntriesOfLedger() {
         AvailabilityOfEntriesOfLedger emptyOne = AvailabilityOfEntriesOfLedger.EMPTY_AVAILABILITYOFENTRIESOFLEDGER;
-        assertEquals("expected totalNumOfAvailableEntries", 0, emptyOne.getTotalNumOfAvailableEntries());
-        assertFalse("empty one is not supposed to contain any entry", emptyOne.isEntryAvailable(100L));
+        assertEquals(0, emptyOne.getTotalNumOfAvailableEntries(), "expected totalNumOfAvailableEntries");
+        assertFalse(emptyOne.isEntryAvailable(100L), "empty one is not supposed to contain any entry");
         long startEntryId = 100;
         long lastEntryId = 105;
         BitSet bitSetOfAvailability = new BitSet((int) (lastEntryId - startEntryId + 1));
@@ -290,11 +294,11 @@ public class AvailabilityOfEntriesOfLedgerTest {
             }
         }
         List<Long> unavailableEntries = emptyOne.getUnavailableEntries(startEntryId, lastEntryId, bitSetOfAvailability);
-        assertEquals("Num of unavailable entries", bitSetOfAvailability.cardinality(), unavailableEntries.size());
+        assertEquals(bitSetOfAvailability.cardinality(), unavailableEntries.size(), "Num of unavailable entries");
         for (int i = 0; i < bitSetOfAvailability.length(); i++) {
             long entryId = startEntryId + i;
             if (bitSetOfAvailability.get(i)) {
-                assertTrue("Unavailable entry", unavailableEntries.contains(entryId));
+                assertTrue(unavailableEntries.contains(entryId), "Unavailable entry");
             }
         }
     }

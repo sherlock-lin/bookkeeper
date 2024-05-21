@@ -21,7 +21,7 @@
 package org.apache.bookkeeper.replication;
 
 import static org.apache.bookkeeper.meta.MetadataDrivers.runFunctionWithLedgerManagerFactory;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.UncheckedExecutionException;
@@ -34,9 +34,9 @@ import org.apache.bookkeeper.meta.LedgerManager;
 import org.apache.bookkeeper.meta.LedgerUnderreplicationManager;
 import org.apache.bookkeeper.net.BookieSocketAddress;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +57,7 @@ public class AuditorPeriodicBookieCheckTest extends BookKeeperClusterTestCase {
         baseConf.setPageLimit(1); // to make it easy to push ledger out of cache
     }
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -72,7 +72,7 @@ public class AuditorPeriodicBookieCheckTest extends BookKeeperClusterTestCase {
         auditorElector.start();
     }
 
-    @After
+    @AfterEach
     @Override
     public void tearDown() throws Exception {
         auditorElector.shutdown();
@@ -84,7 +84,7 @@ public class AuditorPeriodicBookieCheckTest extends BookKeeperClusterTestCase {
      * Test that the periodic bookie checker works.
      */
     @Test
-    public void testPeriodicBookieCheckInterval() throws Exception {
+    void periodicBookieCheckInterval() throws Exception {
         confByIndex(0).setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         runFunctionWithLedgerManagerFactory(confByIndex(0), mFactory -> {
             try (LedgerManager ledgerManager = mFactory.newLedgerManager()) {
@@ -106,7 +106,7 @@ public class AuditorPeriodicBookieCheckTest extends BookKeeperClusterTestCase {
                     }
                     Thread.sleep(CHECK_INTERVAL * 1000);
                 }
-                assertEquals("Ledger should be under replicated", ledgerId, underReplicatedLedger);
+                assertEquals(ledgerId, underReplicatedLedger, "Ledger should be under replicated");
             } catch (Exception e) {
                 throw new UncheckedExecutionException(e.getMessage(), e);
             }

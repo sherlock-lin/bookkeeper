@@ -17,7 +17,8 @@
  */
 package org.apache.bookkeeper.util;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -28,23 +29,23 @@ import org.apache.bookkeeper.util.DiskChecker.DiskErrorException;
 import org.apache.bookkeeper.util.DiskChecker.DiskOutOfSpaceException;
 import org.apache.bookkeeper.util.DiskChecker.DiskWarnThresholdException;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test to verify {@link DiskChecker}.
  *
  */
-public class TestDiskChecker {
+class TestDiskChecker {
 
     DiskChecker diskChecker;
 
     final List<File> tempDirs = new ArrayList<File>();
     private static final float THRESHOLD = 0.99f;
 
-    @Before
-    public void setup() throws IOException {
+    @BeforeEach
+    void setup() throws IOException {
         diskChecker = new DiskChecker(THRESHOLD, THRESHOLD);
 
         // Create at least one file so that target disk will never be empty
@@ -56,8 +57,8 @@ public class TestDiskChecker {
         placeHolderStream.close();
     }
 
-    @After
-    public void tearDown() throws Exception {
+    @AfterEach
+    void tearDown() throws Exception {
         for (File dir : tempDirs) {
             FileUtils.deleteDirectory(dir);
         }
@@ -73,59 +74,67 @@ public class TestDiskChecker {
     /**
      * Check the disk full.
      */
-    @Test(expected = DiskOutOfSpaceException.class)
-    public void testCheckDiskFull() throws IOException {
-        File file = createTempDir("DiskCheck", "test");
-        long usableSpace = file.getUsableSpace();
-        long totalSpace = file.getTotalSpace();
-        float threshold = minMaxThreshold((1f - ((float) usableSpace / (float) totalSpace)) - (1.0f - THRESHOLD));
+    @Test
+    void checkDiskFull() throws IOException {
+        assertThrows(DiskOutOfSpaceException.class, () -> {
+            File file = createTempDir("DiskCheck", "test");
+            long usableSpace = file.getUsableSpace();
+            long totalSpace = file.getTotalSpace();
+            float threshold = minMaxThreshold((1f - ((float) usableSpace / (float) totalSpace)) - (1.0f - THRESHOLD));
 
-        diskChecker.setDiskSpaceThreshold(threshold, threshold);
-        diskChecker.checkDiskFull(file);
+            diskChecker.setDiskSpaceThreshold(threshold, threshold);
+            diskChecker.checkDiskFull(file);
+        });
     }
 
-    @Test(expected = DiskWarnThresholdException.class)
-    public void testDiskWarnThresholdException() throws IOException {
-        File file = createTempDir("DiskCheck", "test");
-        long usableSpace = file.getUsableSpace();
-        long totalSpace = file.getTotalSpace();
-        float diskSpaceThreshold = minMaxThreshold((1f - ((float) usableSpace / (float) totalSpace)) * 1.5f);
-        float diskWarnThreshold = minMaxThreshold((1f - ((float) usableSpace / (float) totalSpace)) * 0.5f);
+    @Test
+    void diskWarnThresholdException() throws IOException {
+        assertThrows(DiskWarnThresholdException.class, () -> {
+            File file = createTempDir("DiskCheck", "test");
+            long usableSpace = file.getUsableSpace();
+            long totalSpace = file.getTotalSpace();
+            float diskSpaceThreshold = minMaxThreshold((1f - ((float) usableSpace / (float) totalSpace)) * 1.5f);
+            float diskWarnThreshold = minMaxThreshold((1f - ((float) usableSpace / (float) totalSpace)) * 0.5f);
 
-        diskChecker.setDiskSpaceThreshold(diskSpaceThreshold, diskWarnThreshold);
-        diskChecker.checkDiskFull(file);
+            diskChecker.setDiskSpaceThreshold(diskSpaceThreshold, diskWarnThreshold);
+            diskChecker.checkDiskFull(file);
+        });
     }
 
     /**
      * Check disk full on non exist file. in this case it should check for
      * parent file.
      */
-    @Test(expected = DiskOutOfSpaceException.class)
-    public void testCheckDiskFullOnNonExistFile() throws IOException {
-        File file = createTempDir("DiskCheck", "test");
-        long usableSpace = file.getUsableSpace();
-        long totalSpace = file.getTotalSpace();
-        float threshold = minMaxThreshold((1f - ((float) usableSpace / (float) totalSpace)) * 0.5f);
-        diskChecker.setDiskSpaceThreshold(threshold, threshold);
-        assertTrue(file.delete());
-        diskChecker.checkDiskFull(file);
+    @Test
+    void checkDiskFullOnNonExistFile() throws IOException {
+        assertThrows(DiskOutOfSpaceException.class, () -> {
+            File file = createTempDir("DiskCheck", "test");
+            long usableSpace = file.getUsableSpace();
+            long totalSpace = file.getTotalSpace();
+            float threshold = minMaxThreshold((1f - ((float) usableSpace / (float) totalSpace)) * 0.5f);
+            diskChecker.setDiskSpaceThreshold(threshold, threshold);
+            assertTrue(file.delete());
+            diskChecker.checkDiskFull(file);
+        });
     }
 
     /**
      * Check disk error for file.
      */
-    @Test(expected = DiskErrorException.class)
-    public void testCheckDiskErrorForFile() throws Exception {
-        File parent = createTempDir("DiskCheck", "test");
-        File child = File.createTempFile("DiskCheck", "test", parent);
-        diskChecker.checkDir(child);
+    @Test
+    void checkDiskErrorForFile() throws Exception {
+        assertThrows(DiskErrorException.class, () -> {
+            File parent = createTempDir("DiskCheck", "test");
+            File child = File.createTempFile("DiskCheck", "test", parent);
+            diskChecker.checkDir(child);
+        });
     }
 
     /**
      * Check disk error for valid dir.
      */
     @Test
-    public void testCheckDiskErrorForDir() throws Exception {
+    void checkDiskErrorForDir() throws Exception {
         File parent = createTempDir("DiskCheck", "test");
         File child = File.createTempFile("DiskCheck", "test", parent);
         child.delete();

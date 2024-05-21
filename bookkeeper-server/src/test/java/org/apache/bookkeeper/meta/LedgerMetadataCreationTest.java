@@ -21,7 +21,7 @@
 
 package org.apache.bookkeeper.meta;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Random;
 import java.util.Set;
@@ -35,8 +35,8 @@ import org.apache.bookkeeper.client.BookKeeper;
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.meta.zk.ZKMetadataDriverBase;
 import org.apache.zookeeper.ZooKeeper;
-import org.junit.Assume;
-import org.junit.Test;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,12 +52,12 @@ public class LedgerMetadataCreationTest extends LedgerManagerTestCase {
     }
 
     @Test
-    public void testLedgerCreationAndDeletionWithRandomLedgerIds() throws Exception {
+    void ledgerCreationAndDeletionWithRandomLedgerIds() throws Exception {
         testExecution(true);
     }
 
     @Test
-    public void testLedgerCreationAndDeletion() throws Exception{
+    void ledgerCreationAndDeletion() throws Exception{
         testExecution(false);
     }
 
@@ -123,23 +123,23 @@ public class LedgerMetadataCreationTest extends LedgerManagerTestCase {
             }
         }
         executor.shutdown();
-        assertTrue("All the ledger create/delete operations should have'been completed",
-                executor.awaitTermination(120, TimeUnit.SECONDS));
-        assertTrue("There should be no failed creates. But there are " + failedCreates.size() + " failedCreates",
-                failedCreates.isEmpty());
-        assertTrue("There should be no failed deletes. But there are " + failedDeletes.size() + " failedDeletes",
-                failedDeletes.isEmpty());
+        assertTrue(executor.awaitTermination(120, TimeUnit.SECONDS),
+                "All the ledger create/delete operations should have'been completed");
+        assertTrue(failedCreates.isEmpty(),
+                "There should be no failed creates. But there are " + failedCreates.size() + " failedCreates");
+        assertTrue(failedDeletes.isEmpty(),
+                "There should be no failed deletes. But there are " + failedDeletes.size() + " failedDeletes");
         bookKeeper.close();
     }
 
     @Test
-    public void testParentNodeDeletion() throws Exception {
+    void parentNodeDeletion() throws Exception {
         /*
          * run this testcase only for HierarchicalLedgerManager and
          * LongHierarchicalLedgerManager, since we do recursive zNode deletes
          * only for HierarchicalLedgerManager
          */
-        Assume.assumeTrue((baseClientConf.getLedgerManagerFactoryClass().equals(HierarchicalLedgerManagerFactory.class)
+        Assumptions.assumeTrue((baseClientConf.getLedgerManagerFactoryClass().equals(HierarchicalLedgerManagerFactory.class)
                 || baseClientConf.getLedgerManagerFactoryClass().equals(LongHierarchicalLedgerManagerFactory.class)));
 
         ZooKeeper zkc = new ZooKeeper(zkUtil.getZooKeeperConnectString(), 10000, null);
@@ -166,9 +166,9 @@ public class LedgerMetadataCreationTest extends LedgerManagerTestCase {
              */
             parentZnodePath = ledgersRootPath + "/000";
         }
-        assertTrue(parentZnodePath + " zNode should exist", null != zkc.exists(parentZnodePath, false));
+        assertTrue(null != zkc.exists(parentZnodePath, false), parentZnodePath + " zNode should exist");
         bookKeeper.deleteLedger(1);
-        assertTrue(parentZnodePath + " zNode should not exist anymore", null == zkc.exists(parentZnodePath, false));
+        assertTrue(null == zkc.exists(parentZnodePath, false), parentZnodePath + " zNode should not exist anymore");
         bookKeeper.close();
         zkc.close();
     }

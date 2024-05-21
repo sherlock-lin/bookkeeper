@@ -20,10 +20,11 @@
  */
 package org.apache.bookkeeper.bookie.storage.ldb;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -40,17 +41,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test for {@link WriteCache}.
  */
-public class WriteCacheTest {
+class WriteCacheTest {
 
     private static final ByteBufAllocator allocator = UnpooledByteBufAllocator.DEFAULT;
 
     @Test
-    public void simple() throws Exception {
+    void simple() throws Exception {
         WriteCache cache = new WriteCache(allocator, 10 * 1024);
 
         ByteBuf entry1 = allocator.buffer(1024);
@@ -72,7 +73,7 @@ public class WriteCacheTest {
         assertNull(cache.get(2, 1));
 
         assertEquals(entry1, cache.getLastEntry(1));
-        assertEquals(null, cache.getLastEntry(2));
+        assertNull(cache.getLastEntry(2));
 
         cache.clear();
 
@@ -85,7 +86,7 @@ public class WriteCacheTest {
     }
 
     @Test
-    public void cacheFull() throws Exception {
+    void cacheFull() throws Exception {
         int cacheSize = 10 * 1024;
         int entrySize = 1024;
         int entriesCount = cacheSize / entrySize;
@@ -126,7 +127,7 @@ public class WriteCacheTest {
     }
 
     @Test
-    public void testMultipleSegments() {
+    void multipleSegments() {
         // Create cache with max size 1Mb and each segment is 16Kb
         WriteCache cache = new WriteCache(allocator, 1024 * 1024, 16 * 1024);
 
@@ -144,7 +145,7 @@ public class WriteCacheTest {
     }
 
     @Test
-    public void testEmptyCache() throws IOException {
+    void emptyCache() throws IOException {
         WriteCache cache = new WriteCache(allocator, 1024 * 1024, 16 * 1024);
 
         assertEquals(0, cache.count());
@@ -161,7 +162,7 @@ public class WriteCacheTest {
     }
 
     @Test
-    public void testMultipleWriters() throws Exception {
+    void multipleWriters() throws Exception {
         // Create cache with max size 1Mb and each segment is 16Kb
         WriteCache cache = new WriteCache(allocator, 10 * 1024 * 1024, 16 * 1024);
 
@@ -222,7 +223,7 @@ public class WriteCacheTest {
     }
 
     @Test
-    public void testLedgerDeletion() throws IOException {
+    void ledgerDeletion() throws IOException {
         WriteCache cache = new WriteCache(allocator, 1024 * 1024, 16 * 1024);
 
         ByteBuf entry = Unpooled.buffer(1024);
@@ -266,7 +267,7 @@ public class WriteCacheTest {
     }
 
     @Test
-    public void testWriteReadsInMultipleSegments() {
+    void writeReadsInMultipleSegments() {
         // Create cache with max size 4 KB and each segment is 128 bytes
         WriteCache cache = new WriteCache(allocator, 4 * 1024, 128);
 
@@ -287,7 +288,7 @@ public class WriteCacheTest {
     }
 
     @Test
-    public void testHasEntry() {
+    void hasEntry() {
         // Create cache with max size 4 KB and each segment is 128 bytes
         WriteCache cache = new WriteCache(allocator, 4 * 1024, 128);
 
@@ -307,20 +308,22 @@ public class WriteCacheTest {
         assertFalse(cache.hasEntry(ledgerId, 48));
     }
 
-    @Test(expected = IOException.class)
-    public void testForEachIOException() throws Exception {
-        try (WriteCache cache = new WriteCache(allocator, 1024 * 1024, 16 * 1024)) {
+    @Test
+    void forEachIOException() throws Exception {
+        assertThrows(IOException.class, () -> {
+            try (WriteCache cache = new WriteCache(allocator, 1024 * 1024, 16 * 1024)) {
 
-            for (int i = 0; i < 48; i++) {
-                boolean inserted = cache.put(1, i, Unpooled.wrappedBuffer(("test-" + i).getBytes()));
-                assertTrue(inserted);
+                for (int i = 0; i < 48; i++) {
+                    boolean inserted = cache.put(1, i, Unpooled.wrappedBuffer(("test-" + i).getBytes()));
+                    assertTrue(inserted);
+                }
+
+                assertEquals(48, cache.count());
+
+                cache.forEach(((ledgerId, entryId, entry) -> {
+                    throw new IOException("test throw IOException.");
+                }));
             }
-
-            assertEquals(48, cache.count());
-
-            cache.forEach(((ledgerId, entryId, entry) -> {
-                throw new IOException("test throw IOException.");
-            }));
-        }
+        });
     }
 }

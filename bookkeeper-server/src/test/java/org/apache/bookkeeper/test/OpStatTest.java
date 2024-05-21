@@ -26,15 +26,15 @@ import static org.apache.bookkeeper.bookie.BookKeeperServerStats.JOURNAL_FORCE_W
 import static org.apache.bookkeeper.bookie.BookKeeperServerStats.JOURNAL_QUEUE_SIZE;
 import static org.apache.bookkeeper.bookie.BookKeeperServerStats.JOURNAL_SCOPE;
 import static org.apache.bookkeeper.bookie.BookKeeperServerStats.SERVER_SCOPE;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.function.BiConsumer;
 import org.apache.bookkeeper.client.BookKeeper;
 import org.apache.bookkeeper.client.LedgerHandle;
 import org.apache.bookkeeper.common.util.MathUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Basic tests to verify that stats are being updated as expected.
@@ -46,7 +46,7 @@ public class OpStatTest extends BookKeeperClusterTestCase {
         super(1);
     }
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -54,7 +54,7 @@ public class OpStatTest extends BookKeeperClusterTestCase {
         resetBookieOpLoggers();
     }
 
-    @After
+    @AfterEach
     @Override
     public void tearDown() throws Exception {
         lh.close();
@@ -89,7 +89,7 @@ public class OpStatTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testTopLevelBookieWriteCounters() throws Exception {
+    void topLevelBookieWriteCounters() throws Exception {
         long startNanos = MathUtils.nowInNano();
         lh.addEntry("test".getBytes());
         long elapsed = MathUtils.elapsedNanos(startNanos);
@@ -121,7 +121,7 @@ public class OpStatTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testTopLevelBookieReadCounters() throws Exception {
+    void topLevelBookieReadCounters() throws Exception {
         long startNanos = MathUtils.nowInNano();
         lh.addEntry("test".getBytes());
         lh.readEntries(0, 0);

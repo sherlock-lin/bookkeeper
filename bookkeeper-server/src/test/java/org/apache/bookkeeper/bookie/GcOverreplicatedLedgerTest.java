@@ -21,6 +21,10 @@
 
 package org.apache.bookkeeper.bookie;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.net.URI;
@@ -49,20 +53,16 @@ import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.util.SnapshotMap;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.zookeeper.ZooDefs;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Test GC-overreplicated ledger.
  */
-@RunWith(Parameterized.class)
 public class GcOverreplicatedLedgerTest extends LedgerManagerTestCase {
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -70,17 +70,18 @@ public class GcOverreplicatedLedgerTest extends LedgerManagerTestCase {
         activeLedgers = new SnapshotMap<Long, Boolean>();
     }
 
-    public GcOverreplicatedLedgerTest(Class<? extends LedgerManagerFactory> lmFactoryCls) {
+    public void initGcOverreplicatedLedgerTest(Class<? extends LedgerManagerFactory> lmFactoryCls) {
         super(lmFactoryCls, 3);
     }
 
-    @Parameters
     public static Collection<Object[]> configs() {
         return Arrays.asList(new Object[][] { { HierarchicalLedgerManagerFactory.class } });
     }
 
-    @Test
-    public void testGcOverreplicatedLedger() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void gcOverreplicatedLedger(Class<? extends LedgerManagerFactory> lmFactoryCls) throws Exception {
+        initGcOverreplicatedLedgerTest(lmFactoryCls);
         LedgerHandle lh = bkc.createLedger(2, 2, DigestType.MAC, "".getBytes());
         activeLedgers.put(lh.getId(), true);
 
@@ -96,7 +97,7 @@ public class GcOverreplicatedLedgerTest extends LedgerManagerTestCase {
         @Cleanup
         final LedgerUnderreplicationManager lum = lmf.newLedgerUnderreplicationManager();
 
-        Assert.assertFalse(lum.isLedgerBeingReplicated(lh.getId()));
+        assertFalse(lum.isLedgerBeingReplicated(lh.getId()));
 
         bkConf.setGcOverreplicatedLedgerWaitTime(10, TimeUnit.MILLISECONDS);
 
@@ -119,8 +120,8 @@ public class GcOverreplicatedLedgerTest extends LedgerManagerTestCase {
             }
         });
 
-        Assert.assertFalse(lum.isLedgerBeingReplicated(lh.getId()));
-        Assert.assertFalse(activeLedgers.containsKey(lh.getId()));
+        assertFalse(lum.isLedgerBeingReplicated(lh.getId()));
+        assertFalse(activeLedgers.containsKey(lh.getId()));
     }
 
     private static MetadataBookieDriver instantiateMetadataDriver(ServerConfiguration conf)
@@ -137,8 +138,10 @@ public class GcOverreplicatedLedgerTest extends LedgerManagerTestCase {
         }
     }
 
-    @Test
-    public void testNoGcOfLedger() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void noGcOfLedger(Class<? extends LedgerManagerFactory> lmFactoryCls) throws Exception {
+        initGcOverreplicatedLedgerTest(lmFactoryCls);
         LedgerHandle lh = bkc.createLedger(2, 2, DigestType.MAC, "".getBytes());
         activeLedgers.put(lh.getId(), true);
 
@@ -170,11 +173,13 @@ public class GcOverreplicatedLedgerTest extends LedgerManagerTestCase {
             }
         });
 
-        Assert.assertTrue(activeLedgers.containsKey(lh.getId()));
+        assertTrue(activeLedgers.containsKey(lh.getId()));
     }
 
-    @Test
-    public void testNoGcIfLedgerBeingReplicated() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void noGcIfLedgerBeingReplicated(Class<? extends LedgerManagerFactory> lmFactoryCls) throws Exception {
+        initGcOverreplicatedLedgerTest(lmFactoryCls);
         LedgerHandle lh = bkc.createLedger(2, 2, DigestType.MAC, "".getBytes());
         activeLedgers.put(lh.getId(), true);
 
@@ -208,7 +213,7 @@ public class GcOverreplicatedLedgerTest extends LedgerManagerTestCase {
             }
         });
 
-        Assert.assertTrue(activeLedgers.containsKey(lh.getId()));
+        assertTrue(activeLedgers.containsKey(lh.getId()));
     }
 
     private BookieId getBookieNotInEnsemble(LedgerMetadata ledgerMetadata) throws Exception {
@@ -218,7 +223,7 @@ public class GcOverreplicatedLedgerTest extends LedgerManagerTestCase {
         for (List<BookieId> fragmentEnsembles : ensembles.values()) {
             allAddresses.removeAll(fragmentEnsembles);
         }
-        Assert.assertEquals(allAddresses.size(), 1);
+        assertEquals(1, allAddresses.size());
         return allAddresses.get(0);
     }
 }

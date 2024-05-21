@@ -41,7 +41,7 @@ import org.apache.bookkeeper.net.BookieSocketAddress;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.util.PortManager;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +56,7 @@ public class TestBookieBoot extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testBootFromConfig() throws Exception {
+    void bootFromConfig() throws Exception {
         ServerConfiguration conf = new ServerConfiguration();
         conf.setMetadataServiceUri(this.metadataServiceUri);
         conf.setAllowLoopback(true);

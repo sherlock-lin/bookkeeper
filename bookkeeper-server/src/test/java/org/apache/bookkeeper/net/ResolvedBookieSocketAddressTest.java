@@ -20,31 +20,31 @@
  */
 package org.apache.bookkeeper.net;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.InetSocketAddress;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for BookieSocketAddress getSocketAddress cache logic.
  */
 
-public class ResolvedBookieSocketAddressTest {
+class ResolvedBookieSocketAddressTest {
 
     @Test
-    public void testHostnameBookieId() throws Exception {
+    void hostnameBookieId() throws Exception {
         BookieSocketAddress hostnameAddress = new BookieSocketAddress("localhost", 3181);
         InetSocketAddress inetSocketAddress1 = hostnameAddress.getSocketAddress();
         InetSocketAddress inetSocketAddress2 = hostnameAddress.getSocketAddress();
-        assertFalse("InetSocketAddress should be recreated", inetSocketAddress1 == inetSocketAddress2);
+        assertFalse(inetSocketAddress1 == inetSocketAddress2, "InetSocketAddress should be recreated");
     }
 
     @Test
-    public void testIPAddressBookieId() throws Exception {
+    void iPAddressBookieId() throws Exception {
         BookieSocketAddress ipAddress = new BookieSocketAddress("127.0.0.1", 3181);
         InetSocketAddress inetSocketAddress1 = ipAddress.getSocketAddress();
         InetSocketAddress inetSocketAddress2 = ipAddress.getSocketAddress();
-        assertTrue("InetSocketAddress should be cached", inetSocketAddress1 == inetSocketAddress2);
+        assertTrue(inetSocketAddress1 == inetSocketAddress2, "InetSocketAddress should be cached");
     }
 }

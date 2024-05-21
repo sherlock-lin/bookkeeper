@@ -19,6 +19,8 @@ package org.apache.bookkeeper.client;
 
 import static org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicyImpl.REPP_DNS_RESOLVER_CLASS;
 import static org.apache.bookkeeper.feature.SettableFeatureProvider.DISABLE_ALL;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -31,7 +33,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import junit.framework.TestCase;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.net.BookieSocketAddress;
@@ -39,14 +40,16 @@ import org.apache.bookkeeper.net.DNSToSwitchMapping;
 import org.apache.bookkeeper.net.NetworkTopology;
 import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.util.StaticDNSResolver;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Test the rackaware ensemble placement policy.
  */
-public class TestRackawarePolicyNotificationUpdates extends TestCase {
+class TestRackawarePolicyNotificationUpdates {
 
     static final Logger LOG = LoggerFactory.getLogger(TestRackawarePolicyNotificationUpdates.class);
 
@@ -54,9 +57,8 @@ public class TestRackawarePolicyNotificationUpdates extends TestCase {
     HashedWheelTimer timer;
     ClientConfiguration conf = new ClientConfiguration();
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @BeforeEach
+    void setUp() throws Exception {
         conf.setProperty(REPP_DNS_RESOLVER_CLASS, StaticDNSResolver.class.getName());
 
         StaticDNSResolver.reset();
@@ -75,14 +77,13 @@ public class TestRackawarePolicyNotificationUpdates extends TestCase {
         repp.withDefaultRack(NetworkTopology.DEFAULT_REGION_AND_RACK);
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @AfterEach
+    void tearDown() throws Exception {
         repp.uninitalize();
-        super.tearDown();
     }
 
     @Test
-    public void testNotifyRackChange() throws Exception {
+    void notifyRackChange() throws Exception {
         BookieSocketAddress addr1 = new BookieSocketAddress("127.0.1.1", 3181);
         BookieSocketAddress addr2 = new BookieSocketAddress("127.0.1.2", 3181);
         BookieSocketAddress addr3 = new BookieSocketAddress("127.0.1.3", 3181);

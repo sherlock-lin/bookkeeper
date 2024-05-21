@@ -20,10 +20,10 @@
  */
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -49,19 +49,20 @@ import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.conf.TestBKConfiguration;
 import org.apache.bookkeeper.util.IOUtils;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Test the bookie journal.
  */
-@RunWith(MockitoJUnitRunner.class)
-public class BookieJournalTest {
+@ExtendWith(MockitoExtension.class)
+class BookieJournalTest {
     private static final Logger LOG = LoggerFactory.getLogger(BookieJournalTest.class);
 
     final Random r = new Random(System.currentTimeMillis());
@@ -74,8 +75,8 @@ public class BookieJournalTest {
         return dir;
     }
 
-    @After
-    public void tearDown() throws Exception {
+    @AfterEach
+    void tearDown() throws Exception {
         for (File dir : tempDirs) {
             FileUtils.deleteDirectory(dir);
         }
@@ -400,7 +401,7 @@ public class BookieJournalTest {
      * the magic word was introduced
      */
     @Test
-    public void testPreV2Journal() throws Exception {
+    void preV2Journal() throws Exception {
         File journalDir = createTempDir("bookie", "journal");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
@@ -429,7 +430,7 @@ public class BookieJournalTest {
     }
 
     @Test
-    public void testV4Journal() throws Exception {
+    void v4Journal() throws Exception {
         File journalDir = createTempDir("bookie", "journal");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
@@ -458,7 +459,7 @@ public class BookieJournalTest {
     }
 
     @Test
-    public void testV5Journal() throws Exception {
+    void v5Journal() throws Exception {
         File journalDir = createTempDir("bookie", "journal");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
@@ -495,7 +496,7 @@ public class BookieJournalTest {
      * happened in this case
      */
     @Test
-    public void testAllJunkJournal() throws Exception {
+    void allJunkJournal() throws Exception {
         File journalDir = createTempDir("bookie", "journal");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
@@ -530,7 +531,7 @@ public class BookieJournalTest {
      * ever written.
      */
     @Test
-    public void testEmptyJournal() throws Exception {
+    void emptyJournal() throws Exception {
         File journalDir = createTempDir("bookie", "journal");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
@@ -552,7 +553,7 @@ public class BookieJournalTest {
      * version are there.
      */
     @Test
-    public void testHeaderOnlyJournal() throws Exception {
+    void headerOnlyJournal() throws Exception {
         File journalDir = createTempDir("bookie", "journal");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
@@ -574,7 +575,7 @@ public class BookieJournalTest {
      * If the journal is corrupt like this, admin intervention is needed
      */
     @Test
-    public void testJunkEndedJournal() throws Exception {
+    void junkEndedJournal() throws Exception {
         File journalDir = createTempDir("bookie", "journal");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
@@ -610,7 +611,7 @@ public class BookieJournalTest {
      * but so the client has not be notified of success.
      */
     @Test
-    public void testTruncatedInLenJournal() throws Exception {
+    void truncatedInLenJournal() throws Exception {
         File journalDir = createTempDir("bookie", "journal");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
@@ -653,7 +654,7 @@ public class BookieJournalTest {
      * at its checksum.
      */
     @Test
-    public void testTruncatedInEntryJournal() throws Exception {
+    void truncatedInEntryJournal() throws Exception {
         File journalDir = createTempDir("bookie", "journal");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
@@ -682,17 +683,17 @@ public class BookieJournalTest {
 
         // still able to read last entry, but it's junk
         ByteBuf buf = b.readEntry(1, 100);
-        assertEquals("Ledger Id is wrong", buf.readLong(), 1);
-        assertEquals("Entry Id is wrong", buf.readLong(), 100);
-        assertEquals("Last confirmed is wrong", buf.readLong(), 99);
-        assertEquals("Length is wrong", buf.readLong(), 100 * 1024);
+        assertEquals(1, buf.readLong(), "Ledger Id is wrong");
+        assertEquals(100, buf.readLong(), "Entry Id is wrong");
+        assertEquals(99, buf.readLong(), "Last confirmed is wrong");
+        assertEquals(buf.readLong(), 100 * 1024, "Length is wrong");
         buf.readLong(); // skip checksum
         boolean allX = true;
         for (int i = 0; i < 1024; i++) {
             byte x = buf.readByte();
             allX = allX && x == (byte) 'X';
         }
-        assertFalse("Some of buffer should have been zeroed", allX);
+        assertFalse(allX, "Some of buffer should have been zeroed");
 
         try {
             b.readEntry(1, 101);
@@ -717,7 +718,7 @@ public class BookieJournalTest {
      * arena size.
      */
     @Test
-    public void testSortedLedgerStorageReplayWithSmallMaxArenaSize() throws Exception {
+    void sortedLedgerStorageReplayWithSmallMaxArenaSize() throws Exception {
         File journalDir = createTempDir("bookie", "journal");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
@@ -749,7 +750,7 @@ public class BookieJournalTest {
      * Test partial index (truncate master key) with pre-v3 journals.
      */
     @Test
-    public void testPartialFileInfoPreV3Journal1() throws Exception {
+    void partialFileInfoPreV3Journal1() throws Exception {
         testPartialFileInfoPreV3Journal(true);
     }
 
@@ -757,7 +758,7 @@ public class BookieJournalTest {
      * Test partial index with pre-v3 journals.
      */
     @Test
-    public void testPartialFileInfoPreV3Journal2() throws Exception {
+    void partialFileInfoPreV3Journal2() throws Exception {
         testPartialFileInfoPreV3Journal(false);
     }
 
@@ -805,7 +806,7 @@ public class BookieJournalTest {
      * Test partial index (truncate master key) with post-v3 journals.
      */
     @Test
-    public void testPartialFileInfoPostV3Journal1() throws Exception {
+    void partialFileInfoPostV3Journal1() throws Exception {
         testPartialFileInfoPostV3Journal(true);
     }
 
@@ -813,7 +814,7 @@ public class BookieJournalTest {
      * Test partial index with post-v3 journals.
      */
     @Test
-    public void testPartialFileInfoPostV3Journal2() throws Exception {
+    void partialFileInfoPostV3Journal2() throws Exception {
         testPartialFileInfoPostV3Journal(false);
     }
 
@@ -854,7 +855,7 @@ public class BookieJournalTest {
       * Test for fake IOException during read of Journal.
       */
     @Test
-    public void testJournalScanIOException() throws Exception {
+    void journalScanIOException() throws Exception {
         File journalDir = createTempDir("bookie", "journal");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
@@ -883,7 +884,7 @@ public class BookieJournalTest {
         for (Journal journal : b.journals) {
             List<Long> journalIds = journal.listJournalIds(journal.getJournalDirectory(), null);
 
-            assertEquals(journalIds.size(), 1);
+            assertEquals(1, journalIds.size());
 
             try {
                 journal.scanJournal(journalIds.get(0), Long.MAX_VALUE, journalScanner, false);
@@ -900,19 +901,17 @@ public class BookieJournalTest {
      * Test for invalid record data during read of Journal.
      */
     @Test
-    public void testJournalScanInvalidRecordWithSkipFlag() throws Exception {
+    void journalScanInvalidRecordWithSkipFlag() throws Exception {
         File journalDir = createTempDir("bookie", "journal");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
         File ledgerDir = createTempDir("bookie", "ledger");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(ledgerDir));
 
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             writeV4JournalWithInvalidRecord(BookieImpl.getCurrentDirectory(journalDir),
-                100, "testPasswd".getBytes());
-        } catch (Exception e) {
-            fail();
-        }
+                    100, "testPasswd".getBytes());
+        });
 
 
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
@@ -928,12 +927,10 @@ public class BookieJournalTest {
 
         for (Journal journal : b.journals) {
             List<Long> journalIds = Journal.listJournalIds(journal.getJournalDirectory(), null);
-            assertEquals(journalIds.size(), 1);
-            try {
+            assertEquals(1, journalIds.size());
+            Assertions.assertDoesNotThrow(() -> {
                 journal.scanJournal(journalIds.get(0), 0, journalScanner, conf.isSkipReplayJournalInvalidRecord());
-            } catch (Exception e) {
-                fail("Should pass the journal scanning because we enabled skip flag by default.");
-            }
+            }, "Should pass the journal scanning because we enabled skip flag by default.");
         }
 
         b.shutdown();
@@ -950,7 +947,7 @@ public class BookieJournalTest {
 
         for (Journal journal : b.journals) {
             List<Long> journalIds = Journal.listJournalIds(journal.getJournalDirectory(), null);
-            assertEquals(journalIds.size(), 1);
+            assertEquals(1, journalIds.size());
             try {
                 journal.scanJournal(journalIds.get(0), 0, journalScanner, conf.isSkipReplayJournalInvalidRecord());
                 fail("Should fail the journal scanning because of disabled skip flag");

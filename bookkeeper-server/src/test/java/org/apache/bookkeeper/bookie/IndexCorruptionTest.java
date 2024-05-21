@@ -20,17 +20,17 @@
  */
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Enumeration;
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.client.LedgerEntry;
 import org.apache.bookkeeper.client.LedgerHandle;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +51,7 @@ public class IndexCorruptionTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testNoSuchLedger() throws Exception {
+    void noSuchLedger() throws Exception {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Testing NoSuchLedger");
         }
@@ -81,7 +81,7 @@ public class IndexCorruptionTest extends BookKeeperClusterTestCase {
         restartBookies();
 
         Enumeration<LedgerEntry> seq = wlh.readEntries(0, numMsgs - 1);
-        assertTrue("Enumeration of ledger entries has no element", seq.hasMoreElements());
+        assertTrue(seq.hasMoreElements(), "Enumeration of ledger entries has no element");
         int entryId = 0;
         while (seq.hasMoreElements()) {
             LedgerEntry e = seq.nextElement();
@@ -94,13 +94,13 @@ public class IndexCorruptionTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testEmptyIndexPage() throws Exception {
+    void emptyIndexPage() throws Exception {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Testing EmptyIndexPage");
         }
 
         SyncThread syncThread = ((BookieImpl) serverByIndex(0).getBookie()).syncThread;
-        assertNotNull("Not found SyncThread.", syncThread);
+        assertNotNull(syncThread, "Not found SyncThread.");
 
         syncThread.suspendSync();
 
@@ -141,7 +141,7 @@ public class IndexCorruptionTest extends BookKeeperClusterTestCase {
 
         numMsgs += 3;
         Enumeration<LedgerEntry> seq = lh2.readEntries(0, numMsgs - 1);
-        assertTrue("Enumeration of ledger entries has no element", seq.hasMoreElements());
+        assertTrue(seq.hasMoreElements(), "Enumeration of ledger entries has no element");
         int entryId = 0;
         while (seq.hasMoreElements()) {
             LedgerEntry e = seq.nextElement();

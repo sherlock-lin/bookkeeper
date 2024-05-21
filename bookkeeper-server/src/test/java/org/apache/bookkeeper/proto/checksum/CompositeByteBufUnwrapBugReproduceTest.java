@@ -40,9 +40,8 @@ import org.apache.bookkeeper.proto.BookieProtocol;
 import org.apache.bookkeeper.util.ByteBufList;
 import org.apache.bookkeeper.util.ByteBufVisitor;
 import org.apache.commons.lang3.RandomUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * This test class was added to reproduce a bug in the checksum calculation when
@@ -56,16 +55,14 @@ import org.junit.runners.Parameterized;
  *
  * The bug has been fixed and this test is here to make sure it doesn't happen again.
  */
-@RunWith(Parameterized.class)
 public class CompositeByteBufUnwrapBugReproduceTest {
-    final byte[] testPayLoad;
-    final int defaultBufferPrefixLength;
-    private final boolean useV2Protocol;
+    byte[] testPayLoad;
+    int defaultBufferPrefixLength;
+    private boolean useV2Protocol;
 
     // set to 0 to 3 to run a single scenario for debugging purposes
     private static final int RUN_SINGLE_SCENARIO_FOR_DEBUGGING = -1;
 
-    @Parameterized.Parameters
     public static Collection<Object[]> testScenarios() {
         List<Object[]> scenarios = Arrays.asList(new Object[][] {
                 {BookieProtoEncoding.SMALL_ENTRY_SIZE_THRESHOLD - 1, true},
@@ -80,7 +77,7 @@ public class CompositeByteBufUnwrapBugReproduceTest {
         return scenarios;
     }
 
-    public CompositeByteBufUnwrapBugReproduceTest(int payloadSize, boolean useV2Protocol) {
+    public void initCompositeByteBufUnwrapBugReproduceTest(int payloadSize, boolean useV2Protocol) {
         this.testPayLoad = createTestPayLoad(payloadSize);
         this.defaultBufferPrefixLength = payloadSize / 7;
         this.useV2Protocol = useV2Protocol;
@@ -101,7 +98,7 @@ public class CompositeByteBufUnwrapBugReproduceTest {
     static class TestIntHashDigestManager extends DigestManager {
         private final IntHash intHash;
 
-        public TestIntHashDigestManager(IntHash intHash, long ledgerId, boolean useV2Protocol,
+        public void initCompositeByteBufUnwrapBugReproduceTest(IntHash intHash, long ledgerId, boolean useV2Protocol,
                                         ByteBufAllocator allocator) {
             super(ledgerId, useV2Protocol, allocator);
             this.intHash = intHash;
@@ -138,8 +135,10 @@ public class CompositeByteBufUnwrapBugReproduceTest {
         }
     }
 
-    @Test
-    public void shouldCalculateChecksumForCompositeBuffer() {
+    @MethodSource("testScenarios")
+    @ParameterizedTest
+    public void shouldCalculateChecksumForCompositeBuffer(int payloadSize, boolean useV2Protocol) {
+        initCompositeByteBufUnwrapBugReproduceTest(payloadSize, useV2Protocol);
         ByteBuf testPayload = Unpooled.wrappedBuffer(testPayLoad);
         byte[] referenceOutput = computeDigestAndPackageForSending(new Java8IntHash(), testPayload.retainedDuplicate());
         assertDigestAndPackageMatchesReference(new Java8IntHash(), testPayload, referenceOutput);

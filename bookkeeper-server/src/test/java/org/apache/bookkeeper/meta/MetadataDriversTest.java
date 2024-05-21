@@ -22,8 +22,9 @@ import static org.apache.bookkeeper.meta.MetadataDrivers.BK_METADATA_BOOKIE_DRIV
 import static org.apache.bookkeeper.meta.MetadataDrivers.BK_METADATA_CLIENT_DRIVERS_PROPERTY;
 import static org.apache.bookkeeper.meta.MetadataDrivers.ZK_BOOKIE_DRIVER_CLASS;
 import static org.apache.bookkeeper.meta.MetadataDrivers.ZK_CLIENT_DRIVER_CLASS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -41,14 +42,14 @@ import org.apache.bookkeeper.meta.MetadataDrivers.MetadataClientDriverInfo;
 import org.apache.bookkeeper.meta.exceptions.MetadataException;
 import org.apache.bookkeeper.stats.StatsLogger;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test of {@link MetadataDrivers}.
  */
-public class MetadataDriversTest {
+class MetadataDriversTest {
 
     abstract static class TestClientDriver implements MetadataClientDriver {
 
@@ -152,14 +153,14 @@ public class MetadataDriversTest {
     private Map<String, MetadataClientDriverInfo> savedClientDrivers;
     private Map<String, MetadataBookieDriverInfo> savedBookieDrivers;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         savedClientDrivers = Maps.newHashMap(MetadataDrivers.getClientDrivers());
         savedBookieDrivers = Maps.newHashMap(MetadataDrivers.getBookieDrivers());
     }
 
-    @After
-    public void teardown() {
+    @AfterEach
+    void teardown() {
         MetadataDrivers.getClientDrivers().clear();
         MetadataDrivers.getClientDrivers().putAll(savedClientDrivers);
         MetadataDrivers.getBookieDrivers().clear();
@@ -167,7 +168,7 @@ public class MetadataDriversTest {
     }
 
     @Test
-    public void testDefaultDrivers() {
+    void defaultDrivers() {
         MetadataClientDriver clientDriver = MetadataDrivers.getClientDriver("zk");
         assertEquals(
             ZK_CLIENT_DRIVER_CLASS,
@@ -187,58 +188,78 @@ public class MetadataDriversTest {
             bookieDriver.getClass().getName());
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testClientDriverNullScheme() {
-        MetadataDrivers.getClientDriver((String) null);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testBookieDriverNullScheme() {
-        MetadataDrivers.getBookieDriver((String) null);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testClientDriverNullURI() {
-        MetadataDrivers.getClientDriver((URI) null);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testBookieDriverNullURI() {
-        MetadataDrivers.getBookieDriver((URI) null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testClientDriverUnknownScheme() {
-        MetadataDrivers.getClientDriver("unknown");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testBookieDriverUnknownScheme() {
-        MetadataDrivers.getBookieDriver("unknown");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testClientDriverUnknownSchemeURI() {
-        MetadataDrivers.getClientDriver(URI.create("unknown://"));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testBookieDriverUnknownSchemeURI() {
-        MetadataDrivers.getBookieDriver(URI.create("unknown://"));
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testClientDriverNullSchemeURI() {
-        MetadataDrivers.getClientDriver(URI.create("//127.0.0.1/ledgers"));
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testBookieDriverNullSchemeURI() {
-        MetadataDrivers.getBookieDriver(URI.create("//127.0.0.1/ledgers"));
+    @Test
+    void clientDriverNullScheme() {
+        assertThrows(NullPointerException.class, () -> {
+            MetadataDrivers.getClientDriver((String) null);
+        });
     }
 
     @Test
-    public void testClientDriverLowerUpperCasedSchemes() {
+    void bookieDriverNullScheme() {
+        assertThrows(NullPointerException.class, () -> {
+            MetadataDrivers.getBookieDriver((String) null);
+        });
+    }
+
+    @Test
+    void clientDriverNullURI() {
+        assertThrows(NullPointerException.class, () -> {
+            MetadataDrivers.getClientDriver((URI) null);
+        });
+    }
+
+    @Test
+    void bookieDriverNullURI() {
+        assertThrows(NullPointerException.class, () -> {
+            MetadataDrivers.getBookieDriver((URI) null);
+        });
+    }
+
+    @Test
+    void clientDriverUnknownScheme() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            MetadataDrivers.getClientDriver("unknown");
+        });
+    }
+
+    @Test
+    void bookieDriverUnknownScheme() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            MetadataDrivers.getBookieDriver("unknown");
+        });
+    }
+
+    @Test
+    void clientDriverUnknownSchemeURI() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            MetadataDrivers.getClientDriver(URI.create("unknown://"));
+        });
+    }
+
+    @Test
+    void bookieDriverUnknownSchemeURI() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            MetadataDrivers.getBookieDriver(URI.create("unknown://"));
+        });
+    }
+
+    @Test
+    void clientDriverNullSchemeURI() {
+        assertThrows(NullPointerException.class, () -> {
+            MetadataDrivers.getClientDriver(URI.create("//127.0.0.1/ledgers"));
+        });
+    }
+
+    @Test
+    void bookieDriverNullSchemeURI() {
+        assertThrows(NullPointerException.class, () -> {
+            MetadataDrivers.getBookieDriver(URI.create("//127.0.0.1/ledgers"));
+        });
+    }
+
+    @Test
+    void clientDriverLowerUpperCasedSchemes() {
         String[] schemes = new String[] {
             "zk", "Zk", "zK", "ZK"
         };
@@ -251,7 +272,7 @@ public class MetadataDriversTest {
     }
 
     @Test
-    public void testBookieDriverLowerUpperCasedSchemes() {
+    void bookieDriverLowerUpperCasedSchemes() {
         String[] schemes = new String[] {
             "zk", "Zk", "zK", "ZK"
         };
@@ -264,7 +285,7 @@ public class MetadataDriversTest {
     }
 
     @Test
-    public void testRegisterClientDriver() throws Exception {
+    void registerClientDriver() throws Exception {
         MetadataClientDriver clientDriver = mock(MetadataClientDriver.class);
         when(clientDriver.getScheme()).thenReturn("testdriver");
 
@@ -281,7 +302,7 @@ public class MetadataDriversTest {
     }
 
     @Test
-    public void testRegisterBookieDriver() throws Exception {
+    void registerBookieDriver() throws Exception {
         MetadataBookieDriver bookieDriver = mock(MetadataBookieDriver.class);
         when(bookieDriver.getScheme()).thenReturn("testdriver");
 
@@ -298,7 +319,7 @@ public class MetadataDriversTest {
     }
 
     @Test
-    public void testLoadClientDriverFromSystemProperty() throws Exception {
+    void loadClientDriverFromSystemProperty() throws Exception {
         String saveDriversStr = System.getProperty(BK_METADATA_CLIENT_DRIVERS_PROPERTY);
         try {
             System.setProperty(
@@ -324,7 +345,7 @@ public class MetadataDriversTest {
     }
 
     @Test
-    public void testLoadBookieDriverFromSystemProperty() throws Exception {
+    void loadBookieDriverFromSystemProperty() throws Exception {
         String saveDriversStr = System.getProperty(BK_METADATA_BOOKIE_DRIVERS_PROPERTY);
         try {
             System.setProperty(

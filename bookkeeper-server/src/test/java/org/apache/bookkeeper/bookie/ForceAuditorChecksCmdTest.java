@@ -19,14 +19,15 @@
 package org.apache.bookkeeper.bookie;
 
 import static org.apache.bookkeeper.meta.MetadataDrivers.runFunctionWithLedgerManagerFactory;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.meta.LedgerUnderreplicationManager;
 import org.apache.bookkeeper.replication.ReplicationException;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -46,7 +47,7 @@ public class ForceAuditorChecksCmdTest extends BookKeeperClusterTestCase {
      * result in immediate run of audit checks.
      */
     @Test
-    public void verifyAuditCTimeReset() throws Exception {
+    void verifyAuditCTimeReset() throws Exception {
         String[] argv = new String[] { "forceauditchecks", "-calc", "-ppc", "-rc" };
         long curTime = System.currentTimeMillis();
 
@@ -68,7 +69,7 @@ public class ForceAuditorChecksCmdTest extends BookKeeperClusterTestCase {
         });
 
         // Run the actual shell command
-        Assert.assertEquals("Failed to return exit code!", 0, bkShell.run(argv));
+        assertEquals(0, bkShell.run(argv), "Failed to return exit code!");
 
         // Verify that the time has been reset to an older value (at least 20 days)
         runFunctionWithLedgerManagerFactory(conf, mFactory -> {
@@ -76,15 +77,15 @@ public class ForceAuditorChecksCmdTest extends BookKeeperClusterTestCase {
                          mFactory.newLedgerUnderreplicationManager()) {
                 long checkAllLedgersCTime = urm.getCheckAllLedgersCTime();
                 if (checkAllLedgersCTime > (curTime - (20 * 24 * 60 * 60 * 1000))) {
-                    Assert.fail("The checkAllLedgersCTime should have been reset to atleast 20 days old");
+                    fail("The checkAllLedgersCTime should have been reset to atleast 20 days old");
                 }
                 long placementPolicyCheckCTime = urm.getPlacementPolicyCheckCTime();
                 if (placementPolicyCheckCTime > (curTime - (20 * 24 * 60 * 60 * 1000))) {
-                    Assert.fail("The placementPolicyCheckCTime should have been reset to atleast 20 days old");
+                    fail("The placementPolicyCheckCTime should have been reset to atleast 20 days old");
                 }
                 long replicasCheckCTime = urm.getReplicasCheckCTime();
                 if (replicasCheckCTime > (curTime - (20 * 24 * 60 * 60 * 1000))) {
-                    Assert.fail("The replicasCheckCTime should have been reset to atleast 20 days old");
+                    fail("The replicasCheckCTime should have been reset to atleast 20 days old");
                 }
             } catch (InterruptedException | ReplicationException e) {
                 throw new UncheckedExecutionException(e);

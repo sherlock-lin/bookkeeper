@@ -19,9 +19,9 @@
 package org.apache.bookkeeper.client;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -33,21 +33,21 @@ import org.apache.bookkeeper.client.api.WriteFlag;
 import org.apache.bookkeeper.common.util.OrderedExecutor;
 import org.apache.bookkeeper.proto.BookieClient;
 import org.apache.bookkeeper.stats.NullStatsLogger;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test of {@link PendingAddOp}.
  */
-public class PendingAddOpTest {
+class PendingAddOpTest {
 
     private LedgerHandle lh;
     private ClientContext mockClientContext;
 
     private ByteBuf payload;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         BookKeeperClientStats clientStats = BookKeeperClientStats.newInstance(NullStatsLogger.INSTANCE);
         BookieClient bookieClient = mock(BookieClient.class);
         OrderedExecutor mainWorkerPool = mock(OrderedExecutor.class);
@@ -66,7 +66,7 @@ public class PendingAddOpTest {
     }
 
     @Test
-    public void testExecuteAfterCancelled() {
+    void executeAfterCancelled() {
         AtomicInteger rcHolder = new AtomicInteger(-0xdead);
         PendingAddOp op = PendingAddOp.create(
                 lh, mockClientContext, lh.getCurrentEnsemble(),

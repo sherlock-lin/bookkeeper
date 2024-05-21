@@ -18,8 +18,8 @@
  */
 package org.apache.bookkeeper.proto;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
@@ -46,13 +46,13 @@ import org.apache.bookkeeper.proto.BookkeeperProtocol.Request;
 import org.apache.bookkeeper.proto.BookkeeperProtocol.Response;
 import org.apache.bookkeeper.proto.BookkeeperProtocol.StatusCode;
 import org.apache.bookkeeper.stats.NullStatsLogger;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test {@link ForceLedgerProcessorV3}.
  */
-public class ForceLedgerProcessorV3Test {
+class ForceLedgerProcessorV3Test {
 
     private Request request;
     private ForceLedgerProcessorV3 processor;
@@ -62,8 +62,8 @@ public class ForceLedgerProcessorV3Test {
     private BookieRequestProcessor requestProcessor;
     private Bookie bookie;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         request = Request.newBuilder()
             .setHeader(BKPacketHeader.newBuilder()
                 .setTxnId(System.currentTimeMillis())
@@ -97,7 +97,7 @@ public class ForceLedgerProcessorV3Test {
     }
 
     @Test
-    public void testForceLedger() throws Exception {
+    void forceLedger() throws Exception {
         when(channel.voidPromise()).thenReturn(mock(ChannelPromise.class));
         when(channel.writeAndFlush(any())).thenReturn(mock(ChannelPromise.class));
         doAnswer(invocationOnMock -> {

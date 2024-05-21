@@ -20,8 +20,8 @@
  */
 package org.apache.bookkeeper.replication;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Enumeration;
 import java.util.List;
@@ -33,8 +33,8 @@ import org.apache.bookkeeper.meta.zk.ZKMetadataDriverBase;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.util.BookKeeperConstants;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test auto recovery.
@@ -50,7 +50,7 @@ public class TestAutoRecoveryAlongWithBookieServers extends
 
     }
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -64,7 +64,7 @@ public class TestAutoRecoveryAlongWithBookieServers extends
      * Tests that the auto recovery service along with Bookie servers itself.
      */
     @Test
-    public void testAutoRecoveryAlongWithBookieServers() throws Exception {
+    void autoRecoveryAlongWithBookieServers() throws Exception {
         LedgerHandle lh = bkc.createLedger(3, 3, BookKeeper.DigestType.CRC32,
                 "testpasswd".getBytes());
         byte[] testData = "testBuiltAutoRecovery".getBytes();
@@ -100,7 +100,7 @@ public class TestAutoRecoveryAlongWithBookieServers extends
         LedgerHandle lhs = bkc.openLedgerNoRecovery(lh.getId(),
                 BookKeeper.DigestType.CRC32, "testpasswd".getBytes());
         Enumeration<LedgerEntry> entries = lhs.readEntries(0, 9);
-        assertTrue("Should have the elements", entries.hasMoreElements());
+        assertTrue(entries.hasMoreElements(), "Should have the elements");
         while (entries.hasMoreElements()) {
             LedgerEntry entry = entries.nextElement();
             assertEquals("testBuiltAutoRecovery", new String(entry.getEntry()));

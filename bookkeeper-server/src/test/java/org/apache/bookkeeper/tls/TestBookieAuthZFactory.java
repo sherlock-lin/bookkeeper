@@ -17,13 +17,13 @@
  */
 package org.apache.bookkeeper.tls;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import org.apache.bookkeeper.auth.BookieAuthProvider;
 import org.apache.bookkeeper.common.util.ReflectionUtils;
 import org.apache.bookkeeper.conf.ServerConfiguration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +42,7 @@ public class TestBookieAuthZFactory {
      * This should fail as in order to use this authorization provider, we need to have authorizedRoles set.
      */
     @Test
-    public void testBookieAuthZInitNoRoles() {
+    void bookieAuthZInitNoRoles() {
         ServerConfiguration conf = new ServerConfiguration();
         String factoryClassName = BookieAuthZFactory.class.getName();
         BookieAuthProvider.Factory factory = ReflectionUtils.newInstance(factoryClassName,
@@ -61,7 +61,7 @@ public class TestBookieAuthZFactory {
      * This should fail as in order to use this as an authorization provider, we need to have valid authorizedRoles set.
      */
     @Test
-    public void testBookieAuthZInitEmptyRole() {
+    void bookieAuthZInitEmptyRole() {
         ServerConfiguration conf = new ServerConfiguration();
         conf.setAuthorizedRoles("");
         String factoryClassName = BookieAuthZFactory.class.getName();
@@ -81,7 +81,7 @@ public class TestBookieAuthZFactory {
      * However, pass a null (or faulty) connection for it to authorize, it should fail.
      */
     @Test
-    public void testBookieAuthZNewProviderNullAddress() {
+    void bookieAuthZNewProviderNullAddress() {
         ServerConfiguration conf = new ServerConfiguration();
         conf.setAuthorizedRoles("testRole");
         String factoryClassName = BookieAuthZFactory.class.getName();

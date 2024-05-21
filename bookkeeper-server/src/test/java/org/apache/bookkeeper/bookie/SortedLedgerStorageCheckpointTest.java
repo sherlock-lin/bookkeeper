@@ -19,9 +19,10 @@
 
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import io.netty.buffer.ByteBuf;
@@ -39,10 +40,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.bookkeeper.bookie.CheckpointSource.Checkpoint;
 import org.apache.bookkeeper.meta.LedgerManager;
 import org.apache.bookkeeper.stats.NullStatsLogger;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test {@link SortedLedgerStorage}.
@@ -105,7 +105,7 @@ public class SortedLedgerStorageCheckpointTest extends LedgerStorageTestBase {
         this.checkpoints = new LinkedBlockingQueue<>();
     }
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -145,7 +145,7 @@ public class SortedLedgerStorageCheckpointTest extends LedgerStorageTestBase {
         this.storage.setCheckpointSource(checkpointSrc);
     }
 
-    @After
+    @AfterEach
     @Override
     public void tearDown() throws Exception {
         if (null != storage) {
@@ -166,7 +166,7 @@ public class SortedLedgerStorageCheckpointTest extends LedgerStorageTestBase {
     }
 
     @Test
-    public void testCheckpoint() throws Exception {
+    void checkpoint() throws Exception {
         // memory table holds the first checkpoint, but it is not completed yet.
         Checkpoint memtableCp = storage.memTable.kvmap.cp;
         assertEquals(new TestCheckpoint(0), memtableCp);
@@ -185,7 +185,7 @@ public class SortedLedgerStorageCheckpointTest extends LedgerStorageTestBase {
         assertEquals(new TestCheckpoint(0), memtableCp);
 
         // trigger a memtable flush
-        Assert.assertNotNull("snapshot shouldn't have returned null", storage.memTable.snapshot());
+        assertNotNull(storage.memTable.snapshot(), "snapshot shouldn't have returned null");
         storage.onSizeLimitReached(checkpointSrc.newCheckpoint());
         // wait for checkpoint to complete
         checkpoints.poll(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
@@ -194,7 +194,7 @@ public class SortedLedgerStorageCheckpointTest extends LedgerStorageTestBase {
     }
 
     @Test
-    public void testCheckpointAfterEntryLogRotated() throws Exception {
+    void checkpointAfterEntryLogRotated() throws Exception {
         // memory table holds the first checkpoint, but it is not completed yet.
         Checkpoint memtableCp = storage.memTable.kvmap.cp;
         assertEquals(new TestCheckpoint(0), memtableCp);
@@ -235,7 +235,7 @@ public class SortedLedgerStorageCheckpointTest extends LedgerStorageTestBase {
         assertEquals(20, storage.memTable.kvmap.size());
 
         // trigger a memtable flush
-        Assert.assertNotNull("snapshot shouldn't have returned null", storage.memTable.snapshot());
+        assertNotNull(storage.memTable.snapshot(), "snapshot shouldn't have returned null");
         storage.onSizeLimitReached(checkpointSrc.newCheckpoint());
         assertEquals(new TestCheckpoint(100), checkpoints.poll(Long.MAX_VALUE, TimeUnit.MILLISECONDS));
 
@@ -243,9 +243,9 @@ public class SortedLedgerStorageCheckpointTest extends LedgerStorageTestBase {
         assertEquals(new TestCheckpoint(100), storage.memTable.kvmap.cp);
         assertEquals(0, storage.memTable.kvmap.size());
         assertTrue(
+            elogger.getFlushedLogIds().contains(currentLogId),
             "current log " + currentLogId + " contains entries added from memtable should be forced to disk"
-            + " but flushed logs are " + elogger.getFlushedLogIds(),
-            elogger.getFlushedLogIds().contains(currentLogId));
+            + " but flushed logs are " + elogger.getFlushedLogIds());
     }
 
 }

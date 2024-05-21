@@ -20,8 +20,9 @@
  */
 package org.apache.bookkeeper.test;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -38,8 +39,8 @@ import org.apache.bookkeeper.client.BKException;
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.client.LedgerEntry;
 import org.apache.bookkeeper.client.LedgerHandle;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,7 +105,7 @@ public class AsyncLedgerOpsTest extends BookKeeperClusterTestCase
     }
 
     @Test
-    public void testAsyncCreateClose() throws IOException, BKException {
+    void asyncCreateClose() throws IOException, BKException {
         try {
 
             ControlObj ctx = new ControlObj();
@@ -159,7 +160,7 @@ public class AsyncLedgerOpsTest extends BookKeeperClusterTestCase
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Number of entries written: " + lh.getLastAddConfirmed());
             }
-            assertTrue("Verifying number of entries written", lh.getLastAddConfirmed() == (numEntriesToWrite - 1));
+            assertEquals(lh.getLastAddConfirmed(), (numEntriesToWrite - 1), "Verifying number of entries written");
 
             // read entries
             lh.asyncReadEntries(0, numEntriesToWrite - 1, this, sync);
@@ -188,11 +189,11 @@ public class AsyncLedgerOpsTest extends BookKeeperClusterTestCase
                     LOG.debug("Original entry: " + origEntry);
                     LOG.debug("Retrieved entry: " + retrEntry);
                 }
-                assertTrue("Checking entry " + i + " for equality", origEntry.equals(retrEntry));
-                assertTrue("Checking entry " + i + " for size", entry.length == entriesSize.get(i));
+                assertEquals(origEntry, retrEntry, "Checking entry " + i + " for equality");
+                assertTrue(entry.length == entriesSize.get(i), "Checking entry " + i + " for size");
                 i++;
             }
-            assertTrue("Checking number of read entries", i == numEntriesToWrite);
+            assertEquals(i, numEntriesToWrite, "Checking number of read entries");
             lh.close();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -250,7 +251,7 @@ public class AsyncLedgerOpsTest extends BookKeeperClusterTestCase
     }
 
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();

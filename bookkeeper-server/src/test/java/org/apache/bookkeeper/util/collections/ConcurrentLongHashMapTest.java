@@ -21,12 +21,12 @@
 package org.apache.bookkeeper.util.collections;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongFunction;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test the ConcurrentLongHashMap class.
@@ -51,7 +51,7 @@ import org.junit.Test;
 public class ConcurrentLongHashMapTest {
 
     @Test
-    public void testConstructor() {
+    void constructor() {
         try {
             ConcurrentLongHashMap.<String>newBuilder()
                     .expectedItems(0)
@@ -83,7 +83,7 @@ public class ConcurrentLongHashMapTest {
     }
 
     @Test
-    public void testReduceUnnecessaryExpansions() {
+    void reduceUnnecessaryExpansions() {
         ConcurrentLongHashMap<String> map = ConcurrentLongHashMap.<String>newBuilder()
                 .expectedItems(2)
                 .concurrencyLevel(1)
@@ -102,22 +102,22 @@ public class ConcurrentLongHashMapTest {
     }
 
     @Test
-    public void testClear() {
+    void clear() {
         ConcurrentLongHashMap<String> map = ConcurrentLongHashMap.<String>newBuilder()
                 .expectedItems(2)
                 .concurrencyLevel(1)
                 .autoShrink(true)
                 .mapIdleFactor(0.25f)
                 .build();
-        assertTrue(map.capacity() == 4);
+        assertEquals(4, map.capacity());
 
         assertNull(map.put(1, "v1"));
         assertNull(map.put(2, "v2"));
         assertNull(map.put(3, "v3"));
 
-        assertTrue(map.capacity() == 8);
+        assertEquals(8, map.capacity());
         map.clear();
-        assertTrue(map.capacity() == 4);
+        assertEquals(4, map.capacity());
     }
 
     private void addSpecifyIncrement(ConcurrentLongHashMap<byte[]> mkc, int start, int end) {
@@ -133,70 +133,70 @@ public class ConcurrentLongHashMapTest {
     }
 
     @Test
-    public void testAutoShrinkWithByte() {
+    void autoShrinkWithByte() {
         final int defaultExpectedItems = 256;
         final int defaultConcurrencyLevel = 16;
         final float defaultExpandFactor = 2;
         final float defaultShrinkFactor = 2;
 
         ConcurrentLongHashMap<byte[]> mkc = ConcurrentLongHashMap.<byte[]>newBuilder().autoShrink(true).build();
-        assertTrue(mkc.capacity() == defaultExpectedItems * 2);
+        assertEquals(mkc.capacity(), defaultExpectedItems * 2);
 
         addSpecifyIncrement(mkc, 1, defaultExpectedItems * 2);
         // expand hashmap
-        assertTrue(mkc.capacity() == defaultExpectedItems * 2
+        assertEquals(mkc.capacity(), defaultExpectedItems * 2
                 + defaultConcurrencyLevel * defaultExpandFactor * 15);
 
         removeSpecifyIncrement(mkc, 220, defaultExpectedItems * 2);
         // shrink hashmap
-        assertTrue(mkc.capacity() == defaultExpectedItems * 2
+        assertEquals(mkc.capacity(), defaultExpectedItems * 2
                 + defaultConcurrencyLevel * defaultExpandFactor * 15 - defaultConcurrencyLevel * defaultShrinkFactor);
     }
 
     @Test
-    public void testExpandAndShrink() {
+    void expandAndShrink() {
         ConcurrentLongHashMap<String> map = ConcurrentLongHashMap.<String>newBuilder()
                 .expectedItems(2)
                 .concurrencyLevel(1)
                 .autoShrink(true)
                 .mapIdleFactor(0.25f)
                 .build();
-        assertTrue(map.capacity() == 4);
+        assertEquals(4, map.capacity());
 
         assertNull(map.put(1, "v1"));
         assertNull(map.put(2, "v2"));
         assertNull(map.put(3, "v3"));
 
         // expand hashmap
-        assertTrue(map.capacity() == 8);
+        assertEquals(8, map.capacity());
 
         assertTrue(map.remove(1, "v1"));
         // not shrink
-        assertTrue(map.capacity() == 8);
+        assertEquals(8, map.capacity());
         assertTrue(map.remove(2, "v2"));
         // shrink hashmap
-        assertTrue(map.capacity() == 4);
+        assertEquals(4, map.capacity());
 
         // expand hashmap
         assertNull(map.put(4, "v4"));
         assertNull(map.put(5, "v5"));
-        assertTrue(map.capacity() == 8);
+        assertEquals(8, map.capacity());
 
         //verify that the map does not keep shrinking at every remove() operation
         assertNull(map.put(6, "v6"));
         assertTrue(map.remove(6, "v6"));
-        assertTrue(map.capacity() == 8);
+        assertEquals(8, map.capacity());
     }
 
     @Test
-    public void testConcurrentExpandAndShrinkAndGet()  throws Throwable {
+    void concurrentExpandAndShrinkAndGet()  throws Throwable {
         ConcurrentLongHashMap<String> map = ConcurrentLongHashMap.<String>newBuilder()
                 .expectedItems(2)
                 .concurrencyLevel(1)
                 .autoShrink(true)
                 .mapIdleFactor(0.25f)
                 .build();
-        assertEquals(map.capacity(), 4);
+        assertEquals(4, map.capacity());
 
         ExecutorService executor = Executors.newCachedThreadPool();
         final int readThreads = 16;
@@ -233,12 +233,12 @@ public class ConcurrentLongHashMapTest {
                 // expand hashmap
                 assertNull(map.put(2, "v2"));
                 assertNull(map.put(3, "v3"));
-                assertEquals(map.capacity(), 8);
+                assertEquals(8, map.capacity());
 
                 // shrink hashmap
                 assertTrue(map.remove(2, "v2"));
                 assertTrue(map.remove(3, "v3"));
-                assertEquals(map.capacity(), 4);
+                assertEquals(4, map.capacity());
             }
         });
 
@@ -249,7 +249,7 @@ public class ConcurrentLongHashMapTest {
     }
 
     @Test
-    public void testExpandShrinkAndClear() {
+    void expandShrinkAndClear() {
         ConcurrentLongHashMap<String> map = ConcurrentLongHashMap.<String>newBuilder()
                 .expectedItems(2)
                 .concurrencyLevel(1)
@@ -257,32 +257,32 @@ public class ConcurrentLongHashMapTest {
                 .mapIdleFactor(0.25f)
                 .build();
         final long initCapacity = map.capacity();
-        assertTrue(map.capacity() == 4);
+        assertEquals(4, map.capacity());
         assertNull(map.put(1, "v1"));
         assertNull(map.put(2, "v2"));
         assertNull(map.put(3, "v3"));
 
         // expand hashmap
-        assertTrue(map.capacity() == 8);
+        assertEquals(8, map.capacity());
 
         assertTrue(map.remove(1, "v1"));
         // not shrink
-        assertTrue(map.capacity() == 8);
+        assertEquals(8, map.capacity());
         assertTrue(map.remove(2, "v2"));
         // shrink hashmap
-        assertTrue(map.capacity() == 4);
+        assertEquals(4, map.capacity());
 
         assertTrue(map.remove(3, "v3"));
         // Will not shrink the hashmap again because shrink capacity is less than initCapacity
         // current capacity is equal than the initial capacity
-        assertTrue(map.capacity() == initCapacity);
+        assertEquals(map.capacity(), initCapacity);
         map.clear();
         // after clear, because current capacity is equal than the initial capacity, so not shrinkToInitCapacity
-        assertTrue(map.capacity() == initCapacity);
+        assertEquals(map.capacity(), initCapacity);
     }
 
     @Test
-    public void simpleInsertions() {
+    void simpleInsertions() {
         ConcurrentLongHashMap<String> map = ConcurrentLongHashMap.<String>newBuilder()
                 .expectedItems(16)
                 .build();
@@ -294,25 +294,25 @@ public class ConcurrentLongHashMapTest {
         assertNull(map.put(2, "two"));
         assertNull(map.put(3, "three"));
 
-        assertEquals(map.size(), 3);
+        assertEquals(3, map.size());
 
-        assertEquals(map.get(1), "one");
-        assertEquals(map.size(), 3);
+        assertEquals("one", map.get(1));
+        assertEquals(3, map.size());
 
-        assertEquals(map.remove(1), "one");
-        assertEquals(map.size(), 2);
-        assertEquals(map.get(1), null);
-        assertEquals(map.get(5), null);
-        assertEquals(map.size(), 2);
+        assertEquals("one", map.remove(1));
+        assertEquals(2, map.size());
+        assertNull(map.get(1));
+        assertNull(map.get(5));
+        assertEquals(2, map.size());
 
         assertNull(map.put(1, "one"));
-        assertEquals(map.size(), 3);
-        assertEquals(map.put(1, "uno"), "one");
-        assertEquals(map.size(), 3);
+        assertEquals(3, map.size());
+        assertEquals("one", map.put(1, "uno"));
+        assertEquals(3, map.size());
     }
 
     @Test
-    public void testRemove() {
+    void remove() {
         ConcurrentLongHashMap<String> map =
                 ConcurrentLongHashMap.<String>newBuilder().build();
 
@@ -329,7 +329,7 @@ public class ConcurrentLongHashMapTest {
     }
 
     @Test
-    public void testRemoveIf() {
+    void removeIf() {
         ConcurrentLongHashMap<String> map = ConcurrentLongHashMap.<String>newBuilder()
                 .expectedItems(16)
                 .concurrencyLevel(1)
@@ -349,7 +349,7 @@ public class ConcurrentLongHashMapTest {
     }
 
     @Test
-    public void testNegativeUsedBucketCount() {
+    void negativeUsedBucketCount() {
         ConcurrentLongHashMap<String> map = ConcurrentLongHashMap.<String>newBuilder()
                 .expectedItems(16)
                 .concurrencyLevel(1)
@@ -366,14 +366,14 @@ public class ConcurrentLongHashMapTest {
     }
 
     @Test
-    public void testRehashing() {
+    void rehashing() {
         int n = 16;
         ConcurrentLongHashMap<Integer> map = ConcurrentLongHashMap.<Integer>newBuilder()
                 .expectedItems(n / 2)
                 .concurrencyLevel(1)
                 .build();
         assertEquals(map.capacity(), n);
-        assertEquals(map.size(), 0);
+        assertEquals(0, map.size());
 
         for (int i = 0; i < n; i++) {
             map.put(i, i);
@@ -384,14 +384,14 @@ public class ConcurrentLongHashMapTest {
     }
 
     @Test
-    public void testRehashingWithDeletes() {
+    void rehashingWithDeletes() {
         int n = 16;
         ConcurrentLongHashMap<Integer> map = ConcurrentLongHashMap.<Integer>newBuilder()
                 .expectedItems(n / 2)
                 .concurrencyLevel(1)
                 .build();
         assertEquals(map.capacity(), n);
-        assertEquals(map.size(), 0);
+        assertEquals(0, map.size());
 
         for (int i = 0; i < n / 2; i++) {
             map.put(i, i);
@@ -410,7 +410,7 @@ public class ConcurrentLongHashMapTest {
     }
 
     @Test
-    public void concurrentInsertions() throws Throwable {
+    void concurrentInsertions() throws Throwable {
         ConcurrentLongHashMap<String> map =
                 ConcurrentLongHashMap.<String>newBuilder().build();
         ExecutorService executor = Executors.newCachedThreadPool();
@@ -446,7 +446,7 @@ public class ConcurrentLongHashMapTest {
     }
 
     @Test
-    public void concurrentInsertionsAndReads() throws Throwable {
+    void concurrentInsertionsAndReads() throws Throwable {
         ConcurrentLongHashMap<String> map =
                 ConcurrentLongHashMap.<String>newBuilder().build();
         ExecutorService executor = Executors.newCachedThreadPool();
@@ -482,7 +482,7 @@ public class ConcurrentLongHashMapTest {
     }
 
     @Test
-    public void stressConcurrentInsertionsAndReads() throws Throwable {
+    void stressConcurrentInsertionsAndReads() throws Throwable {
         ConcurrentLongHashMap<String> map =
                 ConcurrentLongHashMap.<String>newBuilder().expectedItems(4).concurrencyLevel(1).build();
         ExecutorService executor = Executors.newCachedThreadPool();
@@ -550,7 +550,7 @@ public class ConcurrentLongHashMapTest {
     }
 
     @Test
-    public void testIteration() {
+    void iteration() {
         ConcurrentLongHashMap<String> map =
                 ConcurrentLongHashMap.<String>newBuilder().build();
 
@@ -594,7 +594,7 @@ public class ConcurrentLongHashMapTest {
     }
 
     @Test
-    public void testHashConflictWithDeletion() {
+    void hashConflictWithDeletion() {
         final int buckets = 16;
         ConcurrentLongHashMap<String> map = ConcurrentLongHashMap.<String>newBuilder()
                 .expectedItems(buckets)
@@ -609,40 +609,40 @@ public class ConcurrentLongHashMapTest {
         int bucket2 = ConcurrentLongHashMap.signSafeMod(ConcurrentLongHashMap.hash(key2), buckets);
         assertEquals(bucket1, bucket2);
 
-        assertEquals(map.put(key1, "value-1"), null);
-        assertEquals(map.put(key2, "value-2"), null);
-        assertEquals(map.size(), 2);
+        assertNull(map.put(key1, "value-1"));
+        assertNull(map.put(key2, "value-2"));
+        assertEquals(2, map.size());
 
-        assertEquals(map.remove(key1), "value-1");
-        assertEquals(map.size(), 1);
+        assertEquals("value-1", map.remove(key1));
+        assertEquals(1, map.size());
 
-        assertEquals(map.put(key1, "value-1-overwrite"), null);
-        assertEquals(map.size(), 2);
+        assertNull(map.put(key1, "value-1-overwrite"));
+        assertEquals(2, map.size());
 
-        assertEquals(map.remove(key1), "value-1-overwrite");
-        assertEquals(map.size(), 1);
+        assertEquals("value-1-overwrite", map.remove(key1));
+        assertEquals(1, map.size());
 
-        assertEquals(map.put(key2, "value-2-overwrite"), "value-2");
-        assertEquals(map.get(key2), "value-2-overwrite");
+        assertEquals("value-2", map.put(key2, "value-2-overwrite"));
+        assertEquals("value-2-overwrite", map.get(key2));
 
-        assertEquals(map.size(), 1);
-        assertEquals(map.remove(key2), "value-2-overwrite");
+        assertEquals(1, map.size());
+        assertEquals("value-2-overwrite", map.remove(key2));
         assertTrue(map.isEmpty());
     }
 
     @Test
-    public void testPutIfAbsent() {
+    void putIfAbsent() {
         ConcurrentLongHashMap<String> map =
                 ConcurrentLongHashMap.<String>newBuilder().build();
-        assertEquals(map.putIfAbsent(1, "one"), null);
-        assertEquals(map.get(1), "one");
+        assertNull(map.putIfAbsent(1, "one"));
+        assertEquals("one", map.get(1));
 
-        assertEquals(map.putIfAbsent(1, "uno"), "one");
-        assertEquals(map.get(1), "one");
+        assertEquals("one", map.putIfAbsent(1, "uno"));
+        assertEquals("one", map.get(1));
     }
 
     @Test
-    public void testComputeIfAbsent() {
+    void computeIfAbsent() {
         ConcurrentLongHashMap<Integer> map = ConcurrentLongHashMap.<Integer>newBuilder()
                 .expectedItems(16)
                 .concurrencyLevel(1)
@@ -654,17 +654,17 @@ public class ConcurrentLongHashMapTest {
             }
         };
 
-        assertEquals(map.computeIfAbsent(0, provider).intValue(), 0);
-        assertEquals(map.get(0).intValue(), 0);
+        assertEquals(0, map.computeIfAbsent(0, provider).intValue());
+        assertEquals(0, map.get(0).intValue());
 
-        assertEquals(map.computeIfAbsent(1, provider).intValue(), 1);
-        assertEquals(map.get(1).intValue(), 1);
+        assertEquals(1, map.computeIfAbsent(1, provider).intValue());
+        assertEquals(1, map.get(1).intValue());
 
-        assertEquals(map.computeIfAbsent(1, provider).intValue(), 1);
-        assertEquals(map.get(1).intValue(), 1);
+        assertEquals(1, map.computeIfAbsent(1, provider).intValue());
+        assertEquals(1, map.get(1).intValue());
 
-        assertEquals(map.computeIfAbsent(2, provider).intValue(), 2);
-        assertEquals(map.get(2).intValue(), 2);
+        assertEquals(2, map.computeIfAbsent(2, provider).intValue());
+        assertEquals(2, map.get(2).intValue());
     }
 
     static final int Iterations = 1;

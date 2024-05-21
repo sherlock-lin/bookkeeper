@@ -21,7 +21,7 @@
 
 package org.apache.bookkeeper.test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -39,16 +39,16 @@ import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.conf.TestBKConfiguration;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.proto.BookkeeperInternalCallbacks.WriteCallback;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Tests writing to concurrent ledgers.
  */
-public class ConcurrentLedgerTest {
+class ConcurrentLedgerTest {
     private static final Logger LOG = LoggerFactory.getLogger(ConcurrentLedgerTest.class);
 
     Bookie bookie;
@@ -65,8 +65,8 @@ public class ConcurrentLedgerTest {
         return dir;
     }
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() throws Exception {
         String txnDirName = System.getProperty("txnDir");
         if (txnDirName != null) {
             txnDir = new File(txnDirName);
@@ -101,8 +101,8 @@ public class ConcurrentLedgerTest {
         }
     }
 
-    @After
-    public void tearDown() {
+    @AfterEach
+    void tearDown() {
         bookie.shutdown();
         recursiveDelete(txnDir);
         recursiveDelete(ledgerDir);
@@ -117,6 +117,7 @@ public class ConcurrentLedgerTest {
             iterations = Integer.parseInt(iterationsString);
         }
     }
+
     int iterationStep = 25;
     {
         String iterationsString = System.getProperty("iterationStep");
@@ -124,8 +125,9 @@ public class ConcurrentLedgerTest {
             iterationStep = Integer.parseInt(iterationsString);
         }
     }
+
     @Test
-    public void testConcurrentWrite() throws IOException, InterruptedException, BookieException {
+    void concurrentWrite() throws IOException, InterruptedException, BookieException {
         int size = 1024;
         int totalwrites = 128;
         if (System.getProperty("totalwrites") != null) {
@@ -154,8 +156,8 @@ public class ConcurrentLedgerTest {
                 // skip the ledger id and the entry id
                 entry.readLong();
                 entry.readLong();
-                assertEquals(j + "@" + i, j + 2, entry.readLong());
-                assertEquals(j + "@" + i, i + 3, entry.readLong());
+                assertEquals(j + 2, entry.readLong(), j + "@" + i);
+                assertEquals(i + 3, entry.readLong(), j + "@" + i);
             }
         }
         long finish = System.currentTimeMillis();

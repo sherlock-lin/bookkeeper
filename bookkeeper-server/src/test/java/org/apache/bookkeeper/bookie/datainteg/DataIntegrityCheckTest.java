@@ -26,6 +26,8 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyLong;
@@ -71,16 +73,15 @@ import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.meta.MockLedgerManager;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.proto.MockBookieClient;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test of DataIntegrityCheckImpl.
  */
 @SuppressWarnings("deprecation")
-public class DataIntegrityCheckTest {
+class DataIntegrityCheckTest {
     private static final byte[] PASSWD = new byte[0];
 
     private final BookieId bookie1 = BookieId.parse("bookie1:3181");
@@ -91,13 +92,13 @@ public class DataIntegrityCheckTest {
 
     private OrderedExecutor executor = null;
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    void setup() throws Exception {
         executor = OrderedExecutor.newBuilder().numThreads(1).name("test").build();
     }
 
-    @After
-    public void teardown() throws Exception {
+    @AfterEach
+    void teardown() throws Exception {
         if (executor != null) {
             executor.shutdownNow();
         }
@@ -139,7 +140,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testPrebootBookieIdInOpenSegmentMarkedInLimbo() throws Exception {
+    void prebootBookieIdInOpenSegmentMarkedInLimbo() throws Exception {
         MockLedgerManager lm = new MockLedgerManager();
 
         ServerConfiguration conf = serverConf();
@@ -159,7 +160,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testPrebootFencedMarkedInLimbo() throws Exception {
+    void prebootFencedMarkedInLimbo() throws Exception {
         MockLedgerManager lm = new MockLedgerManager();
 
         ServerConfiguration conf = serverConf();
@@ -182,7 +183,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testPrebootClosedNotMarkedInLimbo() throws Exception {
+    void prebootClosedNotMarkedInLimbo() throws Exception {
         MockLedgerManager lm = new MockLedgerManager();
 
         ServerConfiguration conf = serverConf();
@@ -205,7 +206,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testPrebootFlushCalled() throws Exception {
+    void prebootFlushCalled() throws Exception {
         MockLedgerManager lm = new MockLedgerManager();
 
         ServerConfiguration conf = serverConf();
@@ -228,17 +229,18 @@ public class DataIntegrityCheckTest {
         assertThat(storage.isFenced(0xbeefL), is(true));
     }
 
-    @Test(expected = ExecutionException.class)
-    public void testFailureInPrebootMarkFailsAll() throws Exception {
-        MockLedgerManager lm = new MockLedgerManager();
+    @Test
+    void failureInPrebootMarkFailsAll() throws Exception {
+        assertThrows(ExecutionException.class, () -> {
+            MockLedgerManager lm = new MockLedgerManager();
 
-        ServerConfiguration conf = serverConf();
-        BookieId bookieId = BookieImpl.getBookieId(conf);
-        lm.createLedgerMetadata(0xbeedL, newMetadataWithEnsemble(0xbeedL, bookieId).build()).get();
-        lm.createLedgerMetadata(0xbeefL, newMetadataWithEnsemble(0xbeefL, bookieId).build()).get();
-        lm.createLedgerMetadata(0xbee0L, newMetadataWithEnsemble(0xbee0L, bookieId).build()).get();
+            ServerConfiguration conf = serverConf();
+            BookieId bookieId = BookieImpl.getBookieId(conf);
+            lm.createLedgerMetadata(0xbeedL, newMetadataWithEnsemble(0xbeedL, bookieId).build()).get();
+            lm.createLedgerMetadata(0xbeefL, newMetadataWithEnsemble(0xbeefL, bookieId).build()).get();
+            lm.createLedgerMetadata(0xbee0L, newMetadataWithEnsemble(0xbee0L, bookieId).build()).get();
 
-        MockLedgerStorage storage = new MockLedgerStorage() {
+            MockLedgerStorage storage = new MockLedgerStorage() {
                 @Override
                 public void setLimboState(long ledgerId) throws IOException {
                     if (ledgerId == 0xbeefL) {
@@ -249,15 +251,16 @@ public class DataIntegrityCheckTest {
                 }
             };
 
-        DataIntegrityCheckImpl impl = new DataIntegrityCheckImpl(bookieId, lm, storage,
-                                                                 mock(EntryCopier.class),
-                                                                 mock(BookKeeperAdmin.class),
-                                                                 Schedulers.io());
-        impl.runPreBootCheck("test").get();
+            DataIntegrityCheckImpl impl = new DataIntegrityCheckImpl(bookieId, lm, storage,
+                    mock(EntryCopier.class),
+                    mock(BookKeeperAdmin.class),
+                    Schedulers.io());
+            impl.runPreBootCheck("test").get();
+        });
     }
 
     @Test
-    public void testRecoverLimboOpensAndClears() throws Exception {
+    void recoverLimboOpensAndClears() throws Exception {
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
         BookieId bookieId = BookieImpl.getBookieId(conf);
@@ -289,7 +292,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testRecoverLimboErrorOnOpenOnlyAffectsThatOne() throws Exception {
+    void recoverLimboErrorOnOpenOnlyAffectsThatOne() throws Exception {
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
         BookieId bookieId = BookieImpl.getBookieId(conf);
@@ -330,7 +333,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testRecoverLimboNoSuchLedger() throws Exception {
+    void recoverLimboNoSuchLedger() throws Exception {
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
         BookieId bookieId = BookieImpl.getBookieId(conf);
@@ -373,7 +376,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testRecoverLimboClearStateFailure() throws Exception {
+    void recoverLimboClearStateFailure() throws Exception {
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
         BookieId bookieId = BookieImpl.getBookieId(conf);
@@ -448,7 +451,7 @@ public class DataIntegrityCheckTest {
 //    }
 
     @Test
-    public void testRecoverLimboManyLedgers() throws Exception {
+    void recoverLimboManyLedgers() throws Exception {
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
         BookieId bookieId = BookieImpl.getBookieId(conf);
@@ -500,7 +503,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testRecoverLimboManyLedgersErrorOnFirst() throws Exception {
+    void recoverLimboManyLedgersErrorOnFirst() throws Exception {
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
         BookieId bookieId = BookieImpl.getBookieId(conf);
@@ -559,7 +562,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testRecoverLimboNoLedgers() throws Exception {
+    void recoverLimboNoLedgers() throws Exception {
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
         BookieId bookieId = BookieImpl.getBookieId(conf);
@@ -583,7 +586,7 @@ public class DataIntegrityCheckTest {
 
 
     @Test
-    public void testRecoverSingleLedgerEntriesOnLedgerIDontHave() throws Exception {
+    void recoverSingleLedgerEntriesOnLedgerIDontHave() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
@@ -611,7 +614,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testRecoverSingleLedgerNotClosedOneEnsemble() throws Exception {
+    void recoverSingleLedgerNotClosedOneEnsemble() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
@@ -637,7 +640,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testRecoverSingleLedgerNoClosedMultiEnsembleBookieInClosed() throws Exception {
+    void recoverSingleLedgerNoClosedMultiEnsembleBookieInClosed() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
@@ -668,7 +671,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testRecoverSingleLedgerNotClosedMultiEnsembleBookieInFinal() throws Exception {
+    void recoverSingleLedgerNotClosedMultiEnsembleBookieInFinal() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
@@ -695,7 +698,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testRecoverSingleLedgerLargeEnsembleStriped() throws Exception {
+    void recoverSingleLedgerLargeEnsembleStriped() throws Exception {
 
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerManager lm = new MockLedgerManager();
@@ -744,7 +747,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testRecoverSingleLedgerEntriesOnlyEntriesNeeded() throws Exception {
+    void recoverSingleLedgerEntriesOnlyEntriesNeeded() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
@@ -777,7 +780,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testRecoverSingleLedgerEntriesOnlyEntriesNeededEverySecond() throws Exception {
+    void recoverSingleLedgerEntriesOnlyEntriesNeededEverySecond() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
@@ -820,7 +823,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testRecoverSingleLedgerErrorAtStart() throws Exception {
+    void recoverSingleLedgerErrorAtStart() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
@@ -856,7 +859,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testRecoverSingleLedgerErrorEverySecond() throws Exception {
+    void recoverSingleLedgerErrorEverySecond() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
@@ -905,7 +908,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testRecoverSingleLedgerErrorOneOnStore() throws Exception {
+    void recoverSingleLedgerErrorOneOnStore() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
@@ -958,7 +961,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testRecoverMultiLedgers() throws Exception {
+    void recoverMultiLedgers() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
@@ -998,7 +1001,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testRecoverMultiLedgersOneUnavailable() throws Exception {
+    void recoverMultiLedgersOneUnavailable() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
@@ -1039,7 +1042,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testRecoverMultiLedgersOneFailsToWriteLocally() throws Exception {
+    void recoverMultiLedgersOneFailsToWriteLocally() throws Exception {
         long id1 = 0xdeadL;
         long id2 = 0xbedeL;
         long id3 = 0xbebeL;
@@ -1096,7 +1099,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testRecoverMultiLedgersAllUnavailable() throws Exception {
+    void recoverMultiLedgersAllUnavailable() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
@@ -1134,7 +1137,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testEnsemblesContainBookie() throws Exception {
+    void ensemblesContainBookie() throws Exception {
         LedgerMetadata md1 = newMetadataWithEnsemble(1, bookie1).build();
         assertThat(DataIntegrityCheckImpl.ensemblesContainBookie(md1, bookie1), equalTo(true));
         assertThat(DataIntegrityCheckImpl.ensemblesContainBookie(md1, bookie2), equalTo(false));
@@ -1154,7 +1157,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testMetadataCacheLoad() throws Exception {
+    void metadataCacheLoad() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
@@ -1181,7 +1184,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testFullCheckCacheLoadAndProcessIfEmpty() throws Exception {
+    void fullCheckCacheLoadAndProcessIfEmpty() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
@@ -1219,7 +1222,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testFullCheckCacheLoadAndProcessSomeInLimbo() throws Exception {
+    void fullCheckCacheLoadAndProcessSomeInLimbo() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
@@ -1275,7 +1278,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testFullCheckInLimboRecoveryFailsFirstTime() throws Exception {
+    void fullCheckInLimboRecoveryFailsFirstTime() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
@@ -1349,7 +1352,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testFullCheckInEntryCopyFailsFirstTime() throws Exception {
+    void fullCheckInEntryCopyFailsFirstTime() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
@@ -1421,7 +1424,7 @@ public class DataIntegrityCheckTest {
 
 
     @Test
-    public void testFullCheckAllInLimboAndMissing() throws Exception {
+    void fullCheckAllInLimboAndMissing() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
@@ -1476,7 +1479,7 @@ public class DataIntegrityCheckTest {
     }
 
     @Test
-    public void testFullCheckFailFlushRetainsFlag() throws Exception {
+    void fullCheckFailFlushRetainsFlag() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerManager lm = new MockLedgerManager();
         ServerConfiguration conf = serverConf();
@@ -1517,7 +1520,7 @@ public class DataIntegrityCheckTest {
         storage.setStorageStateFlag(StorageState.NEEDS_INTEGRITY_CHECK);
         try {
             impl.runFullCheck().get();
-            Assert.fail("Should have failed on flush");
+            fail("Should have failed on flush");
         } catch (ExecutionException ee) {
             assertThat(ee.getCause(), instanceOf(IOException.class));
         }

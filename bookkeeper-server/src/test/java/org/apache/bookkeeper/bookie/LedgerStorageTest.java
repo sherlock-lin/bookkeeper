@@ -20,7 +20,9 @@
  */
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
@@ -39,8 +41,7 @@ import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.proto.checksum.DigestManager;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.util.TestUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test ledger storage.
@@ -51,7 +52,7 @@ public class LedgerStorageTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testLedgerDeleteNotification() throws Exception {
+    void ledgerDeleteNotification() throws Exception {
         LedgerStorage ledgerStorage = serverByIndex(0).getBookie().getLedgerStorage();
 
         long deletedLedgerId = 5;
@@ -71,7 +72,7 @@ public class LedgerStorageTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testExplicitLacWriteToJournalWithValidVersions() throws Exception {
+    void explicitLacWriteToJournalWithValidVersions() throws Exception {
         /*
          * to persist explicitLac, journalFormatVersionToWrite should be atleast
          * V6 and fileInfoFormatVersionToWrite should be atleast V1
@@ -80,7 +81,7 @@ public class LedgerStorageTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testExplicitLacWriteToJournalWithOlderVersions() throws Exception {
+    void explicitLacWriteToJournalWithOlderVersions() throws Exception {
         /*
          * to persist explicitLac, journalFormatVersionToWrite should be atleast
          * V6 and fileInfoFormatVersionToWrite should be atleast V1
@@ -119,8 +120,8 @@ public class LedgerStorageTest extends BookKeeperClusterTestCase {
 
         LedgerHandle rlh = bkcWithExplicitLAC.openLedgerNoRecovery(ledgerId, digestType, passwdBytes);
 
-        assertEquals("LAC of rlh", (long) numOfEntries - 2, rlh.getLastAddConfirmed());
-        assertEquals("Read explicit LAC of rlh", (long) numOfEntries - 2, rlh.readExplicitLastConfirmed());
+        assertEquals((long) numOfEntries - 2, rlh.getLastAddConfirmed(), "LAC of rlh");
+        assertEquals((long) numOfEntries - 2, rlh.readExplicitLastConfirmed(), "Read explicit LAC of rlh");
 
         /*
          * we need to wait for atleast 2 explicitlacintervals, since in
@@ -129,8 +130,9 @@ public class LedgerStorageTest extends BookKeeperClusterTestCase {
          * writelac in the first run
          */
         long readExplicitLastConfirmed = TestUtils.waitUntilExplicitLacUpdated(rlh, numOfEntries - 1);
-        assertEquals("Read explicit LAC of rlh after wait for explicitlacflush", (numOfEntries - 1),
-                readExplicitLastConfirmed);
+        assertEquals((numOfEntries - 1),
+                readExplicitLastConfirmed,
+                "Read explicit LAC of rlh after wait for explicitlacflush");
 
         ServerConfiguration newBookieConf = new ServerConfiguration(confByIndex(0));
         /*
@@ -154,15 +156,15 @@ public class LedgerStorageTest extends BookKeeperClusterTestCase {
                     BookKeeper.DigestType.toProtoDigestType(digestType), UnpooledByteBufAllocator.DEFAULT,
                     confWithExplicitLAC.getUseV2WireProtocol());
             long explicitLacPersistedInJournal = digestManager.verifyDigestAndReturnLac(explicitLacBuf);
-            assertEquals("explicitLac persisted in journal", (numOfEntries - 1), explicitLacPersistedInJournal);
+            assertEquals((numOfEntries - 1), explicitLacPersistedInJournal, "explicitLac persisted in journal");
         } else {
-            assertEquals("explicitLac is not expected to be persisted, so it should be null", null, explicitLacBuf);
+            assertNull(explicitLacBuf, "explicitLac is not expected to be persisted, so it should be null");
         }
         bkcWithExplicitLAC.close();
     }
 
     @Test
-    public void testExplicitLacWriteToFileInfoWithValidVersions() throws Exception {
+    void explicitLacWriteToFileInfoWithValidVersions() throws Exception {
         /*
          * to persist explicitLac, journalFormatVersionToWrite should be atleast
          * V6 and fileInfoFormatVersionToWrite should be atleast V1
@@ -171,7 +173,7 @@ public class LedgerStorageTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testExplicitLacWriteToFileInfoWithOlderVersions() throws Exception {
+    void explicitLacWriteToFileInfoWithOlderVersions() throws Exception {
         /*
          * to persist explicitLac, journalFormatVersionToWrite should be atleast
          * V6 and fileInfoFormatVersionToWrite should be atleast V1
@@ -209,8 +211,8 @@ public class LedgerStorageTest extends BookKeeperClusterTestCase {
 
         LedgerHandle rlh = bkcWithExplicitLAC.openLedgerNoRecovery(ledgerId, digestType, passwdBytes);
 
-        assertEquals("LAC of rlh", (long) numOfEntries - 2, rlh.getLastAddConfirmed());
-        assertEquals("Read explicit LAC of rlh", (long) numOfEntries - 2, rlh.readExplicitLastConfirmed());
+        assertEquals((long) numOfEntries - 2, rlh.getLastAddConfirmed(), "LAC of rlh");
+        assertEquals((long) numOfEntries - 2, rlh.readExplicitLastConfirmed(), "Read explicit LAC of rlh");
 
         /*
          * we need to wait for atleast 2 explicitlacintervals, since in
@@ -219,8 +221,9 @@ public class LedgerStorageTest extends BookKeeperClusterTestCase {
          * writelac in the first run
          */
         long readExplicitLastConfirmed = TestUtils.waitUntilExplicitLacUpdated(rlh, numOfEntries - 1);
-        assertEquals("Read explicit LAC of rlh after wait for explicitlacflush", (numOfEntries - 1),
-                readExplicitLastConfirmed);
+        assertEquals((numOfEntries - 1),
+                readExplicitLastConfirmed,
+                "Read explicit LAC of rlh after wait for explicitlacflush");
 
         /*
          * flush ledgerStorage so that header of fileinfo is flushed.
@@ -237,10 +240,9 @@ public class LedgerStorageTest extends BookKeeperClusterTestCase {
                     BookKeeper.DigestType.toProtoDigestType(digestType), UnpooledByteBufAllocator.DEFAULT,
                     confWithExplicitLAC.getUseV2WireProtocol());
             long explicitLacReadFromFileInfo = digestManager.verifyDigestAndReturnLac(explicitLacBufReadFromFileInfo);
-            assertEquals("explicitLac persisted in FileInfo", (numOfEntries - 1), explicitLacReadFromFileInfo);
+            assertEquals((numOfEntries - 1), explicitLacReadFromFileInfo, "explicitLac persisted in FileInfo");
         } else {
-            assertEquals("explicitLac is not expected to be persisted, so it should be null", null,
-                    explicitLacBufReadFromFileInfo);
+            assertNull(explicitLacBufReadFromFileInfo, "explicitLac is not expected to be persisted, so it should be null");
         }
 
         bkcWithExplicitLAC.close();
@@ -284,7 +286,7 @@ public class LedgerStorageTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testGetListOfEntriesOfLedger() throws Exception {
+    void getListOfEntriesOfLedger() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         int numOfBookies = bookieCount();
@@ -317,9 +319,9 @@ public class LedgerStorageTest extends BookKeeperClusterTestCase {
         Consumer<Long> addMethod = arrayList::add;
         listOfEntriesItr.forEachRemaining(addMethod);
 
-        assertEquals("Num Of Entries", numOfEntries, arrayList.size());
-        Assert.assertTrue("Iterator should be sorted",
-                IntStream.range(0, arrayList.size() - 1).allMatch(k -> arrayList.get(k) <= arrayList.get(k + 1)));
+        assertEquals(numOfEntries, arrayList.size(), "Num Of Entries");
+        assertTrue(IntStream.range(0, arrayList.size() - 1).allMatch(k -> arrayList.get(k) <= arrayList.get(k + 1)),
+                "Iterator should be sorted");
         bkc.close();
     }
 }

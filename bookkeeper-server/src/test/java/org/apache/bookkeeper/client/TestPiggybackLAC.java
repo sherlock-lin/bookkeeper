@@ -20,7 +20,7 @@
  */
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -31,30 +31,26 @@ import org.apache.bookkeeper.bookie.SortedLedgerStorage;
 import org.apache.bookkeeper.bookie.storage.ldb.DbLedgerStorage;
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Test a piggyback LAC.
  */
-@RunWith(Parameterized.class)
 public class TestPiggybackLAC extends BookKeeperClusterTestCase {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestPiggybackLAC.class);
 
-    final DigestType digestType;
+    DigestType digestType;
 
-    public TestPiggybackLAC(Class<? extends LedgerStorage> storageClass) {
+    public void initTestPiggybackLAC(Class<? extends LedgerStorage> storageClass) {
         super(1);
         this.digestType = DigestType.CRC32;
         baseConf.setLedgerStorageClass(storageClass.getName());
     }
 
-    @Parameters
     public static Collection<Object[]> configs() {
         return Arrays.asList(new Object[][] {
             { InterleavedLedgerStorage.class },
@@ -63,8 +59,10 @@ public class TestPiggybackLAC extends BookKeeperClusterTestCase {
         });
     }
 
-    @Test
-    public void testPiggybackLAC() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void piggybackLAC(Class<? extends LedgerStorage> storageClass) throws Exception {
+        initTestPiggybackLAC(storageClass);
         int numEntries = 10;
         LedgerHandle lh = bkc.createLedger(1, 1, 1, digestType, "".getBytes());
         // tried to add entries

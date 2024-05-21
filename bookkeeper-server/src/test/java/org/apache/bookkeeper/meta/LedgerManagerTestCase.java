@@ -48,16 +48,12 @@ import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.stats.StatsLogger;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.util.SnapshotMap;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * Test case to run over serveral ledger managers.
  */
-@RunWith(Parameterized.class)
 public abstract class LedgerManagerTestCase extends BookKeeperClusterTestCase {
 
     protected MetadataClientDriver clientDriver;
@@ -68,11 +64,11 @@ public abstract class LedgerManagerTestCase extends BookKeeperClusterTestCase {
     protected SnapshotMap<Long, Boolean> activeLedgers = null;
     protected OrderedScheduler scheduler;
 
-    public LedgerManagerTestCase(Class<? extends LedgerManagerFactory> lmFactoryCls) {
+    public void initLedgerManagerTestCase(Class<? extends LedgerManagerFactory> lmFactoryCls) {
         this(lmFactoryCls, 0);
     }
 
-    public LedgerManagerTestCase(Class<? extends LedgerManagerFactory> lmFactoryCls, int numBookies) {
+    public void initLedgerManagerTestCase(Class<? extends LedgerManagerFactory> lmFactoryCls, int numBookies) {
         super(numBookies);
         activeLedgers = new SnapshotMap<Long, Boolean>();
         this.lmFactoryClass = lmFactoryCls;
@@ -115,7 +111,6 @@ public abstract class LedgerManagerTestCase extends BookKeeperClusterTestCase {
     }
 
     @SuppressWarnings("deprecation")
-    @Parameters
     public static Collection<Object[]> configs() {
         return Arrays.asList(new Object[][] {
             { FlatLedgerManagerFactory.class },
@@ -125,7 +120,7 @@ public abstract class LedgerManagerTestCase extends BookKeeperClusterTestCase {
         });
     }
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -146,7 +141,7 @@ public abstract class LedgerManagerTestCase extends BookKeeperClusterTestCase {
         ledgerManagerFactory = clientDriver.getLedgerManagerFactory();
     }
 
-    @After
+    @AfterEach
     @Override
     public void tearDown() throws Exception {
         if (null != ledgerManager) {

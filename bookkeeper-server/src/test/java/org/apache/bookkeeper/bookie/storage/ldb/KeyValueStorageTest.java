@@ -20,8 +20,9 @@
  */
 package org.apache.bookkeeper.bookie.storage.ldb;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import java.io.File;
@@ -36,26 +37,22 @@ import org.apache.bookkeeper.bookie.storage.ldb.KeyValueStorage.CloseableIterato
 import org.apache.bookkeeper.bookie.storage.ldb.KeyValueStorageFactory.DbConfigType;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.commons.io.FileUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Unit test for {@link KeyValueStorage}.
  */
-@RunWith(Parameterized.class)
 public class KeyValueStorageTest {
 
-    private final KeyValueStorageFactory storageFactory;
-    private final ServerConfiguration configuration;
+    private KeyValueStorageFactory storageFactory;
+    private ServerConfiguration configuration;
 
-    @Parameters
     public static Collection<Object[]> configs() {
         return Arrays.asList(new Object[][] { { KeyValueStorageRocksDB.factory } });
     }
 
-    public KeyValueStorageTest(KeyValueStorageFactory storageFactory) {
+    public void initKeyValueStorageTest(KeyValueStorageFactory storageFactory) {
         this.storageFactory = storageFactory;
         this.configuration = new ServerConfiguration();
     }
@@ -70,28 +67,30 @@ public class KeyValueStorageTest {
         return b;
     }
 
-    @Test
-    public void simple() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void simple(KeyValueStorageFactory storageFactory) throws Exception {
+        initKeyValueStorageTest(storageFactory);
         File tmpDir = Files.createTempDirectory("junitTemporaryFolder").toFile();
         Files.createDirectory(Paths.get(tmpDir.toString(), "subDir"));
 
         KeyValueStorage db = storageFactory.newKeyValueStorage(tmpDir.toString(), "subDir", DbConfigType.Default,
                 configuration);
 
-        assertEquals(null, db.getFloor(toArray(3)));
+        assertNull(db.getFloor(toArray(3)));
         assertEquals(0, db.count());
 
         db.put(toArray(5), toArray(5));
 
-        assertEquals(null, db.getFloor(toArray(3)));
+        assertNull(db.getFloor(toArray(3)));
         assertEquals(1, db.count());
 
-        assertEquals(null, db.getFloor(toArray(5)));
+        assertNull(db.getFloor(toArray(5)));
         assertEquals(5, fromArray(db.getFloor(toArray(6)).getKey()));
 
         db.put(toArray(3), toArray(3));
 
-        assertEquals(null, db.getFloor(toArray(3)));
+        assertNull(db.getFloor(toArray(3)));
         assertEquals(2, db.count());
 
         // //
@@ -100,8 +99,8 @@ public class KeyValueStorageTest {
         // Count can be imprecise
         assertTrue(db.count() > 0);
 
-        assertEquals(null, db.getFloor(toArray(1)));
-        assertEquals(null, db.getFloor(toArray(3)));
+        assertNull(db.getFloor(toArray(1)));
+        assertNull(db.getFloor(toArray(3)));
         assertEquals(3, fromArray(db.getFloor(toArray(5)).getKey()));
         assertEquals(5, fromArray(db.getFloor(toArray(6)).getKey()));
         assertEquals(5, fromArray(db.getFloor(toArray(10)).getKey()));
@@ -153,7 +152,7 @@ public class KeyValueStorageTest {
 
         assertEquals(10L, fromArray(db.get(toArray(10))));
         db.delete(toArray(10));
-        assertEquals(null, db.get(toArray(10)));
+        assertNull(db.get(toArray(10)));
         assertTrue(db.count() > 0);
 
         Batch batch = db.newBatch();
@@ -161,9 +160,9 @@ public class KeyValueStorageTest {
         batch.remove(toArray(12));
         batch.remove(toArray(13));
         batch.flush();
-        assertEquals(null, db.get(toArray(11)));
-        assertEquals(null, db.get(toArray(12)));
-        assertEquals(null, db.get(toArray(13)));
+        assertNull(db.get(toArray(11)));
+        assertNull(db.get(toArray(12)));
+        assertNull(db.get(toArray(13)));
         assertEquals(14L, fromArray(db.get(toArray(14))));
         batch.close();
 
@@ -171,8 +170,11 @@ public class KeyValueStorageTest {
         FileUtils.deleteDirectory(tmpDir);
     }
 
-    @Test
-    public void testBatch() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void batch(KeyValueStorageFactory storageFactory) throws Exception {
+
+        initKeyValueStorageTest(storageFactory);
 
         configuration.setOperationMaxNumbersInSingleRocksDBWriteBatch(5);
 
@@ -182,7 +184,7 @@ public class KeyValueStorageTest {
         KeyValueStorage db = storageFactory.newKeyValueStorage(tmpDir.toString(), "subDir", DbConfigType.Default,
                 configuration);
 
-        assertEquals(null, db.getFloor(toArray(3)));
+        assertNull(db.getFloor(toArray(3)));
         assertEquals(0, db.count());
 
         Batch batch = db.newBatch();

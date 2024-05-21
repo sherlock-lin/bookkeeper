@@ -20,12 +20,12 @@
  */
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Lists;
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +53,7 @@ public class TestSequenceRead extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testSequenceReadOnDuplicatedBookies() throws Exception {
+    void sequenceReadOnDuplicatedBookies() throws Exception {
         final long ledgerId = createLedgerWithDuplicatedBookies();
 
         // should be able to open the ledger even it has duplicated bookies

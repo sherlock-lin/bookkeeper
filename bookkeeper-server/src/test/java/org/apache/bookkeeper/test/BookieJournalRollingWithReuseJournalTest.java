@@ -20,14 +20,14 @@
  */
 package org.apache.bookkeeper.test;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.bookkeeper.client.LedgerHandle;
 import org.awaitility.Awaitility;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * This class tests that bookie rolling journals for reuse journal files.
@@ -39,7 +39,7 @@ public class BookieJournalRollingWithReuseJournalTest extends BookieJournalRolli
         super();
     }
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         baseConf.setJournalReuseFiles(true);

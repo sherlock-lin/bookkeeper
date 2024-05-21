@@ -39,7 +39,7 @@ public class BookieRecoveryUseIOThreadTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testRecoveryClosedLedger() throws BKException, IOException, InterruptedException {
+    void recoveryClosedLedger() throws BKException, IOException, InterruptedException {
         // test the v2 protocol when using IO thread to handle the request
         ClientConfiguration conf = new ClientConfiguration();
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
@@ -70,6 +70,6 @@ public class BookieRecoveryUseIOThreadTest extends BookKeeperClusterTestCase {
                 }, null);
             latch.await();
         }
-        assertEquals(finalRc.get(), org.apache.bookkeeper.client.api.BKException.Code.OK);
+        assertEquals(org.apache.bookkeeper.client.api.BKException.Code.OK, finalRc.get());
     }
 }

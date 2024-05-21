@@ -18,7 +18,7 @@
 package org.apache.bookkeeper.replication;
 
 import static org.apache.bookkeeper.replication.ReplicationStats.AUDITOR_SCOPE;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -32,7 +32,8 @@ import org.apache.bookkeeper.meta.LedgerUnderreplicationManager;
 import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.test.TestStatsProvider;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +57,7 @@ public class AuditorCheckAllLedgersTaskTest extends BookKeeperClusterTestCase {
         baseConf.setAutoRecoveryDaemonEnabled(false);
     }
 
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -70,7 +72,7 @@ public class AuditorCheckAllLedgersTaskTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testCheckAllLedgers() throws Exception {
+    void checkAllLedgers() throws Exception {
         // 1. create ledgers
         final int numLedgers = 10;
         List<Long> ids = new LinkedList<Long>();
@@ -96,9 +98,10 @@ public class AuditorCheckAllLedgersTaskTest extends BookKeeperClusterTestCase {
         auditorCheckAllLedgersTask.runTask();
 
         // 4. verify
-        assertEquals("CHECK_ALL_LEDGERS_TIME", 1, ((TestStatsProvider.TestOpStatsLogger) statsLogger
-                .getOpStatsLogger(ReplicationStats.CHECK_ALL_LEDGERS_TIME)).getSuccessCount());
-        assertEquals("NUM_LEDGERS_CHECKED", numLedgers,
-                (long) statsLogger.getCounter(ReplicationStats.NUM_LEDGERS_CHECKED).get());
+        assertEquals(1, ((TestStatsProvider.TestOpStatsLogger) statsLogger
+                .getOpStatsLogger(ReplicationStats.CHECK_ALL_LEDGERS_TIME)).getSuccessCount(), "CHECK_ALL_LEDGERS_TIME");
+        assertEquals(numLedgers,
+                (long) statsLogger.getCounter(ReplicationStats.NUM_LEDGERS_CHECKED).get(),
+                "NUM_LEDGERS_CHECKED");
     }
 }

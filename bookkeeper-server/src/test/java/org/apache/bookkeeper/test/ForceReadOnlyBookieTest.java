@@ -20,8 +20,8 @@
  */
 package org.apache.bookkeeper.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.util.Enumeration;
@@ -32,7 +32,7 @@ import org.apache.bookkeeper.bookie.LedgerDirsManager;
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.client.LedgerEntry;
 import org.apache.bookkeeper.client.LedgerHandle;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +52,7 @@ public class ForceReadOnlyBookieTest extends BookKeeperClusterTestCase {
      * Check force start readonly bookie.
      */
     @Test
-    public void testBookieForceStartAsReadOnly() throws Exception {
+    void bookieForceStartAsReadOnly() throws Exception {
         // create ledger, add entries
         LedgerHandle ledger = bkc.createLedger(2, 2, DigestType.MAC,
                 "".getBytes());
@@ -68,13 +68,13 @@ public class ForceReadOnlyBookieTest extends BookKeeperClusterTestCase {
         restartBookies();
         Bookie bookie = serverByIndex(1).getBookie();
 
-        assertTrue("Bookie should be running and in readonly mode",
-                bookie.isRunning() && bookie.isReadOnly());
+        assertTrue(bookie.isRunning() && bookie.isReadOnly(),
+                "Bookie should be running and in readonly mode");
         LOG.info("successed force start ReadOnlyBookie");
 
         // Check new bookie with readonly mode enabled.
         File[] ledgerDirs = confByIndex(1).getLedgerDirs();
-        assertEquals("Only one ledger dir should be present", 1, ledgerDirs.length);
+        assertEquals(1, ledgerDirs.length, "Only one ledger dir should be present");
 
         // kill the writable bookie
         killBookie(0);
@@ -82,16 +82,17 @@ public class ForceReadOnlyBookieTest extends BookKeeperClusterTestCase {
         Enumeration<LedgerEntry> readEntries = ledger.readEntries(0, 9);
         while (readEntries.hasMoreElements()) {
             LedgerEntry entry = readEntries.nextElement();
-            assertEquals("Entry should contain correct data", "data",
-                    new String(entry.getEntry()));
+            assertEquals("data",
+                    new String(entry.getEntry()),
+                    "Entry should contain correct data");
         }
         LOG.info("successed read entry from ReadOnlyBookie");
 
         // test will not transfer to Writable mode.
         LedgerDirsManager ledgerDirsManager = ((BookieImpl) bookie).getLedgerDirsManager();
         ledgerDirsManager.addToWritableDirs(new File(ledgerDirs[0], "current"), true);
-        assertTrue("Bookie should be running and in readonly mode",
-                bookie.isRunning() && bookie.isReadOnly());
+        assertTrue(bookie.isRunning() && bookie.isReadOnly(),
+                "Bookie should be running and in readonly mode");
         LOG.info("successed: bookie still readonly");
     }
 }

@@ -21,10 +21,11 @@
 
 package org.apache.bookkeeper.replication;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.protobuf.TextFormat;
 import java.nio.charset.Charset;
@@ -65,16 +66,16 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.ZooKeeper;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Test the zookeeper implementation of the ledger replication manager.
  */
-public class TestLedgerUnderreplicationManager {
+class TestLedgerUnderreplicationManager {
     static final Logger LOG = LoggerFactory.getLogger(TestLedgerUnderreplicationManager.class);
 
     ZooKeeperUtil zkUtil = null;
@@ -90,8 +91,8 @@ public class TestLedgerUnderreplicationManager {
     String urLedgerPath;
     boolean isLedgerReplicationDisabled = true;
 
-    @Before
-    public void setupZooKeeper() throws Exception {
+    @BeforeEach
+    void setupZooKeeper() throws Exception {
         zkUtil = new ZooKeeperUtil();
         zkUtil.startCluster();
 
@@ -131,8 +132,8 @@ public class TestLedgerUnderreplicationManager {
 
     }
 
-    @After
-    public void teardownZooKeeper() throws Exception {
+    @AfterEach
+    void teardownZooKeeper() throws Exception {
         if (zkUtil != null) {
             zkUtil.killCluster();
             zkUtil = null;
@@ -179,7 +180,7 @@ public class TestLedgerUnderreplicationManager {
      * becomes available.
      */
     @Test
-    public void testBasicInteraction() throws Exception {
+    void basicInteraction() throws Exception {
         Set<Long> ledgers = new HashSet<Long>();
         ledgers.add(0xdeadbeefL);
         ledgers.add(0xbeefcafeL);
@@ -214,7 +215,7 @@ public class TestLedgerUnderreplicationManager {
         }
         Long newl = 0xfefefefefefeL;
         m.markLedgerUnderreplicated(newl, missingReplica);
-        assertEquals("Should have got the one just added", newl, f.get(5, TimeUnit.SECONDS));
+        assertEquals(newl, f.get(5, TimeUnit.SECONDS), "Should have got the one just added");
     }
 
     /**
@@ -225,7 +226,7 @@ public class TestLedgerUnderreplicationManager {
      * however, the second client should be able to get it.
      */
     @Test
-    public void testLocking() throws Exception {
+    void locking() throws Exception {
         String missingReplica = "localhost:3181";
 
         LedgerUnderreplicationManager m1 = lmf1.newLedgerUnderreplicationManager();
@@ -235,7 +236,7 @@ public class TestLedgerUnderreplicationManager {
         m1.markLedgerUnderreplicated(ledger, missingReplica);
         Future<Long> f = getLedgerToReplicate(m1);
         Long l = f.get(5, TimeUnit.SECONDS);
-        assertEquals("Should be the ledger I just marked", ledger, l);
+        assertEquals(ledger, l, "Should be the ledger I just marked");
 
         f = getLedgerToReplicate(m2);
         try {
@@ -248,7 +249,7 @@ public class TestLedgerUnderreplicationManager {
         zkc1 = null;
 
         l = f.get(5, TimeUnit.SECONDS);
-        assertEquals("Should be the ledger I marked", ledger, l);
+        assertEquals(ledger, l, "Should be the ledger I marked");
     }
 
 
@@ -262,7 +263,7 @@ public class TestLedgerUnderreplicationManager {
      * marked as replicated.
      */
     @Test
-    public void testMarkingAsReplicated() throws Exception {
+    void markingAsReplicated() throws Exception {
         String missingReplica = "localhost:3181";
 
         LedgerUnderreplicationManager m1 = lmf1.newLedgerUnderreplicationManager();
@@ -279,9 +280,9 @@ public class TestLedgerUnderreplicationManager {
         Long lA = fA.get(5, TimeUnit.SECONDS);
         Long lB = fB.get(5, TimeUnit.SECONDS);
 
-        assertTrue("Should be the ledgers I just marked",
-                   (lA.equals(ledgerA) && lB.equals(ledgerB))
-                   || (lA.equals(ledgerB) && lB.equals(ledgerA)));
+        assertTrue((lA.equals(ledgerA) && lB.equals(ledgerB))
+                   || (lA.equals(ledgerB) && lB.equals(ledgerA)),
+                   "Should be the ledgers I just marked");
 
         Future<Long> f = getLedgerToReplicate(m2);
         try {
@@ -295,7 +296,7 @@ public class TestLedgerUnderreplicationManager {
         zkc1 = null;
 
         Long l = f.get(5, TimeUnit.SECONDS);
-        assertEquals("Should be the ledger I marked", lB, l);
+        assertEquals(lB, l, "Should be the ledger I marked");
     }
 
     /**
@@ -306,7 +307,7 @@ public class TestLedgerUnderreplicationManager {
      * client should then be able to acquire it.
      */
     @Test
-    public void testRelease() throws Exception {
+    void release() throws Exception {
         String missingReplica = "localhost:3181";
 
         LedgerUnderreplicationManager m1 = lmf1.newLedgerUnderreplicationManager();
@@ -323,9 +324,9 @@ public class TestLedgerUnderreplicationManager {
         Long lA = fA.get(5, TimeUnit.SECONDS);
         Long lB = fB.get(5, TimeUnit.SECONDS);
 
-        assertTrue("Should be the ledgers I just marked",
-                   (lA.equals(ledgerA) && lB.equals(ledgerB))
-                   || (lA.equals(ledgerB) && lB.equals(ledgerA)));
+        assertTrue((lA.equals(ledgerA) && lB.equals(ledgerB))
+                   || (lA.equals(ledgerB) && lB.equals(ledgerA)),
+                   "Should be the ledgers I just marked");
 
         Future<Long> f = getLedgerToReplicate(m2);
         try {
@@ -338,7 +339,7 @@ public class TestLedgerUnderreplicationManager {
         m1.releaseUnderreplicatedLedger(lB);
 
         Long l = f.get(5, TimeUnit.SECONDS);
-        assertEquals("Should be the ledger I marked", lB, l);
+        assertEquals(lB, l, "Should be the ledger I marked");
     }
 
     /**
@@ -348,7 +349,7 @@ public class TestLedgerUnderreplicationManager {
      * it as replicated.
      */
     @Test
-    public void testManyFailures() throws Exception {
+    void manyFailures() throws Exception {
         String missingReplica1 = "localhost:3181";
         String missingReplica2 = "localhost:3182";
 
@@ -362,14 +363,12 @@ public class TestLedgerUnderreplicationManager {
 
         m1.markLedgerUnderreplicated(ledgerA, missingReplica2);
 
-        assertEquals("Should be the ledger I just marked",
-                     lA, ledgerA);
+        assertEquals(lA, ledgerA, "Should be the ledger I just marked");
         m1.markLedgerReplicated(lA);
 
         Future<Long> f = getLedgerToReplicate(m1);
         lA = f.get(5, TimeUnit.SECONDS);
-        assertEquals("Should be the ledger I had marked previously",
-                     lA, ledgerA);
+        assertEquals(lA, ledgerA, "Should be the ledger I had marked previously");
     }
 
     /**
@@ -382,7 +381,7 @@ public class TestLedgerUnderreplicationManager {
      * @throws Exception
      */
     @Test
-    public void testGetReplicationWorkerIdRereplicatingLedger() throws Exception {
+    void getReplicationWorkerIdRereplicatingLedger() throws Exception {
         String missingReplica1 = "localhost:3181";
         String missingReplica2 = "localhost:3182";
 
@@ -394,23 +393,24 @@ public class TestLedgerUnderreplicationManager {
 
         // lock is not yet acquired so replicationWorkerIdRereplicatingLedger
         // should
-        assertEquals("ReplicationWorkerId of the lock", null, m1.getReplicationWorkerIdRereplicatingLedger(ledgerA));
+        assertNull(m1.getReplicationWorkerIdRereplicatingLedger(ledgerA), "ReplicationWorkerId of the lock");
 
         Future<Long> fA = getLedgerToReplicate(m1);
         Long lA = fA.get(5, TimeUnit.SECONDS);
-        assertEquals("Should be the ledger that was just marked", lA, ledgerA);
+        assertEquals(lA, ledgerA, "Should be the ledger that was just marked");
 
         /*
          * ZkLedgerUnderreplicationManager.getLockData uses
          * DNS.getDefaultHost("default") as the bookieId.
          *
          */
-        assertEquals("ReplicationWorkerId of the lock", DNS.getDefaultHost("default"),
-                m1.getReplicationWorkerIdRereplicatingLedger(ledgerA));
+        assertEquals(DNS.getDefaultHost("default"),
+                m1.getReplicationWorkerIdRereplicatingLedger(ledgerA),
+                "ReplicationWorkerId of the lock");
 
         m1.markLedgerReplicated(lA);
 
-        assertEquals("ReplicationWorkerId of the lock", null, m1.getReplicationWorkerIdRereplicatingLedger(ledgerA));
+        assertNull(m1.getReplicationWorkerIdRereplicatingLedger(ledgerA), "ReplicationWorkerId of the lock");
     }
 
     /**
@@ -419,7 +419,7 @@ public class TestLedgerUnderreplicationManager {
      * will be enough to remove it from the list.
      */
     @Test
-    public void test2reportSame() throws Exception {
+    void test2reportSame() throws Exception {
         String missingReplica1 = "localhost:3181";
 
         LedgerUnderreplicationManager m1 = lmf1.newLedgerUnderreplicationManager();
@@ -436,16 +436,16 @@ public class TestLedgerUnderreplicationManager {
         byte[] data = zkc1.getData(znode, false, null);
         TextFormat.merge(new String(data, Charset.forName("UTF-8")), builderA);
         List<String> replicaList = builderA.getReplicaList();
-        assertEquals("Published duplicate missing replica : " + replicaList, 1,
-                replicaList.size());
-        assertTrue("Published duplicate missing replica : " + replicaList,
-                replicaList.contains(missingReplica1));
+        assertEquals(1,
+                replicaList.size(),
+                "Published duplicate missing replica : " + replicaList);
+        assertTrue(replicaList.contains(missingReplica1),
+                "Published duplicate missing replica : " + replicaList);
 
         Future<Long> fA = getLedgerToReplicate(m1);
         Long lA = fA.get(5, TimeUnit.SECONDS);
 
-        assertEquals("Should be the ledger I just marked",
-                     lA, ledgerA);
+        assertEquals(lA, ledgerA, "Should be the ledger I just marked");
         m1.markLedgerReplicated(lA);
 
         Future<Long> f = getLedgerToReplicate(m2);
@@ -462,7 +462,7 @@ public class TestLedgerUnderreplicationManager {
      * lock and release for same ledger.
      */
     @Test
-    public void testMultipleManagersShouldBeAbleToTakeAndReleaseLock()
+    void multipleManagersShouldBeAbleToTakeAndReleaseLock()
             throws Exception {
         String missingReplica1 = "localhost:3181";
         final LedgerUnderreplicationManager m1 = lmf1
@@ -517,7 +517,7 @@ public class TestLedgerUnderreplicationManager {
      * *******************************************************************
      */
     @Test
-    public void testMarkSimilarMissingReplica() throws Exception {
+    void markSimilarMissingReplica() throws Exception {
         List<String> missingReplica = new ArrayList<String>();
         missingReplica.add("localhost:3181");
         missingReplica.add("localhost:318");
@@ -534,7 +534,7 @@ public class TestLedgerUnderreplicationManager {
      * one after another.
      */
     @Test
-    public void testManyFailuresInAnEnsemble() throws Exception {
+    void manyFailuresInAnEnsemble() throws Exception {
         List<String> missingReplica = new ArrayList<String>();
         missingReplica.add("localhost:3181");
         missingReplica.add("localhost:3182");
@@ -547,7 +547,7 @@ public class TestLedgerUnderreplicationManager {
      * waiting until enabling rereplication process
      */
     @Test
-    public void testDisableLedegerReplication() throws Exception {
+    void disableLedegerReplication() throws Exception {
         final LedgerUnderreplicationManager replicaMgr = lmf1
                 .newLedgerUnderreplicationManager();
 
@@ -577,8 +577,7 @@ public class TestLedgerUnderreplicationManager {
             isLedgerReplicationDisabled = false;
         }
 
-        assertTrue("Ledger replication is not disabled!",
-                !isLedgerReplicationDisabled);
+        assertFalse(isLedgerReplicationDisabled, "Ledger replication is not disabled!");
     }
 
     /**
@@ -586,7 +585,7 @@ public class TestLedgerUnderreplicationManager {
      * should continue getLedgerToRereplicate() task
      */
     @Test
-    public void testEnableLedgerReplication() throws Exception {
+    void enableLedgerReplication() throws Exception {
         isLedgerReplicationDisabled = true;
         final LedgerUnderreplicationManager replicaMgr = lmf1
                 .newLedgerUnderreplicationManager();
@@ -631,8 +630,9 @@ public class TestLedgerUnderreplicationManager {
             public void run() {
                 try {
                     Long lA = replicaMgr.getLedgerToRereplicate();
-                    assertEquals("Should be the ledger I just marked", lA,
-                            ledgerA);
+                    assertEquals(lA,
+                            ledgerA,
+                            "Should be the ledger I just marked");
                     isLedgerReplicationDisabled = false;
                     znodeLatch.countDown();
                 } catch (UnavailableException e) {
@@ -646,21 +646,20 @@ public class TestLedgerUnderreplicationManager {
         thread1.start();
 
         try {
-            assertFalse("shouldn't complete", znodeLatch.await(1, TimeUnit.SECONDS));
-            assertTrue("Ledger replication is not disabled!",
-                    isLedgerReplicationDisabled);
-            assertEquals("Failed to disable ledger replication!", 2, znodeLatch
-                    .getCount());
+            assertFalse(znodeLatch.await(1, TimeUnit.SECONDS), "shouldn't complete");
+            assertTrue(isLedgerReplicationDisabled,
+                    "Ledger replication is not disabled!");
+            assertEquals(2, znodeLatch
+                    .getCount(), "Failed to disable ledger replication!");
 
             replicaMgr.enableLedgerReplication();
             znodeLatch.await(5, TimeUnit.SECONDS);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Enabled Ledeger Replication");
             }
-            assertTrue("Ledger replication is not disabled!",
-                    !isLedgerReplicationDisabled);
-            assertEquals("Failed to disable ledger replication!", 0, znodeLatch
-                    .getCount());
+            assertFalse(isLedgerReplicationDisabled, "Ledger replication is not disabled!");
+            assertEquals(0, znodeLatch
+                    .getCount(), "Failed to disable ledger replication!");
         } finally {
             thread1.interrupt();
         }
@@ -671,7 +670,7 @@ public class TestLedgerUnderreplicationManager {
      * are marked as fully replicated.
      */
     @Test
-    public void testHierarchyCleanup() throws Exception {
+    void hierarchyCleanup() throws Exception {
         final LedgerUnderreplicationManager replicaMgr = lmf1
             .newLedgerUnderreplicationManager();
         // 4 ledgers, 2 in the same hierarchy
@@ -685,7 +684,7 @@ public class TestLedgerUnderreplicationManager {
         // ids no larger than an int
         String testPath = urLedgerPath + "/0000/0000";
         List<String> children = zkc1.getChildren(testPath, false);
-        assertEquals("Wrong number of hierarchies", 3, children.size());
+        assertEquals(3, children.size(), "Wrong number of hierarchies");
 
         int marked = 0;
         while (marked < 3) {
@@ -698,14 +697,14 @@ public class TestLedgerUnderreplicationManager {
             }
         }
         children = zkc1.getChildren(testPath, false);
-        assertEquals("Wrong number of hierarchies", 1, children.size());
+        assertEquals(1, children.size(), "Wrong number of hierarchies");
 
         long l = replicaMgr.getLedgerToRereplicate();
-        assertEquals("Got wrong ledger", ledgers[0], l);
+        assertEquals(ledgers[0], l, "Got wrong ledger");
         replicaMgr.markLedgerReplicated(l);
 
         children = zkc1.getChildren(urLedgerPath, false);
-        assertEquals("All hierarchies should be cleaned up", 0, children.size());
+        assertEquals(0, children.size(), "All hierarchies should be cleaned up");
     }
 
     /**
@@ -713,7 +712,7 @@ public class TestLedgerUnderreplicationManager {
      * with the marking of other ledgers as underreplicated.
      */
     @Test
-    public void testHierarchyCleanupInterference() throws Exception {
+    void hierarchyCleanupInterference() throws Exception {
         final LedgerUnderreplicationManager replicaMgr1 = lmf1
             .newLedgerUnderreplicationManager();
         final LedgerUnderreplicationManager replicaMgr2 = lmf2
@@ -758,7 +757,7 @@ public class TestLedgerUnderreplicationManager {
         markRepl.start();
         markUnder.start();
         markUnder.join();
-        assertFalse("Thread failed to complete", threadFailed.get());
+        assertFalse(threadFailed.get(), "Thread failed to complete");
 
         int lastProcessed = 0;
         while (true) {
@@ -766,19 +765,19 @@ public class TestLedgerUnderreplicationManager {
             if (!markRepl.isAlive()) {
                 break;
             }
-            assertFalse("markRepl thread not progressing", lastProcessed == processed.get());
+            assertFalse(lastProcessed == processed.get(), "markRepl thread not progressing");
         }
-        assertFalse("Thread failed to complete", threadFailed.get());
+        assertFalse(threadFailed.get(), "Thread failed to complete");
 
         List<String> children = zkc1.getChildren(urLedgerPath, false);
         for (String s : children) {
             LOG.info("s: {}", s);
         }
-        assertEquals("All hierarchies should be cleaned up", 0, children.size());
+        assertEquals(0, children.size(), "All hierarchies should be cleaned up");
     }
 
     @Test
-    public void testCheckAllLedgersCTime() throws Exception {
+    void checkAllLedgersCTime() throws Exception {
         @Cleanup
         LedgerUnderreplicationManager underReplicaMgr1 = lmf1.newLedgerUnderreplicationManager();
         @Cleanup
@@ -793,7 +792,7 @@ public class TestLedgerUnderreplicationManager {
     }
 
     @Test
-    public void testPlacementPolicyCheckCTime() throws Exception {
+    void placementPolicyCheckCTime() throws Exception {
         @Cleanup
         LedgerUnderreplicationManager underReplicaMgr1 = lmf1.newLedgerUnderreplicationManager();
         @Cleanup
@@ -808,7 +807,7 @@ public class TestLedgerUnderreplicationManager {
     }
 
     @Test
-    public void testReplicasCheckCTime() throws Exception {
+    void replicasCheckCTime() throws Exception {
         @Cleanup
         LedgerUnderreplicationManager underReplicaMgr1 = lmf1.newLedgerUnderreplicationManager();
         @Cleanup
@@ -841,9 +840,9 @@ public class TestLedgerUnderreplicationManager {
         List<String> replicaList = builderA.getReplicaList();
 
         for (String replica : missingReplica) {
-            assertTrue("UrLedger:" + urLedgerA
-                    + " doesn't contain failed bookie :" + replica, replicaList
-                    .contains(replica));
+            assertTrue(replicaList
+                    .contains(replica), "UrLedger:" + urLedgerA
+                    + " doesn't contain failed bookie :" + replica);
         }
     }
 

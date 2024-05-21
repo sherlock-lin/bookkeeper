@@ -18,10 +18,10 @@
  */
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.primitives.Ints;
 import java.util.HashMap;
@@ -34,12 +34,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import org.apache.bookkeeper.bookie.SkipListArena.MemorySlice;
 import org.apache.bookkeeper.conf.ServerConfiguration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test the SkipListArena class.
  */
-public class SkipListArenaTest {
+class SkipListArenaTest {
 
     class CustomConfiguration extends ServerConfiguration {
         @Override
@@ -63,7 +63,7 @@ public class SkipListArenaTest {
     * Test random allocations.
     */
     @Test
-    public void testRandomAllocation() {
+    void randomAllocation() {
         Random rand = new Random();
         SkipListArena arena = new SkipListArena(cfg);
         int expectedOff = 0;
@@ -80,18 +80,18 @@ public class SkipListArenaTest {
                 expectedOff = 0;
                 lastBuffer = alloc.getData();
             }
-            assertTrue(expectedOff == alloc.getOffset());
-            assertTrue("Allocation " + alloc + " overruns buffer",
-              alloc.getOffset() + size <= alloc.getData().length);
+            assertEquals(expectedOff, alloc.getOffset());
+            assertTrue(alloc.getOffset() + size <= alloc.getData().length,
+              "Allocation " + alloc + " overruns buffer");
             expectedOff += size;
         }
     }
 
     @Test
-    public void testLargeAllocation() {
+    void largeAllocation() {
         SkipListArena arena = new SkipListArena(cfg);
         MemorySlice alloc = arena.allocateBytes(1024 + 1024);
-        assertNull("2KB allocation shouldn't be satisfied by LAB.", alloc);
+        assertNull(alloc, "2KB allocation shouldn't be satisfied by LAB.");
     }
 
     private class ByteArray {
@@ -157,7 +157,7 @@ public class SkipListArenaTest {
     * Test concurrent allocation, check the results don't overlap.
     */
     @Test
-    public void testConcurrency() throws Exception {
+    void concurrency() throws Exception {
         final SkipListArena arena = new SkipListArena(cfg);
         final CountDownLatch latch = new CountDownLatch(10);
         final ConcurrentLinkedQueue<AllocBuffer> queue = new ConcurrentLinkedQueue<AllocBuffer>();

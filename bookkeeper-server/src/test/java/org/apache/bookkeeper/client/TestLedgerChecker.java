@@ -20,9 +20,9 @@
  */
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.proto.BookkeeperInternalCallbacks.GenericCallback;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +74,7 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
      * on multiple Bookie crashes.
      */
     @Test
-    public void testChecker() throws Exception {
+    void checker() throws Exception {
 
         LedgerHandle lh = bkc.createLedger(BookKeeper.DigestType.CRC32,
                 TEST_LEDGER_PASSWORD);
@@ -93,14 +93,14 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
         }
 
         Set<LedgerFragment> result = getUnderReplicatedFragments(lh);
-        assertNotNull("Result shouldn't be null", result);
+        assertNotNull(result, "Result shouldn't be null");
         for (LedgerFragment r : result) {
             LOG.info("unreplicated fragment: {}", r);
         }
 
-        assertEquals("Should have one missing fragment", 1, result.size());
-        assertTrue("Fragment should be missing from first replica",
-            result.iterator().next().getAddresses().contains(replicaToKill));
+        assertEquals(1, result.size(), "Should have one missing fragment");
+        assertTrue(result.iterator().next().getAddresses().contains(replicaToKill),
+            "Fragment should be missing from first replica");
 
         BookieId replicaToKill2 = lh.getLedgerMetadata()
                 .getAllEnsembles().get(0L).get(1);
@@ -108,14 +108,14 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
         killBookie(replicaToKill2);
 
         result = getUnderReplicatedFragments(lh);
-        assertNotNull("Result shouldn't be null", result);
+        assertNotNull(result, "Result shouldn't be null");
         for (LedgerFragment r : result) {
             LOG.info("unreplicated fragment: {}", r);
         }
 
         AtomicInteger number = new AtomicInteger();
         result.forEach(ledgerFragment -> number.addAndGet(ledgerFragment.getAddresses().size()));
-        assertEquals("Should have three missing fragments", 3, number.get());
+        assertEquals(3, number.get(), "Should have three missing fragments");
     }
 
     /**
@@ -132,7 +132,7 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
     // /So, there should not be any missing replicas.///////
     // /////////////////////////////////////////////////////
     @Test
-    public void testShouldNotGetTheFragmentIfThereIsNoMissedEntry()
+    void shouldNotGetTheFragmentIfThereIsNoMissedEntry()
             throws Exception {
 
         LedgerHandle lh = bkc.createLedger(3, 2, BookKeeper.DigestType.CRC32,
@@ -162,13 +162,13 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
 
         Set<LedgerFragment> result = getUnderReplicatedFragments(lh);
 
-        assertNotNull("Result shouldn't be null", result);
+        assertNotNull(result, "Result shouldn't be null");
 
         for (LedgerFragment r : result) {
             LOG.info("unreplicated fragment: {}", r);
         }
 
-        assertEquals("Empty fragment should be considered missing", 1, result.size());
+        assertEquals(1, result.size(), "Empty fragment should be considered missing");
     }
 
     /**
@@ -176,7 +176,7 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
      * in same ensemble when ensemble = 3, quorum = 2.
      */
     @Test
-    public void testShouldGetTwoFrgamentsIfTwoBookiesFailedInSameEnsemble()
+    void shouldGetTwoFrgamentsIfTwoBookiesFailedInSameEnsemble()
             throws Exception {
 
         LedgerHandle lh = bkc.createLedger(3, 2, BookKeeper.DigestType.CRC32,
@@ -196,15 +196,14 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
         lh.addEntry(TEST_LEDGER_ENTRY_DATA);
         Set<LedgerFragment> result = getUnderReplicatedFragments(lh);
 
-        assertNotNull("Result shouldn't be null", result);
+        assertNotNull(result, "Result shouldn't be null");
 
         for (LedgerFragment r : result) {
             LOG.info("unreplicated fragment: {}", r);
         }
 
-        assertEquals("Empty fragment should be considered missing", 2, result.size());
-        assertEquals("There should be 2 failed bookies in the fragment",
-                2, result.iterator().next().getBookiesIndexes().size());
+        assertEquals(2, result.size(), "Empty fragment should be considered missing");
+        assertEquals(2, result.iterator().next().getBookiesIndexes().size(), "There should be 2 failed bookies in the fragment");
     }
 
     /**
@@ -212,7 +211,7 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
      * corresponding ledger does not exists.
      */
     @Test
-    public void testShouldNotGetAnyFragmentIfNoLedgerPresent()
+    void shouldNotGetAnyFragmentIfNoLedgerPresent()
             throws Exception {
 
         LedgerHandle lh = bkc.createLedger(3, 2, BookKeeper.DigestType.CRC32,
@@ -238,12 +237,12 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
             retries--;
             Thread.sleep(500);
         }
-        assertEquals("Ledger exists", true, noSuchLedger);
+        assertTrue(noSuchLedger, "Ledger exists");
         Set<LedgerFragment> result = getUnderReplicatedFragments(lh);
-        assertNotNull("Result shouldn't be null", result);
+        assertNotNull(result, "Result shouldn't be null");
 
-        assertEquals("There should be 0 fragments. But returned fragments are "
-                + result, 0, result.size());
+        assertEquals(0, result.size(), "There should be 0 fragments. But returned fragments are "
+                + result);
     }
 
     /**
@@ -251,7 +250,7 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
      * if ensemble bookie failures on next entry.
      */
     @Test
-    public void testShouldGetFailedEnsembleNumberOfFgmntsIfEnsembleBookiesFailedOnNextWrite()
+    void shouldGetFailedEnsembleNumberOfFgmntsIfEnsembleBookiesFailedOnNextWrite()
             throws Exception {
 
         startNewBookie();
@@ -271,15 +270,14 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
 
         Set<LedgerFragment> result = getUnderReplicatedFragments(lh);
 
-        assertNotNull("Result shouldn't be null", result);
+        assertNotNull(result, "Result shouldn't be null");
 
         for (LedgerFragment r : result) {
             LOG.info("unreplicated fragment: {}", r);
         }
 
-        assertEquals("There should be 1 fragments", 1, result.size());
-        assertEquals("There should be 3 failed bookies in the fragment",
-                3, result.iterator().next().getBookiesIndexes().size());
+        assertEquals(1, result.size(), "There should be 1 fragments");
+        assertEquals(3, result.iterator().next().getBookiesIndexes().size(), "There should be 3 failed bookies in the fragment");
     }
 
     /**
@@ -287,13 +285,13 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
      * if Ledger itself is empty.
      */
     @Test
-    public void testShouldNotGetAnyFragmentWithEmptyLedger() throws Exception {
+    void shouldNotGetAnyFragmentWithEmptyLedger() throws Exception {
         LedgerHandle lh = bkc.createLedger(3, 2, BookKeeper.DigestType.CRC32,
                 TEST_LEDGER_PASSWORD);
         Set<LedgerFragment> result = getUnderReplicatedFragments(lh);
-        assertNotNull("Result shouldn't be null", result);
-        assertEquals("There should be 0 fragments. But returned fragments are "
-                + result, 0, result.size());
+        assertNotNull(result, "Result shouldn't be null");
+        assertEquals(0, result.size(), "There should be 0 fragments. But returned fragments are "
+                + result);
     }
 
     /**
@@ -304,17 +302,16 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
      * suspect that the first entry of the ledger could exist.
      */
     @Test
-    public void testShouldGet2FragmentsWithEmptyLedgerButBookiesDead() throws Exception {
+    void shouldGet2FragmentsWithEmptyLedgerButBookiesDead() throws Exception {
         LedgerHandle lh = bkc.createLedger(3, 2, BookKeeper.DigestType.CRC32,
                 TEST_LEDGER_PASSWORD);
         for (BookieId b : lh.getLedgerMetadata().getAllEnsembles().get(0L)) {
             killBookie(b);
         }
         Set<LedgerFragment> result = getUnderReplicatedFragments(lh);
-        assertNotNull("Result shouldn't be null", result);
-        assertEquals("There should be 1 fragments.", 1, result.size());
-        assertEquals("There should be 3 failed bookies in the fragment",
-                3, result.iterator().next().getBookiesIndexes().size());
+        assertNotNull(result, "Result shouldn't be null");
+        assertEquals(1, result.size(), "There should be 1 fragments.");
+        assertEquals(3, result.iterator().next().getBookiesIndexes().size(), "There should be 3 failed bookies in the fragment");
     }
 
     /**
@@ -322,7 +319,7 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
      * if there is an open ledger with single entry written.
      */
     @Test
-    public void testShouldGetOneFragmentWithSingleEntryOpenedLedger() throws Exception {
+    void shouldGetOneFragmentWithSingleEntryOpenedLedger() throws Exception {
         LedgerHandle lh = bkc.createLedger(3, 3, BookKeeper.DigestType.CRC32,
                 TEST_LEDGER_PASSWORD);
         lh.addEntry(TEST_LEDGER_ENTRY_DATA);
@@ -340,11 +337,10 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
                 TEST_LEDGER_PASSWORD);
 
         Set<LedgerFragment> result = getUnderReplicatedFragments(lh1);
-        assertNotNull("Result shouldn't be null", result);
-        assertEquals("There should be 1 fragment. But returned fragments are "
-                + result, 1, result.size());
-        assertEquals("There should be 1 failed bookies in the fragment",
-                1, result.iterator().next().getBookiesIndexes().size());
+        assertNotNull(result, "Result shouldn't be null");
+        assertEquals(1, result.size(), "There should be 1 fragment. But returned fragments are "
+                + result);
+        assertEquals(1, result.iterator().next().getBookiesIndexes().size(), "There should be 1 failed bookies in the fragment");
     }
 
     /**
@@ -354,7 +350,7 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
      * first entry id of the final segment.
      */
     @Test
-    public void testSingleEntryAfterEnsembleChange() throws Exception {
+    void singleEntryAfterEnsembleChange() throws Exception {
         LedgerHandle lh = bkc.createLedger(3, 3, BookKeeper.DigestType.CRC32,
                 TEST_LEDGER_PASSWORD);
         for (int i = 0; i < 10; i++) {
@@ -383,16 +379,14 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
                 TEST_LEDGER_PASSWORD);
 
         Set<LedgerFragment> result = getUnderReplicatedFragments(lh1);
-        assertNotNull("Result shouldn't be null", result);
-        assertEquals("There should be 2 fragments. But returned fragments are "
-                + result, 2, result.size());
+        assertNotNull(result, "Result shouldn't be null");
+        assertEquals(2, result.size(), "There should be 2 fragments. But returned fragments are "
+                + result);
         for (LedgerFragment lf : result) {
             if (lf.getFirstEntryId() == 0L) {
-                assertEquals("There should be 2 failed bookies in first fragment",
-                        2, lf.getBookiesIndexes().size());
+                assertEquals(2, lf.getBookiesIndexes().size(), "There should be 2 failed bookies in first fragment");
             } else {
-                assertEquals("There should be 1 failed bookie in second fragment",
-                        1, lf.getBookiesIndexes().size());
+                assertEquals(1, lf.getBookiesIndexes().size(), "There should be 1 failed bookie in second fragment");
             }
         }
     }
@@ -402,7 +396,7 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
      * from a closed ledger with 0 entries.
      */
     @Test
-    public void testClosedEmptyLedger() throws Exception {
+    void closedEmptyLedger() throws Exception {
         LedgerHandle lh = bkc.createLedger(3, 3, BookKeeper.DigestType.CRC32,
                 TEST_LEDGER_PASSWORD);
         List<BookieId> firstEnsemble = lh.getLedgerMetadata()
@@ -419,9 +413,9 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
                 TEST_LEDGER_PASSWORD);
 
         Set<LedgerFragment> result = getUnderReplicatedFragments(lh1);
-        assertNotNull("Result shouldn't be null", result);
-        assertEquals("Empty fragment should be considered missing"
-                + result, 1, result.size());
+        assertNotNull(result, "Result shouldn't be null");
+        assertEquals(1, result.size(), "Empty fragment should be considered missing"
+                + result);
     }
 
     /**
@@ -429,7 +423,7 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
      * from a closed ledger with 0 entries.
      */
     @Test
-    public void testClosedSingleEntryLedger() throws Exception {
+    void closedSingleEntryLedger() throws Exception {
         LedgerHandle lh = bkc.createLedger(3, 2, BookKeeper.DigestType.CRC32,
                 TEST_LEDGER_PASSWORD);
         List<BookieId> firstEnsemble = lh.getLedgerMetadata()
@@ -448,9 +442,9 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
                 TEST_LEDGER_PASSWORD);
 
         Set<LedgerFragment> result = getUnderReplicatedFragments(lh1);
-        assertNotNull("Result shouldn't be null", result);
-        assertEquals("Empty fragment should be considered missing"
-                + result, 1, result.size());
+        assertNotNull(result, "Result shouldn't be null");
+        assertEquals(1, result.size(), "Empty fragment should be considered missing"
+                + result);
         lh1.close();
 
         // kill bookie 1
@@ -465,11 +459,10 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
                 TEST_LEDGER_PASSWORD);
 
         result = getUnderReplicatedFragments(lh1);
-        assertNotNull("Result shouldn't be null", result);
-        assertEquals("There should be 1 fragment. But returned fragments are "
-                + result, 1, result.size());
-        assertEquals("There should be 2 failed bookies in the fragment",
-                2, result.iterator().next().getBookiesIndexes().size());
+        assertNotNull(result, "Result shouldn't be null");
+        assertEquals(1, result.size(), "There should be 1 fragment. But returned fragments are "
+                + result);
+        assertEquals(2, result.iterator().next().getBookiesIndexes().size(), "There should be 2 failed bookies in the fragment");
         lh1.close();
 
         // kill bookie 0
@@ -484,16 +477,15 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
                 TEST_LEDGER_PASSWORD);
 
         result = getUnderReplicatedFragments(lh1);
-        assertNotNull("Result shouldn't be null", result);
-        assertEquals("There should be 1 fragment. But returned fragments are "
-                + result, 1, result.size());
-        assertEquals("There should be 3 failed bookies in the fragment",
-                3, result.iterator().next().getBookiesIndexes().size());
+        assertNotNull(result, "Result shouldn't be null");
+        assertEquals(1, result.size(), "There should be 1 fragment. But returned fragments are "
+                + result);
+        assertEquals(3, result.iterator().next().getBookiesIndexes().size(), "There should be 3 failed bookies in the fragment");
         lh1.close();
     }
 
     @Test
-    public void testVerifyLedgerFragmentSkipsUnavailableBookie() throws Exception {
+    void verifyLedgerFragmentSkipsUnavailableBookie() throws Exception {
         // Initialize LedgerChecker with mocked watcher to validate interactions
         BookieWatcher bookieWatcher = mock(BookieWatcher.class);
         when(bookieWatcher.isBookieUnavailable(any())).thenReturn(true);
@@ -511,7 +503,7 @@ public class TestLedgerChecker extends BookKeeperClusterTestCase {
         Set<LedgerFragment> result = cb.waitAndGetResult();
 
         // Note that the bookieWatcher mock is set to make the ledger underreplicated
-        assertEquals("The one ledger should be considered underreplicated.", 1, result.size());
+        assertEquals(1, result.size(), "The one ledger should be considered underreplicated.");
         verify(bookieWatcher, times(3)).isBookieUnavailable(any());
     }
 

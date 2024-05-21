@@ -20,8 +20,8 @@
 package org.apache.bookkeeper.bookie;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
@@ -63,18 +63,18 @@ import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.ParseException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Unit test for {@link BookieShell}.
  */
-@RunWith(MockitoJUnitRunner.class)
-public class BookieShellTest {
+@ExtendWith(MockitoExtension.class)
+class BookieShellTest {
 
     private ClientConfiguration clientConf;
     private BookieShell shell;
@@ -90,8 +90,8 @@ public class BookieShellTest {
     private MockedStatic<BookKeeperAdmin> bookKeeperAdminMockedStatic;
     private MockedStatic<ListBookiesCommand.Flags> listBookiesCommandflagsMockedStatic;
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    void setup() throws Exception {
         this.shell = new BookieShell(LedgerIdFormatter.LONG_LEDGERID_FORMATTER, EntryFormatter.STRING_FORMATTER);
 
         this.mockListBookiesFlags = spy(new ListBookiesCommand.Flags());
@@ -137,8 +137,8 @@ public class BookieShellTest {
                 });
     }
 
-    @After
-    public void teardown() throws Exception {
+    @AfterEach
+    void teardown() throws Exception {
         listBookiesCommandMockedStatic.close();
         listBookiesCommandflagsMockedStatic.close();
         metadataDriversMockedStatic.close();
@@ -151,7 +151,7 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testRecoverCmdMissingArgument() throws Exception {
+    void recoverCmdMissingArgument() throws Exception {
         RecoverCmd cmd = (RecoverCmd) shell.commands.get("recover");
         CommandLine cmdLine = parseCommandLine(cmd);
         try {
@@ -165,7 +165,7 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testRecoverCmdInvalidBookieAddress() throws Exception {
+    void recoverCmdInvalidBookieAddress() throws Exception {
         RecoverCmd cmd = (RecoverCmd) shell.commands.get("recover");
         CommandLine cmdLine = parseCommandLine(cmd, "non.valid$$bookie.id");
         assertEquals(-1, cmd.runCmd(cmdLine));
@@ -175,7 +175,7 @@ public class BookieShellTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testRecoverCmdQuery() throws Exception {
+    void recoverCmdQuery() throws Exception {
         SortedMap<Long, LedgerMetadata> ledgersContainBookies = Maps.newTreeMap();
         when(admin.getLedgersContainBookies(any(Set.class)))
             .thenReturn(ledgersContainBookies);
@@ -190,7 +190,7 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testRecoverCmdRecoverLedgerDefault() throws Exception {
+    void recoverCmdRecoverLedgerDefault() throws Exception {
         // default behavior
         testRecoverCmdRecoverLedger(
             12345, false, false, false,
@@ -198,7 +198,7 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testRecoverCmdRecoverLedgerDeleteCookie() throws Exception {
+    void recoverCmdRecoverLedgerDeleteCookie() throws Exception {
         // dryrun
         testRecoverCmdRecoverLedger(
             12345, false, false, true,
@@ -206,7 +206,7 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testRecoverCmdRecoverLedgerSkipOpenLedgersDeleteCookie() throws Exception {
+    void recoverCmdRecoverLedgerSkipOpenLedgersDeleteCookie() throws Exception {
         // dryrun
         testRecoverCmdRecoverLedger(
             12345, false, true, true,
@@ -214,7 +214,7 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testRecoverCmdRecoverLedgerDryrun() throws Exception {
+    void recoverCmdRecoverLedgerDryrun() throws Exception {
         // dryrun
         testRecoverCmdRecoverLedger(
             12345, true, false, false,
@@ -222,7 +222,7 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testRecoverCmdRecoverLedgerDryrunDeleteCookie() throws Exception {
+    void recoverCmdRecoverLedgerDryrunDeleteCookie() throws Exception {
         // dryrun & removeCookie : removeCookie should be false
         testRecoverCmdRecoverLedger(
             12345, true, false, false,
@@ -254,7 +254,7 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testRecoverCmdRecoverDefault() throws Exception {
+    void recoverCmdRecoverDefault() throws Exception {
         // default behavior
         testRecoverCmdRecover(
             false, false, false, false,
@@ -262,7 +262,7 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testRecoverCmdRecoverDeleteCookie() throws Exception {
+    void recoverCmdRecoverDeleteCookie() throws Exception {
         // dryrun
         testRecoverCmdRecover(
             false, false, true, false,
@@ -270,7 +270,7 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testRecoverCmdRecoverSkipOpenLedgersDeleteCookie() throws Exception {
+    void recoverCmdRecoverSkipOpenLedgersDeleteCookie() throws Exception {
         // dryrun
         testRecoverCmdRecover(
             false, true, true, false,
@@ -278,7 +278,7 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testRecoverCmdRecoverDryrun() throws Exception {
+    void recoverCmdRecoverDryrun() throws Exception {
         // dryrun
         testRecoverCmdRecover(
             true, false, false, false,
@@ -286,7 +286,7 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testRecoverCmdRecoverDryrunDeleteCookie() throws Exception {
+    void recoverCmdRecoverDryrunDeleteCookie() throws Exception {
         // dryrun & removeCookie : removeCookie should be false
         testRecoverCmdRecover(
             true, false, false, false,
@@ -294,7 +294,7 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testRecoverCmdRecoverSkipUnrecoverableLedgers() throws Exception {
+    void recoverCmdRecoverSkipUnrecoverableLedgers() throws Exception {
         // skipUnrecoverableLedgers
         testRecoverCmdRecover(
             false, false, false, true,
@@ -326,7 +326,7 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testLastMarkCmd() throws Exception {
+    void lastMarkCmd() throws Exception {
         LastMarkCommand mockLastMarkCommand = mock(LastMarkCommand.class);
 
         @Cleanup
@@ -340,7 +340,7 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testSimpleTestCmd() throws Exception {
+    void simpleTestCmd() throws Exception {
         SimpleTestCommand.Flags mockSimpleTestFlags = spy(new SimpleTestCommand.Flags());
 
         @Cleanup
@@ -374,7 +374,7 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testListBookiesCmdNoArgs() throws Exception {
+    void listBookiesCmdNoArgs() throws Exception {
         assertEquals(1, shell.run(new String[] {
             "listbookies"
         }));
@@ -384,7 +384,7 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testListBookiesCmdConflictArgs() throws Exception {
+    void listBookiesCmdConflictArgs() throws Exception {
         assertEquals(1, shell.run(new String[] {
             "listbookies", "-rw", "-ro"
         }));
@@ -393,7 +393,7 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testListBookiesCmdReadOnly() throws Exception {
+    void listBookiesCmdReadOnly() throws Exception {
         assertEquals(0, shell.run(new String[] {
             "listbookies", "-ro"
         }));
@@ -408,7 +408,7 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testListBookiesCmdReadWrite() throws Exception {
+    void listBookiesCmdReadWrite() throws Exception {
         assertEquals(0, shell.run(new String[] {
             "listbookies", "-rw"
         }));
@@ -422,7 +422,7 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testListBookiesCmdAll() throws Exception {
+    void listBookiesCmdAll() throws Exception {
         assertEquals(0, shell.run(new String[] {
             "listbookies", "-a"
         }));
@@ -436,28 +436,28 @@ public class BookieShellTest {
     }
 
     @Test
-    public void testForceAuditChecksWithNoArgs() throws Exception {
+    void forceAuditChecksWithNoArgs() throws Exception {
         assertEquals(-1, shell.run(new String[] {
                 "forceauditchecks"
         }));
     }
 
     @Test
-    public void testForceAuditChecksWithSomeArgs() throws Exception {
+    void forceAuditChecksWithSomeArgs() throws Exception {
         assertEquals(0, shell.run(new String[] {
                 "forceauditchecks", "-calc"
         }));
     }
 
     @Test
-    public void testForceAuditChecksWithAllArgs() throws Exception {
+    void forceAuditChecksWithAllArgs() throws Exception {
         assertEquals(0, shell.run(new String[] {
                 "forceauditchecks", "-calc", "-rc", "-ppc"
         }));
     }
 
     @Test
-    public void testClusterInfoCmd() throws Exception {
+    void clusterInfoCmd() throws Exception {
         ClusterInfoCommand mockClusterInfoCommand = spy(new ClusterInfoCommand());
 
         @Cleanup

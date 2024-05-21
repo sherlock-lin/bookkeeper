@@ -22,10 +22,11 @@
 package org.apache.bookkeeper.bookie;
 
 import static org.apache.bookkeeper.bookie.BookieException.Code.OK;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -52,17 +53,16 @@ import org.apache.bookkeeper.util.BookKeeperConstants;
 import org.apache.bookkeeper.util.IOUtils;
 import org.apache.bookkeeper.util.SnapshotMap;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * LedgerCache related test cases.
  */
-public class LedgerCacheTest {
+class LedgerCacheTest {
     private static final Logger LOG = LoggerFactory.getLogger(LedgerCacheTest.class);
 
     SnapshotMap<Long, Boolean> activeLedgers;
@@ -75,8 +75,8 @@ public class LedgerCacheTest {
 
     private BookieImpl bookie;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() throws Exception {
         txnDir = IOUtils.createTempDir("ledgercache", "txn");
         ledgerDir = IOUtils.createTempDir("ledgercache", "ledger");
         // create current dir
@@ -92,8 +92,8 @@ public class LedgerCacheTest {
         ledgerCache = ((InterleavedLedgerStorage) bookie.getLedgerStorage().getUnderlyingLedgerStorage()).ledgerCache;
     }
 
-    @After
-    public void tearDown() throws Exception {
+    @AfterEach
+    void tearDown() throws Exception {
         if (flushThread != null) {
             flushThread.interrupt();
             flushThread.join();
@@ -138,7 +138,7 @@ public class LedgerCacheTest {
     }
 
     @Test
-    public void testAddEntryException() throws IOException {
+    void addEntryException() throws IOException {
         // set page limitation
         conf.setPageLimit(10);
         // create a ledger cache
@@ -159,7 +159,7 @@ public class LedgerCacheTest {
     }
 
     @Test
-    public void testLedgerEviction() throws Exception {
+    void ledgerEviction() throws Exception {
         int numEntries = 10;
         // limit open files & pages
         conf.setOpenFileLimit(1).setPageLimit(2)
@@ -182,7 +182,7 @@ public class LedgerCacheTest {
     }
 
     @Test
-    public void testDeleteLedger() throws Exception {
+    void deleteLedger() throws Exception {
         int numEntries = 10;
         // limit open files & pages
         conf.setOpenFileLimit(999).setPageLimit(2)
@@ -217,7 +217,7 @@ public class LedgerCacheTest {
     }
 
     @Test
-    public void testPageEviction() throws Exception {
+    void pageEviction() throws Exception {
         int numLedgers = 10;
         byte[] masterKey = "blah".getBytes();
         // limit page count
@@ -268,7 +268,7 @@ public class LedgerCacheTest {
      * Test Ledger Cache flush failure.
      */
     @Test
-    public void testLedgerCacheFlushFailureOnDiskFull() throws Exception {
+    void ledgerCacheFlushFailureOnDiskFull() throws Exception {
         File ledgerDir1 = createTempDir("bkTest", ".dir");
         File ledgerDir2 = createTempDir("bkTest", ".dir");
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
@@ -297,11 +297,11 @@ public class LedgerCacheTest {
         ledgerStorage.flush();
         File after = fileInfo.getLf();
 
-        assertFalse("After flush index file should be changed", before.equals(after));
+        assertNotEquals(before, after, "After flush index file should be changed");
         // Verify written entries
-        Assert.assertEquals(generateEntry(1, 1), ledgerStorage.getEntry(1, 1));
-        Assert.assertEquals(generateEntry(1, 2), ledgerStorage.getEntry(1, 2));
-        Assert.assertEquals(generateEntry(1, 3), ledgerStorage.getEntry(1, 3));
+        assertEquals(generateEntry(1, 1), ledgerStorage.getEntry(1, 1));
+        assertEquals(generateEntry(1, 2), ledgerStorage.getEntry(1, 2));
+        assertEquals(generateEntry(1, 3), ledgerStorage.getEntry(1, 3));
     }
 
     /**
@@ -311,7 +311,7 @@ public class LedgerCacheTest {
      * {@link https://issues.apache.org/jira/browse/BOOKKEEPER-447}
      */
     @Test
-    public void testIndexPageEvictionWriteOrder() throws Exception {
+    void indexPageEvictionWriteOrder() throws Exception {
         final int numLedgers = 10;
         File journalDir = createTempDir("bookie", "journal");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
@@ -345,8 +345,7 @@ public class LedgerCacheTest {
                 b.readEntry(i, 1);
             } catch (Bookie.NoLedgerException nle) {
                 // this is fine, means the ledger was never written to the index cache
-                assertEquals("No ledger should only happen for the last ledger",
-                             i, numLedgers);
+                assertEquals(i, numLedgers, "No ledger should only happen for the last ledger");
             } catch (Bookie.NoEntryException nee) {
                 // this is fine, means the ledger was written to the index cache, but not
                 // the entry log
@@ -373,7 +372,7 @@ public class LedgerCacheTest {
      * @throws IOException
      */
     @Test
-    public void testSyncThreadNPE() throws IOException {
+    void syncThreadNPE() throws IOException {
         newLedgerCache();
         try {
             ((LedgerCacheImpl) ledgerCache).getIndexPageManager().getLedgerEntryPageFromCache(0L, 0L, true);
@@ -389,7 +388,7 @@ public class LedgerCacheTest {
      * {@link https://github.com/apache/bookkeeper/issues/1919}
      */
     @Test
-    public void testPutEntryOffsetDeleteRace() throws Exception {
+    void putEntryOffsetDeleteRace() throws Exception {
         newLedgerCache();
         final AtomicInteger rc = new AtomicInteger(0);
         final LinkedBlockingQueue<Long> putQ = new LinkedBlockingQueue<>(100);
@@ -489,7 +488,7 @@ public class LedgerCacheTest {
             flushThread.join();
         }
 
-        assertEquals("Should have been no errors", rc.get(), 0);
+        assertEquals(0, rc.get(), "Should have been no errors");
         for (long i = 0L; i < numLedgers; ++i) {
             boolean gotError = false;
             try {
@@ -511,7 +510,7 @@ public class LedgerCacheTest {
      * {@link https://github.com/apache/bookkeeper/issues/1757}
      */
     @Test
-    public void testFlushDeleteRace() throws Exception {
+    void flushDeleteRace() throws Exception {
         newLedgerCache();
         final AtomicInteger rc = new AtomicInteger(0);
         final LinkedBlockingQueue<Long> ledgerQ = new LinkedBlockingQueue<>(100);
@@ -593,7 +592,7 @@ public class LedgerCacheTest {
             flushThread.join();
         }
 
-        assertEquals("Should have been no errors", rc.get(), 0);
+        assertEquals(0, rc.get(), "Should have been no errors");
         for (long i = 0L; i < numLedgers; ++i) {
             boolean gotError = false;
             try {
@@ -719,7 +718,7 @@ public class LedgerCacheTest {
     }
 
     @Test
-    public void testEntryMemTableFlushFailure() throws Exception {
+    void entryMemTableFlushFailure() throws Exception {
         File tmpDir = createTempDir("bkTest", ".dir");
         File curDir = BookieImpl.getCurrentDirectory(tmpDir);
         BookieImpl.checkDirectoryStructure(curDir);
@@ -741,8 +740,8 @@ public class LedgerCacheTest {
         bookie.addEntry(generateEntry(1, 1), false, new BookieImpl.NopWriteCallback(), null, "passwd".getBytes());
 
         flushTestSortedLedgerStorage.addEntry(generateEntry(1, 2));
-        assertFalse("Bookie is expected to be in ReadWrite mode", bookie.isReadOnly());
-        assertTrue("EntryMemTable SnapShot is expected to be empty", memTable.snapshot.isEmpty());
+        assertFalse(bookie.isReadOnly(), "Bookie is expected to be in ReadWrite mode");
+        assertTrue(memTable.snapshot.isEmpty(), "EntryMemTable SnapShot is expected to be empty");
 
         // set flags, so that FlushTestSortedLedgerStorage simulates FlushFailure scenario
         flushTestSortedLedgerStorage.setInjectMemTableSizeLimitReached(true);
@@ -750,8 +749,8 @@ public class LedgerCacheTest {
         flushTestSortedLedgerStorage.addEntry(generateEntry(1, 2));
 
         // since we simulated sizeLimitReached, snapshot shouldn't be empty
-        assertFalse("EntryMemTable SnapShot is not expected to be empty", memTable.snapshot.isEmpty());
-        assertEquals("Flusher called", 1, flushTestSortedLedgerStorage.getNumOfTimesFlushSnapshotCalled());
+        assertFalse(memTable.snapshot.isEmpty(), "EntryMemTable SnapShot is not expected to be empty");
+        assertEquals(1, flushTestSortedLedgerStorage.getNumOfTimesFlushSnapshotCalled(), "Flusher called");
 
         // set the flags to false, so flush will succeed this time
         flushTestSortedLedgerStorage.setInjectMemTableSizeLimitReached(false);
@@ -759,12 +758,12 @@ public class LedgerCacheTest {
 
         flushTestSortedLedgerStorage.addEntry(generateEntry(1, 3));
         // since we expect memtable flush to succeed, memtable snapshot should be empty
-        assertTrue("EntryMemTable SnapShot is expected to be empty, because of successful flush",
-                memTable.snapshot.isEmpty());
+        assertTrue(memTable.snapshot.isEmpty(),
+                "EntryMemTable SnapShot is expected to be empty, because of successful flush");
     }
 
     @Test
-    public void testSortedLedgerFlushFailure() throws Exception {
+    void sortedLedgerFlushFailure() throws Exception {
         // most of the code is same to the testEntryMemTableFlushFailure
         File tmpDir = createTempDir("bkTest", ".dir");
         File curDir = BookieImpl.getCurrentDirectory(tmpDir);
@@ -785,8 +784,8 @@ public class LedgerCacheTest {
 
         bookie.addEntry(generateEntry(1, 1), false, new BookieImpl.NopWriteCallback(), null, "passwd".getBytes());
         flushTestSortedLedgerStorage.addEntry(generateEntry(1, 2));
-        assertFalse("Bookie is expected to be in ReadWrite mode", bookie.isReadOnly());
-        assertTrue("EntryMemTable SnapShot is expected to be empty", memTable.snapshot.isEmpty());
+        assertFalse(bookie.isReadOnly(), "Bookie is expected to be in ReadWrite mode");
+        assertTrue(memTable.snapshot.isEmpty(), "EntryMemTable SnapShot is expected to be empty");
 
         // set flags, so that FlushTestSortedLedgerStorage simulates FlushFailure scenario
         flushTestSortedLedgerStorage.setInjectMemTableSizeLimitReached(true);
@@ -794,9 +793,9 @@ public class LedgerCacheTest {
         flushTestSortedLedgerStorage.addEntry(generateEntry(1, 2));
 
         // since we simulated sizeLimitReached, snapshot shouldn't be empty
-        assertFalse("EntryMemTable SnapShot is not expected to be empty", memTable.snapshot.isEmpty());
+        assertFalse(memTable.snapshot.isEmpty(), "EntryMemTable SnapShot is not expected to be empty");
         // after flush failure, the bookie is set to readOnly
-        assertTrue("Bookie is expected to be in Read mode", bookie.isReadOnly());
+        assertTrue(bookie.isReadOnly(), "Bookie is expected to be in Read mode");
         // write fail
         CountDownLatch latch = new CountDownLatch(1);
         bookie.addEntry(generateEntry(1, 3), false, new BookkeeperInternalCallbacks.WriteCallback(){
@@ -823,7 +822,7 @@ public class LedgerCacheTest {
     }
 
     @Test
-    public void testEntryMemTableParallelFlush() throws Exception {
+    void entryMemTableParallelFlush() throws Exception {
         int gcWaitTime = 1000;
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         conf.setGcWaitTime(gcWaitTime);
@@ -851,20 +850,20 @@ public class LedgerCacheTest {
         flushTestSortedLedgerStorage.addEntry(generateEntry(2, 2));
         flushTestSortedLedgerStorage.addEntry(generateEntry(3, 2));
 
-        assertTrue("EntryMemTable SnapShot is expected to be empty", memTable.snapshot.isEmpty());
-        assertFalse("EntryMemTable is not expected to be empty", memTable.isEmpty());
+        assertTrue(memTable.snapshot.isEmpty(), "EntryMemTable SnapShot is expected to be empty");
+        assertFalse(memTable.isEmpty(), "EntryMemTable is not expected to be empty");
 
         // inject MemTableSizeLimitReached, so entrymemtable will be flushed
         flushTestSortedLedgerStorage.setInjectMemTableSizeLimitReached(true);
         flushTestSortedLedgerStorage.addEntry(generateEntry(1, 3));
 
         // since we simulated sizeLimitReached, snapshot should have been created and flushed
-        assertTrue("EntryMemTable SnapShot is expected to be empty", memTable.snapshot.isEmpty());
-        assertEquals("Flusher called", 1, flushTestSortedLedgerStorage.getNumOfTimesFlushSnapshotCalled());
+        assertTrue(memTable.snapshot.isEmpty(), "EntryMemTable SnapShot is expected to be empty");
+        assertEquals(1, flushTestSortedLedgerStorage.getNumOfTimesFlushSnapshotCalled(), "Flusher called");
     }
 
     @Test
-    public void testEntryMemTableParallelFlushWithFlushException() throws Exception {
+    void entryMemTableParallelFlushWithFlushException() throws Exception {
         int gcWaitTime = 1000;
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         conf.setGcWaitTime(gcWaitTime);
@@ -898,8 +897,8 @@ public class LedgerCacheTest {
 
         flushTestSortedLedgerStorage.addEntry(generateEntry(1, 5));
         // since we simulate FlushException, memtable snapshot should not be empty
-        assertFalse("EntryMemTable SnapShot is not expected to be empty", memTable.snapshot.isEmpty());
-        assertEquals("Flusher called", 1, flushTestSortedLedgerStorage.getNumOfTimesFlushSnapshotCalled());
+        assertFalse(memTable.snapshot.isEmpty(), "EntryMemTable SnapShot is not expected to be empty");
+        assertEquals(1, flushTestSortedLedgerStorage.getNumOfTimesFlushSnapshotCalled(), "Flusher called");
 
         flushTestSortedLedgerStorage.setInjectFlushException(false, FlushTestSortedLedgerStorage.FORALLLEDGERS);
         flushTestSortedLedgerStorage.addEntry(generateEntry(1, 5));
@@ -907,8 +906,8 @@ public class LedgerCacheTest {
          * since MemTableSizeLimitReached is already set to true, and flush
          * exception is disabled, this time memtable snapshot should be flushed
          */
-        assertTrue("EntryMemTable SnapShot is expected to be empty", memTable.snapshot.isEmpty());
-        assertEquals("Flusher called", 2, flushTestSortedLedgerStorage.getNumOfTimesFlushSnapshotCalled());
+        assertTrue(memTable.snapshot.isEmpty(), "EntryMemTable SnapShot is expected to be empty");
+        assertEquals(2, flushTestSortedLedgerStorage.getNumOfTimesFlushSnapshotCalled(), "Flusher called");
     }
 
     String[] createAndGetLedgerDirs(int numOfLedgerDirs) throws IOException {

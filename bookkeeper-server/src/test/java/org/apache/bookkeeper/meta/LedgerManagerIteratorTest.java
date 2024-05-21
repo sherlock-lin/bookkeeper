@@ -21,10 +21,10 @@
 
 package org.apache.bookkeeper.meta;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import java.io.IOException;
@@ -56,9 +56,8 @@ import org.apache.bookkeeper.util.ZkUtils;
 import org.apache.bookkeeper.versioning.Version;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Test;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test the ledger manager iterator.
@@ -105,8 +104,8 @@ public class LedgerManagerIteratorTest extends LedgerManagerTestCase {
         long last = -1;
         while (lri.hasNext()) {
             LedgerManager.LedgerRange lr = lri.next();
-            assertFalse("ledger range must not be empty", lr.getLedgers().isEmpty());
-            assertTrue("ledger ranges must not overlap", last < lr.start());
+            assertFalse(lr.getLedgers().isEmpty(), "ledger range must not be empty");
+            assertTrue(last < lr.start(), "ledger ranges must not overlap");
             ret.addAll(lr.getLedgers());
             last = lr.end();
         }
@@ -127,12 +126,12 @@ public class LedgerManagerIteratorTest extends LedgerManagerTestCase {
         }, null, BKException.Code.OK, BKException.Code.ReadException);
 
         latch.await();
-        assertEquals("Final RC of asyncProcessLedgers", BKException.Code.OK, finalRC.get());
+        assertEquals(BKException.Code.OK, finalRC.get(), "Final RC of asyncProcessLedgers");
         return ledgersReadAsync;
     }
 
     @Test
-    public void testIterateNoLedgers() throws Exception {
+    void iterateNoLedgers() throws Exception {
         LedgerManager lm = getLedgerManager();
         LedgerRangeIterator lri = lm.getLedgerRanges(0);
         assertNotNull(lri);
@@ -140,11 +139,11 @@ public class LedgerManagerIteratorTest extends LedgerManagerTestCase {
             lri.next();
         }
 
-        assertEquals(false, lri.hasNext());
+        assertFalse(lri.hasNext());
     }
 
     @Test
-    public void testSingleLedger() throws Throwable {
+    void singleLedger() throws Throwable {
         LedgerManager lm = getLedgerManager();
 
         long id = 2020202;
@@ -153,15 +152,15 @@ public class LedgerManagerIteratorTest extends LedgerManagerTestCase {
         LedgerRangeIterator lri = lm.getLedgerRanges(0);
         assertNotNull(lri);
         Set<Long> lids = ledgerRangeToSet(lri);
-        assertEquals(lids.size(), 1);
+        assertEquals(1, lids.size());
         assertEquals(lids.iterator().next().longValue(), id);
 
         Set<Long> ledgersReadAsync = getLedgerIdsByUsingAsyncProcessLedgers(lm);
-        assertEquals("Comparing LedgersIds read asynchronously", lids, ledgersReadAsync);
+        assertEquals(lids, ledgersReadAsync, "Comparing LedgersIds read asynchronously");
     }
 
     @Test
-    public void testTwoLedgers() throws Throwable {
+    void twoLedgers() throws Throwable {
         LedgerManager lm = getLedgerManager();
 
         Set<Long> ids = new TreeSet<>(Arrays.asList(101010101L, 2020340302L));
@@ -175,11 +174,11 @@ public class LedgerManagerIteratorTest extends LedgerManagerTestCase {
         assertEquals(ids, returnedIds);
 
         Set<Long> ledgersReadAsync = getLedgerIdsByUsingAsyncProcessLedgers(lm);
-        assertEquals("Comparing LedgersIds read asynchronously", ids, ledgersReadAsync);
+        assertEquals(ids, ledgersReadAsync, "Comparing LedgersIds read asynchronously");
     }
 
     @Test
-    public void testSeveralContiguousLedgers() throws Throwable {
+    void severalContiguousLedgers() throws Throwable {
         LedgerManager lm = getLedgerManager();
 
         Set<Long> ids = new TreeSet<>();
@@ -194,11 +193,11 @@ public class LedgerManagerIteratorTest extends LedgerManagerTestCase {
         assertEquals(ids, returnedIds);
 
         Set<Long> ledgersReadAsync = getLedgerIdsByUsingAsyncProcessLedgers(lm);
-        assertEquals("Comparing LedgersIds read asynchronously", ids, ledgersReadAsync);
+        assertEquals(ids, ledgersReadAsync, "Comparing LedgersIds read asynchronously");
     }
 
     @Test
-    public void testRemovalOfNodeJustTraversed() throws Throwable {
+    void removalOfNodeJustTraversed() throws Throwable {
         if (baseConf.getLedgerManagerFactoryClass()
                 != LongHierarchicalLedgerManagerFactory.class) {
             return;
@@ -251,7 +250,7 @@ public class LedgerManagerIteratorTest extends LedgerManagerTestCase {
     }
 
     @Test
-    public void validateEmptyL4PathSkipped() throws Throwable {
+    void validateEmptyL4PathSkipped() throws Throwable {
         if (baseConf.getLedgerManagerFactoryClass()
                 != LongHierarchicalLedgerManagerFactory.class) {
             return;
@@ -285,7 +284,7 @@ public class LedgerManagerIteratorTest extends LedgerManagerTestCase {
         assertEquals(ids, returnedIds);
 
         Set<Long> ledgersReadAsync = getLedgerIdsByUsingAsyncProcessLedgers(lm);
-        assertEquals("Comparing LedgersIds read asynchronously", ids, ledgersReadAsync);
+        assertEquals(ids, ledgersReadAsync, "Comparing LedgersIds read asynchronously");
 
         lri = lm.getLedgerRanges(0);
         int emptyRanges = 0;
@@ -298,7 +297,7 @@ public class LedgerManagerIteratorTest extends LedgerManagerTestCase {
     }
 
     @Test
-    public void testWithSeveralIncompletePaths() throws Throwable {
+    void withSeveralIncompletePaths() throws Throwable {
         if (baseConf.getLedgerManagerFactoryClass()
                 != LongHierarchicalLedgerManagerFactory.class) {
             return;
@@ -335,11 +334,11 @@ public class LedgerManagerIteratorTest extends LedgerManagerTestCase {
         assertEquals(ids, returnedIds);
 
         Set<Long> ledgersReadAsync = getLedgerIdsByUsingAsyncProcessLedgers(lm);
-        assertEquals("Comparing LedgersIds read asynchronously", ids, ledgersReadAsync);
+        assertEquals(ids, ledgersReadAsync, "Comparing LedgersIds read asynchronously");
     }
 
     @Test
-    public void checkConcurrentModifications() throws Throwable {
+    void checkConcurrentModifications() throws Throwable {
         final int numWriters = 10;
         final int numCheckers = 10;
         final int numLedgers = 100;
@@ -419,12 +418,12 @@ public class LedgerManagerIteratorTest extends LedgerManagerTestCase {
 
     @SuppressWarnings("deprecation")
     @Test
-    public void testLedgerParentNode() throws Throwable {
+    void ledgerParentNode() throws Throwable {
         /*
          * this testcase applies only ZK based ledgermanager so it doesnt work
          * for MSLedgerManager
          */
-        Assume.assumeTrue(!baseConf.getLedgerManagerFactoryClass().equals(MSLedgerManagerFactory.class));
+        Assumptions.assumeTrue(!baseConf.getLedgerManagerFactoryClass().equals(MSLedgerManagerFactory.class));
         AbstractZkLedgerManager lm = (AbstractZkLedgerManager) getLedgerManager();
         List<Long> ledgerIds;
         if (baseConf.getLedgerManagerFactoryClass().equals(HierarchicalLedgerManagerFactory.class)
@@ -439,20 +438,20 @@ public class LedgerManagerIteratorTest extends LedgerManagerTestCase {
                 ZKMetadataDriverBase.resolveZkLedgersRootPath(baseConf) + "/",
                 "");
             String[] znodesOfLedger = ledgerPath.split("/");
-            Assert.assertTrue(znodesOfLedger[0] + " is supposed to be valid parent ",
-                    lm.isLedgerParentNode(znodesOfLedger[0]));
+            assertTrue(lm.isLedgerParentNode(znodesOfLedger[0]),
+                    znodesOfLedger[0] + " is supposed to be valid parent ");
         }
     }
 
     @SuppressWarnings("deprecation")
     @Test
-    public void testLedgerManagerFormat() throws Throwable {
+    void ledgerManagerFormat() throws Throwable {
         String zkLedgersRootPath = ZKMetadataDriverBase.resolveZkLedgersRootPath(baseConf);
         /*
          * this testcase applies only ZK based ledgermanager so it doesnt work
          * for MSLedgerManager
          */
-        Assume.assumeTrue(!baseConf.getLedgerManagerFactoryClass().equals(MSLedgerManagerFactory.class));
+        Assumptions.assumeTrue(!baseConf.getLedgerManagerFactoryClass().equals(MSLedgerManagerFactory.class));
         AbstractZkLedgerManager lm = (AbstractZkLedgerManager) getLedgerManager();
         Collection<Long> ids = Arrays.asList(1234567890L, 2L, 32345L, 23456789L);
         if (baseConf.getLedgerManagerFactoryClass().equals(HierarchicalLedgerManagerFactory.class)
@@ -494,16 +493,15 @@ public class LedgerManagerIteratorTest extends LedgerManagerTestCase {
                 new ZkLayoutManager(zkc, zkLedgersRootPath, ZkUtils.getACLs(baseConf)));
         List<String> childrenOfLedgersRootPathAfterFormat = zkc.getChildren(zkLedgersRootPath, false);
         int totalChildrenOfLedgersRootPathAfterFormat = childrenOfLedgersRootPathAfterFormat.size();
-        Assert.assertEquals("totalChildrenOfLedgersRootPathAfterFormat",
-                totalChildrenOfLedgersRootPath - totalParentNodesOfLedgers, totalChildrenOfLedgersRootPathAfterFormat);
+        assertEquals(totalChildrenOfLedgersRootPath - totalParentNodesOfLedgers, totalChildrenOfLedgersRootPathAfterFormat, "totalChildrenOfLedgersRootPathAfterFormat");
 
-        Assert.assertTrue("ChildrenOfLedgersRootPathAfterFormat should contain all the invalid znodes created",
-                childrenOfLedgersRootPathAfterFormat.containsAll(invalidZnodes));
+        assertTrue(childrenOfLedgersRootPathAfterFormat.containsAll(invalidZnodes),
+                "ChildrenOfLedgersRootPathAfterFormat should contain all the invalid znodes created");
     }
 
     @Test
-    public void hierarchicalLedgerManagerAsyncProcessLedgersTest() throws Throwable {
-        Assume.assumeTrue(baseConf.getLedgerManagerFactoryClass().equals(HierarchicalLedgerManagerFactory.class));
+    void hierarchicalLedgerManagerAsyncProcessLedgersTest() throws Throwable {
+        Assumptions.assumeTrue(baseConf.getLedgerManagerFactoryClass().equals(HierarchicalLedgerManagerFactory.class));
         LedgerManager lm = getLedgerManager();
         LedgerRangeIterator lri = lm.getLedgerRanges(0);
 
@@ -512,8 +510,8 @@ public class LedgerManagerIteratorTest extends LedgerManagerTestCase {
             createLedger(lm, ledgerId);
         }
         Set<Long> ledgersReadThroughIterator = ledgerRangeToSet(lri);
-        assertEquals("Comparing LedgersIds read through Iterator", ledgerIds, ledgersReadThroughIterator);
+        assertEquals(ledgerIds, ledgersReadThroughIterator, "Comparing LedgersIds read through Iterator");
         Set<Long> ledgersReadAsync = getLedgerIdsByUsingAsyncProcessLedgers(lm);
-        assertEquals("Comparing LedgersIds read asynchronously", ledgerIds, ledgersReadAsync);
+        assertEquals(ledgerIds, ledgersReadAsync, "Comparing LedgersIds read asynchronously");
     }
 }

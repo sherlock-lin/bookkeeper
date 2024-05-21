@@ -21,11 +21,11 @@
 package org.apache.bookkeeper.replication;
 
 import static org.apache.bookkeeper.replication.ReplicationStats.AUDITOR_SCOPE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import io.netty.buffer.ByteBuf;
 import java.io.File;
@@ -74,9 +74,9 @@ import org.apache.bookkeeper.test.TestStatsProvider;
 import org.apache.bookkeeper.test.TestStatsProvider.TestOpStatsLogger;
 import org.apache.bookkeeper.test.TestStatsProvider.TestStatsLogger;
 import org.awaitility.Awaitility;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,7 +98,7 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
         baseConf.setPageLimit(1); // to make it easy to push ledger out of cache
     }
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -124,7 +124,7 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
             NullStatsLogger.INSTANCE);
     }
 
-    @After
+    @AfterEach
     @Override
     public void tearDown() throws Exception {
         if (null != driver) {
@@ -142,7 +142,7 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
      * the bookie entry log.
      */
     @Test
-    public void testEntryLogCorruption() throws Exception {
+    void entryLogCorruption() throws Exception {
         LedgerManagerFactory mFactory = driver.getLedgerManagerFactory();
         LedgerUnderreplicationManager underReplicationManager = mFactory.newLedgerUnderreplicationManager();
         underReplicationManager.disableLedgerReplication();
@@ -182,7 +182,7 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
             }
             Thread.sleep(CHECK_INTERVAL * 1000);
         }
-        assertEquals("Ledger should be under replicated", ledgerId, underReplicatedLedger);
+        assertEquals(ledgerId, underReplicatedLedger, "Ledger should be under replicated");
         underReplicationManager.close();
     }
 
@@ -191,7 +191,7 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
      * the bookie index files.
      */
     @Test
-    public void testIndexCorruption() throws Exception {
+    void indexCorruption() throws Exception {
         LedgerManagerFactory mFactory = driver.getLedgerManagerFactory();
 
         LedgerUnderreplicationManager underReplicationManager = mFactory.newLedgerUnderreplicationManager();
@@ -231,7 +231,7 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
             }
             Thread.sleep(CHECK_INTERVAL * 1000);
         }
-        assertEquals("Ledger should be under replicated", ledgerToCorrupt, underReplicatedLedger);
+        assertEquals(ledgerToCorrupt, underReplicatedLedger, "Ledger should be under replicated");
         underReplicationManager.close();
     }
 
@@ -239,7 +239,7 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
      * Test that the period checker will not run when auto replication has been disabled.
      */
     @Test
-    public void testPeriodicCheckWhenDisabled() throws Exception {
+    void periodicCheckWhenDisabled() throws Exception {
         LedgerManagerFactory mFactory = driver.getLedgerManagerFactory();
         final LedgerUnderreplicationManager underReplicationManager = mFactory.newLedgerUnderreplicationManager();
         final int numLedgers = 10;
@@ -288,7 +288,7 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
         startAndAddBookie(conf, deadBookie);
 
         Thread.sleep(CHECK_INTERVAL * 2000);
-        assertEquals("Nothing should have tried to read", 0, numReads.get());
+        assertEquals(0, numReads.get(), "Nothing should have tried to read");
         underReplicationManager.enableLedgerReplication();
         Thread.sleep(CHECK_INTERVAL * 2000); // give it time to run
 
@@ -312,18 +312,18 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
 
         // ensure that nothing is marked as underreplicated
         underReplicatedLedger = underReplicationManager.pollLedgerToRereplicate();
-        assertEquals("There should be no underreplicated ledgers", -1, underReplicatedLedger);
+        assertEquals(-1, underReplicatedLedger, "There should be no underreplicated ledgers");
 
         LOG.info("{} of {} ledgers underreplicated", numUnderreplicated, numUnderreplicated);
-        assertTrue("All should be underreplicated",
-                numUnderreplicated <= numLedgers && numUnderreplicated > 0);
+        assertTrue(numUnderreplicated <= numLedgers && numUnderreplicated > 0,
+                "All should be underreplicated");
     }
 
     /**
      * Test that the period check will succeed if a ledger is deleted midway.
      */
     @Test
-    public void testPeriodicCheckWhenLedgerDeleted() throws Exception {
+    void periodicCheckWhenLedgerDeleted() throws Exception {
         for (AuditorElector e : auditorElectors.values()) {
             e.shutdown();
         }
@@ -363,12 +363,12 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
                 bkc.deleteLedger(id);
             }
             t.join();
-            assertFalse("Shouldn't have thrown exception", exceptionCaught.get());
+            assertFalse(exceptionCaught.get(), "Shouldn't have thrown exception");
         }
     }
 
     @Test
-    public void testGetLedgerFromZookeeperThrottled() throws Exception {
+    void getLedgerFromZookeeperThrottled() throws Exception {
         final int numberLedgers = 30;
 
         // write ledgers into bookkeeper cluster
@@ -402,7 +402,7 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
 
         try {
             ((AuditorCheckAllLedgersTask) auditor.auditorCheckAllLedgersTask).checkAllLedgers();
-            assertEquals("NUM_LEDGERS_CHECKED", numberLedgers, (long) numLedgersChecked.get());
+            assertEquals(numberLedgers, (long) numLedgersChecked.get(), "NUM_LEDGERS_CHECKED");
         } catch (Exception e) {
             LOG.error("Caught exception while checking all ledgers ", e);
             fail();
@@ -410,7 +410,7 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testInitialDelayOfCheckAllLedgers() throws Exception {
+    void initialDelayOfCheckAllLedgers() throws Exception {
         for (AuditorElector e : auditorElectors.values()) {
             e.shutdown();
         }
@@ -449,7 +449,7 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
         final TestAuditor auditor = new TestAuditor(BookieImpl.getBookieId(servConf).toString(), servConf, bkc, false,
                 statsLogger, null);
         CountDownLatch latch = auditor.getLatch();
-        assertEquals("CHECK_ALL_LEDGERS_TIME SuccessCount", 0, checkAllLedgersStatsLogger.getSuccessCount());
+        assertEquals(0, checkAllLedgersStatsLogger.getSuccessCount(), "CHECK_ALL_LEDGERS_TIME SuccessCount");
         long curTimeBeforeStart = System.currentTimeMillis();
         long checkAllLedgersCTime = -1;
         long initialDelayInMsecs = -1;
@@ -480,31 +480,31 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
          * since auditorPeriodicCheckInterval are higher values (in the order of
          * 100s of seconds), its ok bufferTimeInMsecs to be ` 10 secs.
          */
-        assertTrue("checkAllLedgers should have executed with initialDelay " + initialDelayInMsecs,
-                latch.await(initialDelayInMsecs + bufferTimeInMsecs, TimeUnit.MILLISECONDS));
+        assertTrue(latch.await(initialDelayInMsecs + bufferTimeInMsecs, TimeUnit.MILLISECONDS),
+                "checkAllLedgers should have executed with initialDelay " + initialDelayInMsecs);
         for (int i = 0; i < 10; i++) {
             Thread.sleep(100);
             if (checkAllLedgersStatsLogger.getSuccessCount() >= 1) {
                 break;
             }
         }
-        assertEquals("CHECK_ALL_LEDGERS_TIME SuccessCount", 1, checkAllLedgersStatsLogger.getSuccessCount());
+        assertEquals(1, checkAllLedgersStatsLogger.getSuccessCount(), "CHECK_ALL_LEDGERS_TIME SuccessCount");
         long currentCheckAllLedgersCTime = urm.getCheckAllLedgersCTime();
         assertTrue(
+                currentCheckAllLedgersCTime > nextExpectedCheckAllLedgersExecutionTime,
                 "currentCheckAllLedgersCTime: " + currentCheckAllLedgersCTime
                         + " should be greater than nextExpectedCheckAllLedgersExecutionTime: "
-                        + nextExpectedCheckAllLedgersExecutionTime,
-                currentCheckAllLedgersCTime > nextExpectedCheckAllLedgersExecutionTime);
+                        + nextExpectedCheckAllLedgersExecutionTime);
         assertTrue(
+                currentCheckAllLedgersCTime < (nextExpectedCheckAllLedgersExecutionTime + bufferTimeInMsecs),
                 "currentCheckAllLedgersCTime: " + currentCheckAllLedgersCTime
                         + " should be lesser than nextExpectedCheckAllLedgersExecutionTime+bufferTimeInMsecs: "
-                        + (nextExpectedCheckAllLedgersExecutionTime + bufferTimeInMsecs),
-                currentCheckAllLedgersCTime < (nextExpectedCheckAllLedgersExecutionTime + bufferTimeInMsecs));
+                        + (nextExpectedCheckAllLedgersExecutionTime + bufferTimeInMsecs));
         auditor.close();
     }
 
     @Test
-    public void testInitialDelayOfPlacementPolicyCheck() throws Exception {
+    void initialDelayOfPlacementPolicyCheck() throws Exception {
         for (AuditorElector e : auditorElectors.values()) {
             e.shutdown();
         }
@@ -543,7 +543,7 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
         final TestAuditor auditor = new TestAuditor(BookieImpl.getBookieId(servConf).toString(), servConf, bkc, false,
                 statsLogger, null);
         CountDownLatch latch = auditor.getLatch();
-        assertEquals("PLACEMENT_POLICY_CHECK_TIME SuccessCount", 0, placementPolicyCheckStatsLogger.getSuccessCount());
+        assertEquals(0, placementPolicyCheckStatsLogger.getSuccessCount(), "PLACEMENT_POLICY_CHECK_TIME SuccessCount");
         long curTimeBeforeStart = System.currentTimeMillis();
         long placementPolicyCheckCTime = -1;
         long initialDelayInMsecs = -1;
@@ -574,31 +574,31 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
          * since auditorPeriodicPlacementPolicyCheckInterval are higher values (in the
          * order of 100s of seconds), its ok bufferTimeInMsecs to be ` 20 secs.
          */
-        assertTrue("placementPolicyCheck should have executed with initialDelay " + initialDelayInMsecs,
-                latch.await(initialDelayInMsecs + bufferTimeInMsecs, TimeUnit.MILLISECONDS));
+        assertTrue(latch.await(initialDelayInMsecs + bufferTimeInMsecs, TimeUnit.MILLISECONDS),
+                "placementPolicyCheck should have executed with initialDelay " + initialDelayInMsecs);
         for (int i = 0; i < 20; i++) {
             Thread.sleep(100);
             if (placementPolicyCheckStatsLogger.getSuccessCount() >= 1) {
                 break;
             }
         }
-        assertEquals("PLACEMENT_POLICY_CHECK_TIME SuccessCount", 1, placementPolicyCheckStatsLogger.getSuccessCount());
+        assertEquals(1, placementPolicyCheckStatsLogger.getSuccessCount(), "PLACEMENT_POLICY_CHECK_TIME SuccessCount");
         long currentPlacementPolicyCheckCTime = urm.getPlacementPolicyCheckCTime();
         assertTrue(
+                currentPlacementPolicyCheckCTime > nextExpectedPlacementPolicyCheckExecutionTime,
                 "currentPlacementPolicyCheckCTime: " + currentPlacementPolicyCheckCTime
                         + " should be greater than nextExpectedPlacementPolicyCheckExecutionTime: "
-                        + nextExpectedPlacementPolicyCheckExecutionTime,
-                currentPlacementPolicyCheckCTime > nextExpectedPlacementPolicyCheckExecutionTime);
+                        + nextExpectedPlacementPolicyCheckExecutionTime);
         assertTrue(
+                currentPlacementPolicyCheckCTime < (nextExpectedPlacementPolicyCheckExecutionTime + bufferTimeInMsecs),
                 "currentPlacementPolicyCheckCTime: " + currentPlacementPolicyCheckCTime
                         + " should be lesser than nextExpectedPlacementPolicyCheckExecutionTime+bufferTimeInMsecs: "
-                        + (nextExpectedPlacementPolicyCheckExecutionTime + bufferTimeInMsecs),
-                currentPlacementPolicyCheckCTime < (nextExpectedPlacementPolicyCheckExecutionTime + bufferTimeInMsecs));
+                        + (nextExpectedPlacementPolicyCheckExecutionTime + bufferTimeInMsecs));
         auditor.close();
     }
 
     @Test
-    public void testInitialDelayOfReplicasCheck() throws Exception {
+    void initialDelayOfReplicasCheck() throws Exception {
         for (AuditorElector e : auditorElectors.values()) {
             e.shutdown();
         }
@@ -647,7 +647,7 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
         final TestAuditor auditor = new TestAuditor(BookieImpl.getBookieId(servConf).toString(), servConf, bkc, false,
                 statsLogger, null);
         CountDownLatch latch = auditor.getLatch();
-        assertEquals("REPLICAS_CHECK_TIME SuccessCount", 0, replicasCheckStatsLogger.getSuccessCount());
+        assertEquals(0, replicasCheckStatsLogger.getSuccessCount(), "REPLICAS_CHECK_TIME SuccessCount");
         long curTimeBeforeStart = System.currentTimeMillis();
         long replicasCheckCTime = -1;
         long initialDelayInMsecs = -1;
@@ -678,31 +678,31 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
          * since auditorPeriodicReplicasCheckInterval are higher values (in the
          * order of 100s of seconds), its ok bufferTimeInMsecs to be ` 20 secs.
          */
-        assertTrue("replicasCheck should have executed with initialDelay " + initialDelayInMsecs,
-                latch.await(initialDelayInMsecs + bufferTimeInMsecs, TimeUnit.MILLISECONDS));
+        assertTrue(latch.await(initialDelayInMsecs + bufferTimeInMsecs, TimeUnit.MILLISECONDS),
+                "replicasCheck should have executed with initialDelay " + initialDelayInMsecs);
         for (int i = 0; i < 20; i++) {
             Thread.sleep(100);
             if (replicasCheckStatsLogger.getSuccessCount() >= 1) {
                 break;
             }
         }
-        assertEquals("REPLICAS_CHECK_TIME SuccessCount", 1, replicasCheckStatsLogger.getSuccessCount());
+        assertEquals(1, replicasCheckStatsLogger.getSuccessCount(), "REPLICAS_CHECK_TIME SuccessCount");
         long currentReplicasCheckCTime = urm.getReplicasCheckCTime();
         assertTrue(
+                currentReplicasCheckCTime > nextExpectedReplicasCheckExecutionTime,
                 "currentReplicasCheckCTime: " + currentReplicasCheckCTime
                         + " should be greater than nextExpectedReplicasCheckExecutionTime: "
-                        + nextExpectedReplicasCheckExecutionTime,
-                currentReplicasCheckCTime > nextExpectedReplicasCheckExecutionTime);
+                        + nextExpectedReplicasCheckExecutionTime);
         assertTrue(
+                currentReplicasCheckCTime < (nextExpectedReplicasCheckExecutionTime + bufferTimeInMsecs),
                 "currentReplicasCheckCTime: " + currentReplicasCheckCTime
                         + " should be lesser than nextExpectedReplicasCheckExecutionTime+bufferTimeInMsecs: "
-                        + (nextExpectedReplicasCheckExecutionTime + bufferTimeInMsecs),
-                currentReplicasCheckCTime < (nextExpectedReplicasCheckExecutionTime + bufferTimeInMsecs));
+                        + (nextExpectedReplicasCheckExecutionTime + bufferTimeInMsecs));
         auditor.close();
     }
 
     @Test
-    public void testDelayBookieAuditOfCheckAllLedgers() throws Exception {
+    void delayBookieAuditOfCheckAllLedgers() throws Exception {
         for (AuditorElector e : auditorElectors.values()) {
             e.shutdown();
         }
@@ -751,7 +751,7 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
         Awaitility.await().untilAsserted(() -> assertEquals(1, (long) numBookieAuditsDelayed.get()));
         final Future<?> auditTask = auditor.auditTask;
         assertTrue(auditTask != null && !auditTask.isDone());
-        assertEquals("NUM_SKIPPING_CHECK_TASK_TIMES", 0, (long) numSkippingCheckTaskTimes.get());
+        assertEquals(0, (long) numSkippingCheckTaskTimes.get(), "NUM_SKIPPING_CHECK_TASK_TIMES");
 
         canRun.set(true);
 
@@ -759,16 +759,16 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
         assertTrue(auditor.auditTask.equals(auditTask)
                 && auditor.auditTask != null && !auditor.auditTask.isDone());
         // wrong num is numLedgers, right num is 0
-        assertEquals("UNDER_REPLICATED_LEDGERS_TOTAL_SIZE",
-                0,
-                underReplicatedLedgerTotalSizeStatsLogger.getSuccessCount());
-        assertTrue("NUM_SKIPPING_CHECK_TASK_TIMES", numSkippingCheckTaskTimes.get() > 0);
+        assertEquals(0,
+                underReplicatedLedgerTotalSizeStatsLogger.getSuccessCount(),
+                "UNDER_REPLICATED_LEDGERS_TOTAL_SIZE");
+        assertTrue(numSkippingCheckTaskTimes.get() > 0, "NUM_SKIPPING_CHECK_TASK_TIMES");
 
         auditor.close();
     }
 
     @Test
-    public void testDelayBookieAuditOfPlacementPolicy() throws Exception {
+    void delayBookieAuditOfPlacementPolicy() throws Exception {
         for (AuditorElector e : auditorElectors.values()) {
             e.shutdown();
         }
@@ -817,8 +817,8 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
         Awaitility.await().untilAsserted(() -> assertEquals(1, (long) numBookieAuditsDelayed.get()));
         final Future<?> auditTask = auditor.auditTask;
         assertTrue(auditTask != null && !auditTask.isDone());
-        assertEquals("PLACEMENT_POLICY_CHECK_TIME", 0, placementPolicyCheckTime.getSuccessCount());
-        assertEquals("NUM_SKIPPING_CHECK_TASK_TIMES", 0, (long) numSkippingCheckTaskTimes.get());
+        assertEquals(0, placementPolicyCheckTime.getSuccessCount(), "PLACEMENT_POLICY_CHECK_TIME");
+        assertEquals(0, (long) numSkippingCheckTaskTimes.get(), "NUM_SKIPPING_CHECK_TASK_TIMES");
 
         canRun.set(true);
 
@@ -826,14 +826,14 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
         assertTrue(auditor.auditTask.equals(auditTask)
                 && auditor.auditTask != null && !auditor.auditTask.isDone());
         // wrong successCount is > 0, right successCount is = 0
-        assertEquals("PLACEMENT_POLICY_CHECK_TIME", 0, placementPolicyCheckTime.getSuccessCount());
-        assertTrue("NUM_SKIPPING_CHECK_TASK_TIMES", numSkippingCheckTaskTimes.get() > 0);
+        assertEquals(0, placementPolicyCheckTime.getSuccessCount(), "PLACEMENT_POLICY_CHECK_TIME");
+        assertTrue(numSkippingCheckTaskTimes.get() > 0, "NUM_SKIPPING_CHECK_TASK_TIMES");
 
         auditor.close();
     }
 
     @Test
-    public void testDelayBookieAuditOfReplicasCheck() throws Exception {
+    void delayBookieAuditOfReplicasCheck() throws Exception {
         for (AuditorElector e : auditorElectors.values()) {
             e.shutdown();
         }
@@ -883,8 +883,8 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
         Awaitility.await().untilAsserted(() -> assertEquals(1, (long) numBookieAuditsDelayed.get()));
         final Future<?> auditTask = auditor.auditTask;
         assertTrue(auditTask != null && !auditTask.isDone());
-        assertEquals("REPLICAS_CHECK_TIME", 0, replicasCheckTime.getSuccessCount());
-        assertEquals("NUM_SKIPPING_CHECK_TASK_TIMES", 0, (long) numSkippingCheckTaskTimes.get());
+        assertEquals(0, replicasCheckTime.getSuccessCount(), "REPLICAS_CHECK_TIME");
+        assertEquals(0, (long) numSkippingCheckTaskTimes.get(), "NUM_SKIPPING_CHECK_TASK_TIMES");
 
         canRun.set(true);
 
@@ -892,8 +892,8 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
         assertTrue(auditor.auditTask.equals(auditTask)
                 && auditor.auditTask != null && !auditor.auditTask.isDone());
         // wrong successCount is > 0, right successCount is = 0
-        assertEquals("REPLICAS_CHECK_TIME", 0, replicasCheckTime.getSuccessCount());
-        assertTrue("NUM_SKIPPING_CHECK_TASK_TIMES", numSkippingCheckTaskTimes.get() > 0);
+        assertEquals(0, replicasCheckTime.getSuccessCount(), "REPLICAS_CHECK_TIME");
+        assertTrue(numSkippingCheckTaskTimes.get() > 0, "NUM_SKIPPING_CHECK_TASK_TIMES");
 
         auditor.close();
     }
@@ -983,7 +983,7 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
                 break;
             }
         }
-        assertNotEquals("Couldn't find ensemble bookie in bookie list", -1, bookieIdx);
+        assertNotEquals(-1, bookieIdx, "Couldn't find ensemble bookie in bookie list");
 
         LOG.info("Killing bookie " + addressByIndex(bookieIdx));
         ServerConfiguration conf = killBookie(bookieIdx);
@@ -1015,7 +1015,7 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
      * Validates that the periodic ledger check will fix entries with a failed write.
      */
     @Test
-    public void testFailedWriteRecovery() throws Exception {
+    void failedWriteRecovery() throws Exception {
         LedgerManagerFactory mFactory = driver.getLedgerManagerFactory();
         LedgerUnderreplicationManager underReplicationManager = mFactory.newLedgerUnderreplicationManager();
         underReplicationManager.disableLedgerReplication();
@@ -1046,7 +1046,7 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
             }
             Thread.sleep(CHECK_INTERVAL * 1000);
         }
-        assertEquals("Ledger should be under replicated", lh.getId(), underReplicatedLedger);
+        assertEquals(lh.getId(), underReplicatedLedger, "Ledger should be under replicated");
 
         // now start the replication workers
         List<ReplicationWorker> l = new ArrayList<ReplicationWorker>();
@@ -1069,7 +1069,7 @@ public class AuditorPeriodicCheckTest extends BookKeeperClusterTestCase {
         for (Map.Entry<Long, ? extends List<BookieId>> e :
                  newLh.getLedgerMetadata().getAllEnsembles().entrySet()) {
             List<BookieId> ensemble = e.getValue();
-            assertFalse("Ensemble hasn't been updated", ensemble.contains(replacedBookie));
+            assertFalse(ensemble.contains(replacedBookie), "Ensemble hasn't been updated");
         }
         newLh.close();
     }

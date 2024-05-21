@@ -21,9 +21,10 @@
 
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.util.Collections;
@@ -40,7 +41,7 @@ import org.apache.bookkeeper.proto.BookieServer;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.util.DiskChecker;
 import org.apache.bookkeeper.util.TestUtils;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * Test BookieStorage with a threshold.
@@ -64,7 +65,7 @@ public class BookieStorageThresholdTest extends BookKeeperClusterTestCase {
         msg = msgSB.toString();
     }
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         // Set up the configuration properties needed.
@@ -199,8 +200,8 @@ public class BookieStorageThresholdTest extends BookKeeperClusterTestCase {
         bkc.deleteLedger(lhs[2].getId());
 
         // validating that LedgerDirsListener are not triggered yet
-        assertTrue("Disk Full shouldn't have been triggered yet", diskFull.getCount() == 1);
-        assertTrue("Disk writable shouldn't have been triggered yet", diskWritable.getCount() == 1);
+        assertEquals(1, diskFull.getCount(), "Disk Full shouldn't have been triggered yet");
+        assertEquals(1, diskWritable.getCount(), "Disk writable shouldn't have been triggered yet");
         // set exception injection to true, so that next time when checkDir of DiskChecker (ThresholdTestDiskChecker) is
         // called it will throw DiskOutOfSpaceException
         thresholdTestDiskChecker.setInjectDiskOutOfSpaceException(true);
@@ -211,20 +212,20 @@ public class BookieStorageThresholdTest extends BookKeeperClusterTestCase {
         // called.
         diskFull.await(baseConf.getDiskCheckInterval() + 500, TimeUnit.MILLISECONDS);
         // verifying that diskFull of all LedgerDirsListener are invoked, so countdown of diskFull should come down to 0
-        assertTrue("Disk Full should have been triggered", diskFull.getCount() == 0);
+        assertEquals(0, diskFull.getCount(), "Disk Full should have been triggered");
         // making sure diskWritable of LedgerDirsListener are not invoked yet
-        assertTrue("Disk writable shouldn't have been triggered yet", diskWritable.getCount() == 1);
+        assertEquals(1, diskWritable.getCount(), "Disk writable shouldn't have been triggered yet");
         // waiting momentarily, because transition to Readonly mode happens asynchronously when there are no more
         // writableLedgerDirs
         Thread.sleep(500);
-        assertTrue("Bookie should be transitioned to ReadOnly", bookie.isReadOnly());
+        assertTrue(bookie.isReadOnly(), "Bookie should be transitioned to ReadOnly");
         // since we set isForceGCAllowWhenNoSpace to true, when the disk is full (or when all disks are full) it does
         // force GC.
         // Because of getWritableLedgerDirsForNewLog, compaction would be able to create newlog and compact even though
         // there are no writableLedgerDirs
         for (File ledgerDir : bookie.getLedgerDirsManager().getAllLedgerDirs()) {
-            assertFalse("Found entry log file ([0,1,2].log. They should have been compacted" + ledgerDir,
-                TestUtils.hasLogFiles(ledgerDir.getParentFile(), true, 0, 1, 2));
+            assertFalse(TestUtils.hasLogFiles(ledgerDir.getParentFile(), true, 0, 1, 2),
+                "Found entry log file ([0,1,2].log. They should have been compacted" + ledgerDir);
         }
 
         try {
@@ -244,10 +245,10 @@ public class BookieStorageThresholdTest extends BookKeeperClusterTestCase {
         diskWritable.await(baseConf.getDiskCheckInterval() + 500, TimeUnit.MILLISECONDS);
         // verifying that diskWritable of all LedgerDirsListener are invoked, so countdown of diskWritable should come
         // down to 0
-        assertTrue("Disk writable should have been triggered", diskWritable.getCount() == 0);
+        assertEquals(0, diskWritable.getCount(), "Disk writable should have been triggered");
         // waiting momentarily, because transition to ReadWrite mode happens asynchronously when there is new
         // writableLedgerDirectory
         Thread.sleep(500);
-        assertFalse("Bookie should be transitioned to ReadWrite", bookie.isReadOnly());
+        assertFalse(bookie.isReadOnly(), "Bookie should be transitioned to ReadWrite");
     }
 }

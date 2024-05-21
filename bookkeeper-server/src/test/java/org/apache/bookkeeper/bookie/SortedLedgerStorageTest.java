@@ -21,9 +21,9 @@
 package org.apache.bookkeeper.bookie;
 
 import static org.apache.bookkeeper.bookie.BookKeeperServerStats.BOOKIE_SCOPE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -40,15 +40,13 @@ import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.conf.TestBKConfiguration;
 import org.apache.bookkeeper.test.TestStatsProvider;
 import org.apache.bookkeeper.util.DiskChecker;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Testing SortedLedgerStorage.
  */
-@RunWith(Parameterized.class)
 public class SortedLedgerStorageTest {
 
     TestStatsProvider statsProvider = new TestStatsProvider();
@@ -61,12 +59,11 @@ public class SortedLedgerStorageTest {
     final long entriesPerWrite = 2;
     final long numOfLedgers = 5;
 
-    @Parameterized.Parameters
     public static Iterable<Boolean> elplSetting() {
         return Arrays.asList(true, false);
     }
 
-    public SortedLedgerStorageTest(boolean elplSetting) {
+    public void initSortedLedgerStorageTest(boolean elplSetting) {
         conf.setEntryLogSizeLimit(2048);
         conf.setEntryLogPerLedgerEnabled(elplSetting);
     }
@@ -94,8 +91,8 @@ public class SortedLedgerStorageTest {
         }
     };
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() throws Exception {
         File tmpDir = File.createTempFile("bkTest", ".dir");
         tmpDir.delete();
         tmpDir.mkdir();
@@ -111,11 +108,13 @@ public class SortedLedgerStorageTest {
         sortedLedgerStorage.setCheckpointer(checkpointer);
     }
 
-    @Test
-    public void testGetListOfEntriesOfLedger() throws Exception {
+    @MethodSource("elplSetting")
+    @ParameterizedTest
+    public void getListOfEntriesOfLedger(boolean elplSetting) throws Exception {
+        initSortedLedgerStorageTest(elplSetting);
         long nonExistingLedgerId = 123456L;
         OfLong entriesItr = sortedLedgerStorage.getListOfEntriesOfLedger(nonExistingLedgerId);
-        assertFalse("There shouldn't be any entries for this ledger", entriesItr.hasNext());
+        assertFalse(entriesItr.hasNext(), "There shouldn't be any entries for this ledger");
         // Insert some ledger & entries in the interleaved storage
         for (long entryId = 0; entryId < numWrites; entryId++) {
             for (long ledgerId = 0; ledgerId < numOfLedgers; ledgerId++) {
@@ -137,19 +136,21 @@ public class SortedLedgerStorageTest {
             ArrayList<Long> arrayList = new ArrayList<Long>();
             Consumer<Long> addMethod = arrayList::add;
             entriesOfLedger.forEachRemaining(addMethod);
-            assertEquals("Number of entries", numWrites, arrayList.size());
-            assertTrue("Entries of Ledger", IntStream.range(0, arrayList.size()).allMatch(i -> {
+            assertEquals(numWrites, arrayList.size(), "Number of entries");
+            assertTrue(IntStream.range(0, arrayList.size()).allMatch(i -> {
                 return arrayList.get(i) == (i * entriesPerWrite);
-            }));
+            }), "Entries of Ledger");
         }
 
         nonExistingLedgerId = 456789L;
         entriesItr = sortedLedgerStorage.getListOfEntriesOfLedger(nonExistingLedgerId);
-        assertFalse("There shouldn't be any entry", entriesItr.hasNext());
+        assertFalse(entriesItr.hasNext(), "There shouldn't be any entry");
     }
 
-    @Test
-    public void testGetListOfEntriesOfLedgerAfterFlush() throws IOException {
+    @MethodSource("elplSetting")
+    @ParameterizedTest
+    public void getListOfEntriesOfLedgerAfterFlush(boolean elplSetting) throws IOException {
+        initSortedLedgerStorageTest(elplSetting);
         // Insert some ledger & entries in the interleaved storage
         for (long entryId = 0; entryId < numWrites; entryId++) {
             for (long ledgerId = 0; ledgerId < numOfLedgers; ledgerId++) {
@@ -185,10 +186,10 @@ public class SortedLedgerStorageTest {
             ArrayList<Long> arrayList = new ArrayList<Long>();
             Consumer<Long> addMethod = arrayList::add;
             entriesOfLedger.forEachRemaining(addMethod);
-            assertEquals("Number of entries", moreNumOfWrites, arrayList.size());
-            assertTrue("Entries of Ledger", IntStream.range(0, arrayList.size()).allMatch(i -> {
+            assertEquals(moreNumOfWrites, arrayList.size(), "Number of entries");
+            assertTrue(IntStream.range(0, arrayList.size()).allMatch(i -> {
                 return arrayList.get(i) == (i * entriesPerWrite);
-            }));
+            }), "Entries of Ledger");
         }
     }
 }

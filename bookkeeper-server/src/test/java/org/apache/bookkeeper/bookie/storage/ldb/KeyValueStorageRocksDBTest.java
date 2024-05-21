@@ -18,10 +18,10 @@
  */
 package org.apache.bookkeeper.bookie.storage.ldb;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.net.URL;
@@ -29,7 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import org.apache.bookkeeper.conf.ServerConfiguration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.rocksdb.BlockBasedTableConfig;
 import org.rocksdb.ChecksumType;
 import org.rocksdb.ColumnFamilyDescriptor;
@@ -41,7 +41,7 @@ import org.rocksdb.Options;
 public class KeyValueStorageRocksDBTest {
 
     @Test
-    public void testRocksDBInitiateWithBookieConfiguration() throws Exception {
+    void rocksDBInitiateWithBookieConfiguration() throws Exception {
         ServerConfiguration configuration = new ServerConfiguration();
         configuration.setEntryLocationRocksdbConf("entry_location_rocksdb.conf");
         File tmpDir = Files.createTempDirectory("bk-kv-rocksdbtest-conf").toFile();
@@ -54,12 +54,12 @@ public class KeyValueStorageRocksDBTest {
         assertEquals(64 * 1024 * 1024, options.writeBufferSize());
         assertEquals(4, options.maxWriteBufferNumber());
         assertEquals(256 * 1024 * 1024, options.maxBytesForLevelBase());
-        assertEquals(true, options.levelCompactionDynamicLevelBytes());
+        assertTrue(options.levelCompactionDynamicLevelBytes());
         rocksDB.close();
     }
 
     @Test
-    public void testRocksDBInitiateWithConfigurationFile() throws Exception {
+    void rocksDBInitiateWithConfigurationFile() throws Exception {
         ServerConfiguration configuration = new ServerConfiguration();
         URL url = getClass().getClassLoader().getResource("test_entry_location_rocksdb.conf");
         configuration.setEntryLocationRocksdbConf(url.getPath());
@@ -79,12 +79,12 @@ public class KeyValueStorageRocksDBTest {
         assertEquals(CompressionType.LZ4_COMPRESSION, familyOptions.compressionType());
         assertEquals(1024, familyOptions.writeBufferSize());
         assertEquals(1, familyOptions.maxWriteBufferNumber());
-        assertEquals(true, familyOptions.levelCompactionDynamicLevelBytes());
+        assertTrue(familyOptions.levelCompactionDynamicLevelBytes());
         rocksDB.close();
     }
 
     @Test
-    public void testReadChecksumTypeFromBookieConfiguration() throws Exception {
+    void readChecksumTypeFromBookieConfiguration() throws Exception {
         ServerConfiguration configuration = new ServerConfiguration();
         configuration.setEntryLocationRocksdbConf("entry_location_rocksdb.conf");
         File tmpDir = Files.createTempDirectory("bk-kv-rocksdbtest-conf").toFile();
@@ -117,7 +117,7 @@ public class KeyValueStorageRocksDBTest {
     }
 
     @Test
-    public void testLevelCompactionDynamicLevelBytesFromConfigurationFile() throws Exception {
+    void levelCompactionDynamicLevelBytesFromConfigurationFile() throws Exception {
         ServerConfiguration configuration = new ServerConfiguration();
         URL url = getClass().getClassLoader().getResource("conf/entry_location_rocksdb.conf");
         configuration.setEntryLocationRocksdbConf(url.getPath());
@@ -129,6 +129,6 @@ public class KeyValueStorageRocksDBTest {
 
         List<ColumnFamilyDescriptor> columnFamilyDescriptorList = rocksDB.getColumnFamilyDescriptors();
         ColumnFamilyOptions familyOptions = columnFamilyDescriptorList.get(0).getOptions();
-        assertEquals(true, familyOptions.levelCompactionDynamicLevelBytes());
+        assertTrue(familyOptions.levelCompactionDynamicLevelBytes());
     }
 }

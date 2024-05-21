@@ -22,8 +22,8 @@ package org.apache.bookkeeper.bookie;
 
 import static org.apache.bookkeeper.common.concurrent.FutureUtils.complete;
 import static org.apache.bookkeeper.common.concurrent.FutureUtils.result;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -47,24 +47,26 @@ import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.proto.BookkeeperInternalCallbacks.WriteCallback;
 import org.apache.bookkeeper.util.DiskChecker;
 import org.apache.commons.lang3.mutable.MutableBoolean;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 
 /**
  * Test the bookie journal.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
 @Slf4j
 public class BookieWriteToJournalTest {
 
-    @Rule
-    public TemporaryFolder tempDir = new TemporaryFolder();
+    @TempDir
+    public File tempDir;
 
     class NoOpJournalReplayBookie extends TestBookieImpl {
 
@@ -77,6 +79,15 @@ public class BookieWriteToJournalTest {
         void readJournal() throws IOException, BookieException {
             // Should be no-op since journal objects are mocked
         }
+
+        private static File newFolder(File root, String... subDirs) throws IOException {
+            String subFolder = String.join("/", subDirs);
+            File result = new File(root, subFolder);
+            if (!result.mkdirs()) {
+                throw new IOException("Couldn't create folders " + root);
+            }
+            return result;
+        }
     }
 
     /**
@@ -84,11 +95,11 @@ public class BookieWriteToJournalTest {
      */
 
     @Test
-    public void testJournalLogAddEntryCalledCorrectly() throws Exception {
+    void journalLogAddEntryCalledCorrectly() throws Exception {
 
-        File journalDir = tempDir.newFolder();
+        File journalDir = newFolder(tempDir, "junit");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
-        File ledgerDir = tempDir.newFolder();
+        File ledgerDir = newFolder(tempDir, "junit");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(ledgerDir));
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         conf.setJournalDirName(journalDir.getPath())
@@ -154,11 +165,11 @@ public class BookieWriteToJournalTest {
      * test that Bookie calls correctly Journal.forceLedger and is able to return the correct LastAddPersisted entry id.
      */
     @Test
-    public void testForceLedger() throws Exception {
+    void forceLedger() throws Exception {
 
-        File journalDir = tempDir.newFolder();
+        File journalDir = newFolder(tempDir, "junit");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
-        File ledgerDir = tempDir.newFolder();
+        File ledgerDir = newFolder(tempDir, "junit");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(ledgerDir));
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         conf.setJournalDirName(journalDir.getPath())
@@ -188,13 +199,13 @@ public class BookieWriteToJournalTest {
         result(latchForceLedger1);
 
         b.addEntry(data, true /* ackBeforesync */, (int rc, long ledgerId1, long entryId1,
-                        BookieId addr, Object ctx) -> {
-                    if (rc != BKException.Code.OK) {
-                        latchAddEntry.completeExceptionally(org.apache.bookkeeper.client.BKException.create(rc));
-                        return;
-                    }
-                    latchAddEntry.complete(entryId);
-                }, expectedCtx, masterKey);
+                BookieId addr, Object ctx) -> {
+            if (rc != BKException.Code.OK) {
+                latchAddEntry.completeExceptionally(org.apache.bookkeeper.client.BKException.create(rc));
+                return;
+            }
+            latchAddEntry.complete(entryId);
+        }, expectedCtx, masterKey);
         assertEquals(expectedEntryId, result(latchAddEntry).longValue());
 
         // issue a new "forceLedger"
@@ -212,14 +223,14 @@ public class BookieWriteToJournalTest {
     }
 
     @Test
-    public void testSmallJournalQueueWithHighFlushFrequency() throws IOException, InterruptedException {
+    void smallJournalQueueWithHighFlushFrequency() throws IOException, InterruptedException {
         ServerConfiguration conf = new ServerConfiguration();
         conf.setJournalQueueSize(1);
         conf.setJournalFlushWhenQueueEmpty(true);
         conf.setJournalBufferedWritesThreshold(1);
 
-        conf.setJournalDirName(tempDir.newFolder().getPath());
-        conf.setLedgerDirNames(new String[]{tempDir.newFolder().getPath()});
+        conf.setJournalDirName(newFolder(tempDir, "junit").getPath());
+        conf.setLedgerDirNames(new String[]{newFolder(tempDir, "junit").getPath()});
         DiskChecker diskChecker = new DiskChecker(conf.getDiskUsageThreshold(), conf.getDiskUsageWarnThreshold());
         LedgerDirsManager ledgerDirsManager = new LedgerDirsManager(conf, conf.getLedgerDirs(), diskChecker);
         Journal journal = new Journal(0, conf.getJournalDirs()[0], conf, ledgerDirsManager);
@@ -244,5 +255,14 @@ public class BookieWriteToJournalTest {
         data.writeLong(entryId);
         data.writeLong(lastAddConfirmed);
         return data;
+    }
+
+    private static File newFolder(File root, String... subDirs) throws IOException {
+        String subFolder = String.join("/", subDirs);
+        File result = new File(root, subFolder);
+        if (!result.mkdirs()) {
+            throw new IOException("Couldn't create folders " + root);
+        }
+        return result;
     }
 }

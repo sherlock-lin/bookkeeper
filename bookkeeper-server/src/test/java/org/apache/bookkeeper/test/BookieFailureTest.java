@@ -20,10 +20,10 @@
  */
 package org.apache.bookkeeper.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -38,8 +38,8 @@ import org.apache.bookkeeper.client.BookKeeperTestClient;
 import org.apache.bookkeeper.client.LedgerEntry;
 import org.apache.bookkeeper.client.LedgerHandle;
 import org.apache.bookkeeper.proto.BookieServer;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,31 +99,31 @@ public class BookieFailureTest extends BookKeeperClusterTestCase
      * @throws IOException
      */
     @Test
-    public void testAsyncBK1() throws Exception {
+    void asyncBK1() throws Exception {
         LOG.info("#### BK1 ####");
         auxTestReadWriteAsyncSingleClient(serverByIndex(0));
     }
 
     @Test
-    public void testAsyncBK2() throws Exception {
+    void asyncBK2() throws Exception {
         LOG.info("#### BK2 ####");
         auxTestReadWriteAsyncSingleClient(serverByIndex(1));
     }
 
     @Test
-    public void testAsyncBK3() throws Exception {
+    void asyncBK3() throws Exception {
         LOG.info("#### BK3 ####");
         auxTestReadWriteAsyncSingleClient(serverByIndex(2));
     }
 
     @Test
-    public void testAsyncBK4() throws Exception {
+    void asyncBK4() throws Exception {
         LOG.info("#### BK4 ####");
         auxTestReadWriteAsyncSingleClient(serverByIndex(3));
     }
 
     @Test
-    public void testBookieRecovery() throws Exception {
+    void bookieRecovery() throws Exception {
         //Shutdown all but 1 bookie (should be in it's own test case with 1 bookie)
         assertEquals(4, bookieCount());
         killBookie(0);
@@ -183,7 +183,7 @@ public class BookieFailureTest extends BookKeeperClusterTestCase
                         LOG.debug("Entries counter = " + sync.counter);
                     }
                     sync.wait(10000);
-                    assertFalse("Failure occurred during write", sync.failureOccurred);
+                    assertFalse(sync.failureOccurred, "Failure occurred during write");
                 }
             }
 
@@ -202,7 +202,7 @@ public class BookieFailureTest extends BookKeeperClusterTestCase
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Number of entries written: " + (lh.getLastAddConfirmed() + 1));
             }
-            assertTrue("Verifying number of entries written", lh.getLastAddConfirmed() == (numEntriesToWrite - 1));
+            assertEquals(lh.getLastAddConfirmed(), (numEntriesToWrite - 1), "Verifying number of entries written");
 
             // read entries
 
@@ -211,8 +211,8 @@ public class BookieFailureTest extends BookKeeperClusterTestCase
             synchronized (sync) {
                 int i = 0;
                 sync.wait(10000);
-                assertFalse("Failure occurred during read", sync.failureOccurred);
-                assertTrue("Haven't received entries", sync.value);
+                assertFalse(sync.failureOccurred, "Failure occurred during read");
+                assertTrue(sync.value, "Haven't received entries");
             }
 
             if (LOG.isDebugEnabled()) {
@@ -232,12 +232,12 @@ public class BookieFailureTest extends BookKeeperClusterTestCase
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Retrieved entry: " + i);
                 }
-                assertTrue("Checking entry " + i + " for equality", origEntry.equals(retrEntry));
-                assertTrue("Checking entry " + i + " for size", entry.length == entriesSize.get(i));
+                assertEquals(origEntry, retrEntry, "Checking entry " + i + " for equality");
+                assertTrue(entry.length == entriesSize.get(i), "Checking entry " + i + " for size");
                 i++;
             }
 
-            assertTrue("Checking number of read entries", i == numEntriesToWrite);
+            assertEquals(i, numEntriesToWrite, "Checking number of read entries");
 
             LOG.info("Verified that entries are ok, and now closing ledger");
             lh.close();
@@ -279,7 +279,7 @@ public class BookieFailureTest extends BookKeeperClusterTestCase
         }
     }
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -293,7 +293,7 @@ public class BookieFailureTest extends BookKeeperClusterTestCase
     }
 
     @Test
-    public void testLedgerNoRecoveryOpenAfterBKCrashed() throws Exception {
+    void ledgerNoRecoveryOpenAfterBKCrashed() throws Exception {
         // Create a ledger
         LedgerHandle beforelh = bkc.createLedger(numBookies, numBookies, digestType, "".getBytes());
 
@@ -313,7 +313,7 @@ public class BookieFailureTest extends BookKeeperClusterTestCase
     }
 
     @Test
-    public void testLedgerOpenAfterBKCrashed() throws Exception {
+    void ledgerOpenAfterBKCrashed() throws Exception {
         // Create a ledger
         LedgerHandle beforelh = bkc.createLedger(numBookies, numBookies, digestType, "".getBytes());
 
@@ -356,7 +356,7 @@ public class BookieFailureTest extends BookKeeperClusterTestCase
      * <p>BOOKKEEPER-326
      */
     @Test
-    public void testReadLastConfirmedOp() throws Exception {
+    void readLastConfirmedOp() throws Exception {
         startNewBookie();
         startNewBookie();
         // Create a ledger
@@ -380,8 +380,8 @@ public class BookieFailureTest extends BookKeeperClusterTestCase
         LedgerHandle afterlh = bkc1.openLedger(beforelh.getId(), digestType, ""
                 .getBytes());
 
-        assertEquals("Entries got missed", beforelh.getLastAddPushed(), afterlh
-                .getLastAddConfirmed());
+        assertEquals(beforelh.getLastAddPushed(), afterlh
+                .getLastAddConfirmed(), "Entries got missed");
         bkc1.close();
     }
 }

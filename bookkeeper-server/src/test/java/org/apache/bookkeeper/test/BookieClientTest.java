@@ -20,9 +20,9 @@
  */
 package org.apache.bookkeeper.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -81,9 +81,9 @@ import org.apache.bookkeeper.util.ByteBufList;
 import org.apache.bookkeeper.util.IOUtils;
 import org.awaitility.Awaitility;
 import org.awaitility.reflect.WhiteboxImpl;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test the bookie client.
@@ -98,8 +98,8 @@ public class BookieClientTest {
     public OrderedExecutor executor;
     private ScheduledExecutorService scheduler;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() throws Exception {
         tmpDir = IOUtils.createTempDir("bookieClient", "test");
         // Since this test does not rely on the BookKeeper client needing to
         // know via ZooKeeper which Bookies are available, okay, so pass in null
@@ -125,8 +125,8 @@ public class BookieClientTest {
                 new DefaultThreadFactory("BookKeeperClientScheduler"));
     }
 
-    @After
-    public void tearDown() throws Exception {
+    @AfterEach
+    void tearDown() throws Exception {
         scheduler.shutdown();
         bs.shutdown();
         recursiveDelete(tmpDir);
@@ -180,7 +180,7 @@ public class BookieClientTest {
     };
 
     @Test
-    public void testWriteGaps() throws Exception {
+    void writeGaps() throws Exception {
         final Object notifyObject = new Object();
         byte[] passwd = new byte[20];
         Arrays.fill(passwd, (byte) 'a');
@@ -286,7 +286,7 @@ public class BookieClientTest {
     }
 
     @Test
-    public void testNoLedger() throws Exception {
+    void noLedger() throws Exception {
         ResultStruct arc = new ResultStruct();
         BookieId addr = bs.getBookieId();
         BookieClient bc = new BookieClientImpl(new ClientConfiguration(), eventLoopGroup,
@@ -300,12 +300,12 @@ public class BookieClientTest {
     }
 
     @Test
-    public void testGetBookieInfoWithLimitStatsLogging() throws IOException, InterruptedException {
+    void getBookieInfoWithLimitStatsLogging() throws IOException, InterruptedException {
         testGetBookieInfo(true);
     }
 
     @Test
-    public void testGetBookieInfoWithoutLimitStatsLogging() throws IOException, InterruptedException {
+    void getBookieInfoWithoutLimitStatsLogging() throws IOException, InterruptedException {
         testGetBookieInfo(false);
     }
 
@@ -356,21 +356,22 @@ public class BookieClientTest {
         obj.latch.await();
         System.out.println("Return code: " + obj.rc + "FreeDiskSpace: " + obj.freeDiskSpace + " TotalCapacity: "
                 + obj.totalDiskCapacity);
-        assertTrue("GetBookieInfo failed with error " + obj.rc, obj.rc == Code.OK);
-        assertTrue("GetBookieInfo failed with error " + obj.rc, obj.freeDiskSpace <= obj.totalDiskCapacity);
-        assertTrue("GetBookieInfo failed with error " + obj.rc, obj.totalDiskCapacity > 0);
+        assertEquals(Code.OK, obj.rc, "GetBookieInfo failed with error " + obj.rc);
+        assertTrue(obj.freeDiskSpace <= obj.totalDiskCapacity, "GetBookieInfo failed with error " + obj.rc);
+        assertTrue(obj.totalDiskCapacity > 0, "GetBookieInfo failed with error " + obj.rc);
 
         TestOpStatsLogger perChannelBookieClientScopeOfThisAddr = (TestOpStatsLogger) statsLogger
                 .scope(BookKeeperClientStats.CHANNEL_SCOPE)
                 .scopeLabel(BookKeeperClientStats.BOOKIE_LABEL, addr.toBookieId().toString())
                 .getOpStatsLogger(BookKeeperClientStats.GET_BOOKIE_INFO_OP);
         int expectedBookieInfoSuccessCount = (limitStatsLogging) ? 0 : 1;
-        assertEquals("BookieInfoSuccessCount", expectedBookieInfoSuccessCount,
-                perChannelBookieClientScopeOfThisAddr.getSuccessCount());
+        assertEquals(expectedBookieInfoSuccessCount,
+                perChannelBookieClientScopeOfThisAddr.getSuccessCount(),
+                "BookieInfoSuccessCount");
     }
 
     @Test
-    public void testBatchRead() throws Exception {
+    void batchRead() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setUseV2WireProtocol(true);
         BookieClient bc = new BookieClientImpl(conf, eventLoopGroup,
@@ -432,7 +433,7 @@ public class BookieClientTest {
     }
 
     @Test
-    public void testBatchedReadWittLostFourthEntry() throws Exception {
+    void batchedReadWittLostFourthEntry() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setUseV2WireProtocol(true);
         BookieClient bc = new BookieClientImpl(conf, eventLoopGroup,
@@ -498,7 +499,7 @@ public class BookieClientTest {
     }
 
     @Test
-    public void testBatchedReadWittLostFirstEntry() throws Exception {
+    void batchedReadWittLostFirstEntry() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setUseV2WireProtocol(true);
         BookieClient bc = new BookieClientImpl(conf, eventLoopGroup,
@@ -549,7 +550,7 @@ public class BookieClientTest {
 
     //This test is for the `isSmallEntry` improvement.
     @Test
-    public void testBatchedReadWittBigPayload() throws Exception {
+    void batchedReadWittBigPayload() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setUseV2WireProtocol(true);
         BookieClient bc = new BookieClientImpl(conf, eventLoopGroup,
@@ -616,7 +617,7 @@ public class BookieClientTest {
     }
 
     @Test
-    public void testBatchedReadWithMaxSizeLimitCase1() throws Exception {
+    void batchedReadWithMaxSizeLimitCase1() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setUseV2WireProtocol(true);
         BookieClient bc = new BookieClientImpl(conf, eventLoopGroup,
@@ -686,7 +687,7 @@ public class BookieClientTest {
 
     //consider header size rather than case1.
     @Test
-    public void testBatchedReadWithMaxSizeLimitCase2() throws Exception {
+    void batchedReadWithMaxSizeLimitCase2() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setUseV2WireProtocol(true);
         BookieClient bc = new BookieClientImpl(conf, eventLoopGroup,
@@ -887,7 +888,7 @@ public class BookieClientTest {
      * Relate to https://github.com/apache/bookkeeper/pull/4289.
      */
     @Test
-    public void testDataRefCnfWhenReconnectV2() throws Exception {
+    void dataRefCnfWhenReconnectV2() throws Exception {
         // Large payload.
         // Run this test may not reproduce the issue, you can reproduce the issue this way:
         // 1. Add two break points.
@@ -911,7 +912,7 @@ public class BookieClientTest {
      * Relate to https://github.com/apache/bookkeeper/pull/4289.
      */
     @Test
-    public void testDataRefCnfWhenReconnectV3() throws Exception {
+    void dataRefCnfWhenReconnectV3() throws Exception {
         testDataRefCnfWhenReconnect(false, true, false, false, 10);
         testDataRefCnfWhenReconnect(false, true,  true, false, 10);
         testDataRefCnfWhenReconnect(false, true, false, true, 10);

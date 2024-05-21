@@ -20,12 +20,12 @@ package org.apache.bookkeeper.meta.zk;
 
 import static org.apache.bookkeeper.util.BookKeeperConstants.AVAILABLE_NODE;
 import static org.apache.bookkeeper.util.BookKeeperConstants.READONLY;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
@@ -42,36 +42,36 @@ import org.apache.bookkeeper.meta.LedgerManagerFactory;
 import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.zookeeper.RetryPolicy;
 import org.apache.bookkeeper.zookeeper.ZooKeeperClient;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Unit test of {@link ZKMetadataDriverBase}.
  */
-@RunWith(MockitoJUnitRunner.class)
-public class ZKMetadataDriverBaseTest extends ZKMetadataDriverTestBase {
+@ExtendWith(MockitoExtension.class)
+class ZKMetadataDriverBaseTest extends ZKMetadataDriverTestBase {
 
     private ZKMetadataDriverBase driver;
     private RetryPolicy retryPolicy;
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    void setup() throws Exception {
         super.setup(new ClientConfiguration());
         driver = mock(ZKMetadataDriverBase.class, CALLS_REAL_METHODS);
         retryPolicy = mock(RetryPolicy.class);
     }
 
-    @After
+    @AfterEach
     public void teardown() {
         super.teardown();
     }
 
     @Test
-    public void testInitialize() throws Exception {
+    void initialize() throws Exception {
         driver.initialize(
             conf, NullStatsLogger.INSTANCE, retryPolicy, Optional.empty());
 
@@ -97,7 +97,7 @@ public class ZKMetadataDriverBaseTest extends ZKMetadataDriverTestBase {
     }
 
     @Test
-    public void testInitializeExternalZooKeeper() throws Exception {
+    void initializeExternalZooKeeper() throws Exception {
         ZooKeeperClient anotherZk = mock(ZooKeeperClient.class);
 
         driver.initialize(
@@ -125,7 +125,7 @@ public class ZKMetadataDriverBaseTest extends ZKMetadataDriverTestBase {
     }
 
     @Test
-    public void testGetLedgerManagerFactory() throws Exception {
+    void getLedgerManagerFactory() throws Exception {
         driver.initialize(
             conf, NullStatsLogger.INSTANCE, retryPolicy, Optional.empty());
 

@@ -23,7 +23,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
@@ -31,18 +31,18 @@ import java.util.Collections;
 import java.util.List;
 import org.apache.bookkeeper.client.DistributionSchedule;
 import org.apache.bookkeeper.client.RoundRobinDistributionSchedule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Tests for WriteSets.
  */
-public class WriteSetsTest {
+class WriteSetsTest {
     private static final Logger log = LoggerFactory.getLogger(WriteSetsTest.class);
 
     @Test
-    public void testOrderPreserved() throws Exception {
+    void orderPreserved() throws Exception {
         WriteSets writeSets = new WriteSets(ImmutableList.of(0, 3, 2, 4, 1),
                                             5 /* ensemble */, 2 /* writeQ */);
         assertThat(writeSets.getForEntry(0), contains(0, 1));
@@ -53,7 +53,7 @@ public class WriteSetsTest {
     }
 
     @Test
-    public void testOrderPreservedWithGapForCurrentBookie() throws Exception {
+    void orderPreservedWithGapForCurrentBookie() throws Exception {
         // my bookie id maps to 2, so it is missing from the preferred order
         WriteSets writeSets = new WriteSets(ImmutableList.of(0, 3, 4, 1),
                                             5 /* ensemble */, 2 /* writeQ */);
@@ -65,7 +65,7 @@ public class WriteSetsTest {
     }
 
     @Test
-    public void testEmptyWriteSet() throws Exception {
+    void emptyWriteSet() throws Exception {
         // As can happen if we are the only bookie for a entry
         WriteSets writeSets = new WriteSets(ImmutableList.of(0, 3, 4, 1),
                                             5 /* ensemble */, 1 /* writeQ */);
@@ -77,7 +77,7 @@ public class WriteSetsTest {
     }
 
     @Test
-    public void testE2W2() throws Exception {
+    void e2w2() throws Exception {
         DistributionSchedule schedule = new RoundRobinDistributionSchedule(
                 2 /* write */, 2 /* ack */, 2 /* ensemble */);
         WriteSets writeSets = new WriteSets(ImmutableList.of(0, 1),
@@ -95,10 +95,10 @@ public class WriteSetsTest {
             DistributionSchedule.WriteSet distWriteSet = schedule.getWriteSet(i);
             assertContentsMatch(writeSet, distWriteSet);
         }
-    };
+    }
 
     @Test
-    public void testE10W2() throws Exception {
+    void e10w2() throws Exception {
         DistributionSchedule schedule = new RoundRobinDistributionSchedule(
                 2 /* write */, 2 /* ack */, 10 /* ensemble */);
         WriteSets writeSets = new WriteSets(ImmutableList.of(0, 8, 1, 9, 6, 3, 7, 4, 2, 5),
@@ -127,10 +127,10 @@ public class WriteSetsTest {
             DistributionSchedule.WriteSet distWriteSet = schedule.getWriteSet(i);
             assertContentsMatch(writeSet, distWriteSet);
         }
-    };
+    }
 
     @Test
-    public void testManyVariants() throws Exception {
+    void manyVariants() throws Exception {
         for (int w = 1; w <= 12; w++) {
             for (int e = w; e <= 12; e++) {
                 DistributionSchedule schedule = new RoundRobinDistributionSchedule(

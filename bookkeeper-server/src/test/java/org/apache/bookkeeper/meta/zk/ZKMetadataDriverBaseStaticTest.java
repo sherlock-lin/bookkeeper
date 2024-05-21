@@ -18,20 +18,22 @@
  */
 package org.apache.bookkeeper.meta.zk;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.net.URI;
 import org.apache.bookkeeper.meta.HierarchicalLedgerManagerFactory;
 import org.apache.bookkeeper.meta.LongHierarchicalLedgerManagerFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test the static methods of {@link ZKMetadataDriverBase}.
  */
-public class ZKMetadataDriverBaseStaticTest {
+class ZKMetadataDriverBaseStaticTest {
 
     @Test
-    public void testGetZKServersFromServiceUri() {
+    void getZKServersFromServiceUri() {
         String uriStr = "zk://server1;server2;server3/ledgers";
         URI uri = URI.create(uriStr);
 
@@ -48,42 +50,42 @@ public class ZKMetadataDriverBaseStaticTest {
             zkServers);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testResolveLedgerManagerFactoryNullUri() {
-        ZKMetadataDriverBase.resolveLedgerManagerFactory(null);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testResolveLedgerManagerFactoryNullScheme() {
-        ZKMetadataDriverBase.resolveLedgerManagerFactory(URI.create("//127.0.0.1/ledgers"));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testResolveLedgerManagerFactoryUnknownScheme() {
-        ZKMetadataDriverBase.resolveLedgerManagerFactory(URI.create("unknown://127.0.0.1/ledgers"));
+    @Test
+    void resolveLedgerManagerFactoryNullUri() {
+        assertThrows(NullPointerException.class, () -> {
+            ZKMetadataDriverBase.resolveLedgerManagerFactory(null);
+        });
     }
 
     @Test
-    public void testResolveLedgerManagerFactoryUnspecifiedLayout() {
-        assertEquals(
-            null,
-            ZKMetadataDriverBase.resolveLedgerManagerFactory(
-                        URI.create("zk://127.0.0.1/ledgers"))
-        );
+    void resolveLedgerManagerFactoryNullScheme() {
+        assertThrows(NullPointerException.class, () -> {
+            ZKMetadataDriverBase.resolveLedgerManagerFactory(URI.create("//127.0.0.1/ledgers"));
+        });
     }
 
     @Test
-    public void testResolveLedgerManagerFactoryNullLayout() {
-        assertEquals(
-                null,
-                ZKMetadataDriverBase.resolveLedgerManagerFactory(
-                        URI.create("zk+null://127.0.0.1/ledgers"))
-        );
+    void resolveLedgerManagerFactoryUnknownScheme() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            ZKMetadataDriverBase.resolveLedgerManagerFactory(URI.create("unknown://127.0.0.1/ledgers"));
+        });
+    }
+
+    @Test
+    void resolveLedgerManagerFactoryUnspecifiedLayout() {
+        assertNull(ZKMetadataDriverBase.resolveLedgerManagerFactory(
+                URI.create("zk://127.0.0.1/ledgers")));
+    }
+
+    @Test
+    void resolveLedgerManagerFactoryNullLayout() {
+        assertNull(ZKMetadataDriverBase.resolveLedgerManagerFactory(
+                URI.create("zk+null://127.0.0.1/ledgers")));
     }
 
     @SuppressWarnings("deprecation")
     @Test
-    public void testResolveLedgerManagerFactoryFlat() {
+    void resolveLedgerManagerFactoryFlat() {
         assertEquals(
             org.apache.bookkeeper.meta.FlatLedgerManagerFactory.class,
             ZKMetadataDriverBase.resolveLedgerManagerFactory(
@@ -93,7 +95,7 @@ public class ZKMetadataDriverBaseStaticTest {
 
     @SuppressWarnings("deprecation")
     @Test
-    public void testResolveLedgerManagerFactoryMs() {
+    void resolveLedgerManagerFactoryMs() {
         assertEquals(
             org.apache.bookkeeper.meta.MSLedgerManagerFactory.class,
             ZKMetadataDriverBase.resolveLedgerManagerFactory(
@@ -102,7 +104,7 @@ public class ZKMetadataDriverBaseStaticTest {
     }
 
     @Test
-    public void testResolveLedgerManagerFactoryHierarchical() {
+    void resolveLedgerManagerFactoryHierarchical() {
         assertEquals(
             HierarchicalLedgerManagerFactory.class,
             ZKMetadataDriverBase.resolveLedgerManagerFactory(
@@ -111,7 +113,7 @@ public class ZKMetadataDriverBaseStaticTest {
     }
 
     @Test
-    public void testResolveLedgerManagerFactoryLongHierarchical() {
+    void resolveLedgerManagerFactoryLongHierarchical() {
         assertEquals(
             LongHierarchicalLedgerManagerFactory.class,
             ZKMetadataDriverBase.resolveLedgerManagerFactory(
@@ -119,9 +121,11 @@ public class ZKMetadataDriverBaseStaticTest {
         );
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testResolveLedgerManagerFactoryUnknownLedgerManagerFactory() {
-        ZKMetadataDriverBase.resolveLedgerManagerFactory(
-            URI.create("zk+unknown://127.0.0.1/ledgers"));
+    @Test
+    void resolveLedgerManagerFactoryUnknownLedgerManagerFactory() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            ZKMetadataDriverBase.resolveLedgerManagerFactory(
+                    URI.create("zk+unknown://127.0.0.1/ledgers"));
+        });
     }
 }

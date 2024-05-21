@@ -17,16 +17,16 @@
  */
 package org.apache.bookkeeper.conf;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test Configuration API.
  *
  * @see NoSystemPropertiesConfigurationTest
  */
-public class SystemPropertiesConfigurationTest {
+class SystemPropertiesConfigurationTest {
 
     static {
         // this property is read when AbstractConfiguration class is loaded.
@@ -37,7 +37,7 @@ public class SystemPropertiesConfigurationTest {
     }
 
     @Test
-    public void testUseSystemProperty() {
+    void useSystemProperty() {
         ClientConfiguration clientConfiguration = new ClientConfiguration();
         assertEquals(10, clientConfiguration.getThrottleValue());
         assertEquals(20000, clientConfiguration.getTcpUserTimeoutMillis());

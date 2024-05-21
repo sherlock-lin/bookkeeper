@@ -17,8 +17,8 @@
  */
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -28,7 +28,7 @@ import org.apache.bookkeeper.client.AsyncCallback.ReadCallback;
 import org.apache.bookkeeper.client.BKException.Code;
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
   * Test read next entry and the latest last add confirmed.
@@ -43,7 +43,7 @@ public class TestReadLastEntry extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testTryReadLastEntryAsyncOnEmptyLedger() throws Exception {
+    void tryReadLastEntryAsyncOnEmptyLedger() throws Exception {
         final LedgerHandle lh = bkc.createLedger(1, 1, 1, digestType, "".getBytes());
         lh.close();
 
@@ -68,7 +68,7 @@ public class TestReadLastEntry extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testTryReadLastEntryOnEmptyLedger() throws Exception {
+    void tryReadLastEntryOnEmptyLedger() throws Exception {
         final LedgerHandle lh = bkc.createLedger(1, 1, 1, digestType, "".getBytes());
         lh.close();
 
@@ -77,7 +77,7 @@ public class TestReadLastEntry extends BookKeeperClusterTestCase {
             LedgerEntry lastEntry = readLh.readLastEntry();
             fail("should fail with NoSuchEntryException");
         } catch (BKException e) {
-            assertEquals(e.getCode(), Code.NoSuchEntryException);
+            assertEquals(Code.NoSuchEntryException, e.getCode());
         }
 
         lh.close();
@@ -85,7 +85,7 @@ public class TestReadLastEntry extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testTryReadLastEntryAsync() throws Exception {
+    void tryReadLastEntryAsync() throws Exception {
         final LedgerHandle lh = bkc.createLedger(1, 1, 1, digestType, "".getBytes());
         byte[] data = new byte[1024];
         Arrays.fill(data, (byte) 'x');
@@ -120,7 +120,7 @@ public class TestReadLastEntry extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testTryReadLastEntrySync() throws Exception {
+    void tryReadLastEntrySync() throws Exception {
         final LedgerHandle lh = bkc.createLedger(1, 1, 1, digestType, "".getBytes());
         byte[] data = new byte[1024];
         Arrays.fill(data, (byte) 'x');

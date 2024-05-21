@@ -20,8 +20,9 @@ package org.apache.bookkeeper.proto;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.bookkeeper.proto.BookieProtocol.FLAG_NONE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -46,23 +47,23 @@ import org.apache.bookkeeper.proto.BookkeeperProtocol.OperationType;
 import org.apache.bookkeeper.proto.BookkeeperProtocol.ProtocolVersion;
 import org.apache.bookkeeper.proto.BookkeeperProtocol.StatusCode;
 import org.apache.bookkeeper.util.ByteBufList;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test {@link BookieProtoEncoding}.
  */
-public class BookieProtoEncodingTest {
+class BookieProtoEncodingTest {
 
     private ExtensionRegistry registry;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         this.registry = ExtensionRegistry.newInstance();
     }
 
     @Test
-    public void testV3ResponseDecoderNoFallback() throws Exception {
+    void v3ResponseDecoderNoFallback() throws Exception {
         AddResponse v2Resp = AddResponse.create(
             BookieProtocol.CURRENT_PROTOCOL_VERSION,
             BookieProtocol.EOK,
@@ -110,31 +111,33 @@ public class BookieProtoEncodingTest {
         assertEquals(1, outList.size());
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void testV2RequestDecoderThrowExceptionOnUnknownRequests() throws Exception {
-        RequestEnDeCoderPreV3 v2ReqEncoder = new RequestEnDeCoderPreV3(registry);
-        RequestEnDecoderV3 v3ReqEncoder = new RequestEnDecoderV3(registry);
+    @Test
+    void v2RequestDecoderThrowExceptionOnUnknownRequests() throws Exception {
+        assertThrows(IllegalStateException.class, () -> {
+            RequestEnDeCoderPreV3 v2ReqEncoder = new RequestEnDeCoderPreV3(registry);
+            RequestEnDecoderV3 v3ReqEncoder = new RequestEnDecoderV3(registry);
 
-        BookkeeperProtocol.Request v3Req = BookkeeperProtocol.Request.newBuilder()
-            .setHeader(BKPacketHeader.newBuilder()
-                .setVersion(ProtocolVersion.VERSION_THREE)
-                .setTxnId(1L)
-                .setOperation(OperationType.ADD_ENTRY)
-                .build())
-            .setAddRequest(BookkeeperProtocol.AddRequest.newBuilder()
-                .setLedgerId(1L)
-                .setEntryId(2L)
-                .setMasterKey(ByteString.copyFrom("", UTF_8))
-                .setFlag(Flag.RECOVERY_ADD)
-                .setBody(ByteString.copyFrom("test", UTF_8)))
-            .build();
+            BookkeeperProtocol.Request v3Req = BookkeeperProtocol.Request.newBuilder()
+                    .setHeader(BKPacketHeader.newBuilder()
+                            .setVersion(ProtocolVersion.VERSION_THREE)
+                            .setTxnId(1L)
+                            .setOperation(OperationType.ADD_ENTRY)
+                            .build())
+                    .setAddRequest(BookkeeperProtocol.AddRequest.newBuilder()
+                            .setLedgerId(1L)
+                            .setEntryId(2L)
+                            .setMasterKey(ByteString.copyFrom("", UTF_8))
+                            .setFlag(Flag.RECOVERY_ADD)
+                            .setBody(ByteString.copyFrom("test", UTF_8)))
+                    .build();
 
 
-        v2ReqEncoder.decode((ByteBuf) v3ReqEncoder.encode(v3Req, UnpooledByteBufAllocator.DEFAULT));
+            v2ReqEncoder.decode((ByteBuf) v3ReqEncoder.encode(v3Req, UnpooledByteBufAllocator.DEFAULT));
+        });
     }
 
     @Test
-    public void testV2BatchReadRequest() throws Exception {
+    void v2BatchReadRequest() throws Exception {
         RequestEnDeCoderPreV3 v2ReqEncoder = new RequestEnDeCoderPreV3(registry);
         BookieProtocol.BatchedReadRequest req = BookieProtocol.BatchedReadRequest.create(
                 BookieProtocol.CURRENT_PROTOCOL_VERSION, 1L, 1L, FLAG_NONE, null, 1L, 10, 1024L);
@@ -149,7 +152,7 @@ public class BookieProtoEncodingTest {
     }
 
     @Test
-    public void testV2BatchReadResponse() throws Exception {
+    void v2BatchReadResponse() throws Exception {
         ResponseEnDeCoderPreV3 v2ReqEncoder = new ResponseEnDeCoderPreV3(registry);
         ByteBuf first = UnpooledByteBufAllocator.DEFAULT.buffer(4).writeInt(10);
         ByteBuf second = UnpooledByteBufAllocator.DEFAULT.buffer(8).writeLong(10L);

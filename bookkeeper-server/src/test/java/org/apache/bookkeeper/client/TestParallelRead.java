@@ -21,12 +21,12 @@
 package org.apache.bookkeeper.client;
 
 import static org.apache.bookkeeper.common.concurrent.FutureUtils.result;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -46,7 +46,7 @@ import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.stats.OpStatsLogger;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,7 +84,7 @@ public class TestParallelRead extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testNormalParallelRead() throws Exception {
+    void normalParallelRead() throws Exception {
         int numEntries = 10;
 
         long id = getLedgerToRead(5, 2, 2, numEntries);
@@ -133,7 +133,7 @@ public class TestParallelRead extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testParallelReadMissingEntries() throws Exception {
+    void parallelReadMissingEntries() throws Exception {
         int numEntries = 10;
 
         long id = getLedgerToRead(5, 2, 2, numEntries);
@@ -153,7 +153,7 @@ public class TestParallelRead extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testFailParallelRecoveryReadMissingEntryImmediately() throws Exception {
+    void failParallelRecoveryReadMissingEntryImmediately() throws Exception {
         int numEntries = 1;
 
         long id = getLedgerToRead(5, 5, 3, numEntries);
@@ -184,7 +184,7 @@ public class TestParallelRead extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testParallelReadWithFailedBookies() throws Exception {
+    void parallelReadWithFailedBookies() throws Exception {
         int numEntries = 10;
 
         long id = getLedgerToRead(5, 3, 3, numEntries);
@@ -220,7 +220,7 @@ public class TestParallelRead extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testParallelReadFailureWithFailedBookies() throws Exception {
+    void parallelReadFailureWithFailedBookies() throws Exception {
         int numEntries = 10;
 
         long id = getLedgerToRead(5, 3, 3, numEntries);
@@ -248,7 +248,7 @@ public class TestParallelRead extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testLedgerEntryRequestComplete() throws Exception {
+    void ledgerEntryRequestComplete() throws Exception {
         LedgerHandle lh = mock(LedgerHandle.class);
         LedgerMetadata ledgerMetadata = mock(LedgerMetadata.class);
         ClientContext clientContext = mock(ClientContext.class);
@@ -291,7 +291,7 @@ public class TestParallelRead extends BookKeeperClusterTestCase {
                 new ReadOpBase.ReadContext(1, BookieId.parse("test"), first));
 
         // byteBuf has been release
-        assertEquals(byteBuf.refCnt(), 1);
+        assertEquals(1, byteBuf.refCnt());
         // entryBuffer is not replaced
         assertNull(first.entryImpl.getEntryBuffer());
         // ledgerEntryRequest has been complete

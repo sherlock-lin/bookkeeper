@@ -20,12 +20,12 @@
  */
 package org.apache.bookkeeper.proto;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -46,19 +46,19 @@ import org.apache.bookkeeper.proto.BookkeeperProtocol.ReadRequest;
 import org.apache.bookkeeper.proto.BookkeeperProtocol.Request;
 import org.apache.bookkeeper.proto.BookkeeperProtocol.WriteLacRequest;
 import org.apache.bookkeeper.stats.NullStatsLogger;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test utility methods from bookie request processor.
  */
-public class TestBookieRequestProcessor {
+class TestBookieRequestProcessor {
 
     final BookieRequestProcessor requestProcessor = mock(BookieRequestProcessor.class);
 
     private final ChannelGroup channelGroup = new DefaultChannelGroup(null);
 
     @Test
-    public void testConstructLongPollThreads() throws Exception {
+    void constructLongPollThreads() throws Exception {
         // long poll threads == read threads
         ServerConfiguration conf = new ServerConfiguration();
         try (BookieRequestProcessor processor = new BookieRequestProcessor(
@@ -91,7 +91,7 @@ public class TestBookieRequestProcessor {
     }
 
     @Test
-    public void testFlagsV3() {
+    void flagsV3() {
         ReadRequest read = ReadRequest.newBuilder()
             .setLedgerId(10).setEntryId(1)
             .setFlag(ReadRequest.Flag.FENCE_LEDGER).build();
@@ -135,7 +135,7 @@ public class TestBookieRequestProcessor {
     }
 
     @Test
-    public void testToString() {
+    void testToString() {
         BKPacketHeader.Builder headerBuilder = BKPacketHeader.newBuilder();
         headerBuilder.setVersion(ProtocolVersion.VERSION_THREE);
         headerBuilder.setOperation(OperationType.ADD_ENTRY);
@@ -156,16 +156,16 @@ public class TestBookieRequestProcessor {
         WriteEntryProcessorV3 writeEntryProcessorV3 = new WriteEntryProcessorV3(request, requestHandler,
                 requestProcessor);
         String toString = writeEntryProcessorV3.toString();
-        assertFalse("writeEntryProcessorV3's toString should have filtered out body", toString.contains("body"));
-        assertFalse("writeEntryProcessorV3's toString should have filtered out masterKey",
-                toString.contains("masterKey"));
-        assertTrue("writeEntryProcessorV3's toString should contain ledgerId", toString.contains("ledgerId"));
-        assertTrue("writeEntryProcessorV3's toString should contain entryId", toString.contains("entryId"));
-        assertTrue("writeEntryProcessorV3's toString should contain version", toString.contains("version"));
-        assertTrue("writeEntryProcessorV3's toString should contain operation", toString.contains("operation"));
-        assertTrue("writeEntryProcessorV3's toString should contain txnId", toString.contains("txnId"));
-        assertFalse("writeEntryProcessorV3's toString shouldn't contain flag", toString.contains("flag"));
-        assertFalse("writeEntryProcessorV3's toString shouldn't contain writeFlags", toString.contains("writeFlags"));
+        assertFalse(toString.contains("body"), "writeEntryProcessorV3's toString should have filtered out body");
+        assertFalse(toString.contains("masterKey"),
+                "writeEntryProcessorV3's toString should have filtered out masterKey");
+        assertTrue(toString.contains("ledgerId"), "writeEntryProcessorV3's toString should contain ledgerId");
+        assertTrue(toString.contains("entryId"), "writeEntryProcessorV3's toString should contain entryId");
+        assertTrue(toString.contains("version"), "writeEntryProcessorV3's toString should contain version");
+        assertTrue(toString.contains("operation"), "writeEntryProcessorV3's toString should contain operation");
+        assertTrue(toString.contains("txnId"), "writeEntryProcessorV3's toString should contain txnId");
+        assertFalse(toString.contains("flag"), "writeEntryProcessorV3's toString shouldn't contain flag");
+        assertFalse(toString.contains("writeFlags"), "writeEntryProcessorV3's toString shouldn't contain writeFlags");
 
         addRequest = AddRequest.newBuilder().setLedgerId(10).setEntryId(1)
                 .setMasterKey(ByteString.copyFrom("masterKey".getBytes()))
@@ -174,35 +174,35 @@ public class TestBookieRequestProcessor {
         request = Request.newBuilder().setHeader(header).setAddRequest(addRequest).build();
         writeEntryProcessorV3 = new WriteEntryProcessorV3(request, requestHandler, requestProcessor);
         toString = writeEntryProcessorV3.toString();
-        assertFalse("writeEntryProcessorV3's toString should have filtered out body", toString.contains("body"));
-        assertFalse("writeEntryProcessorV3's toString should have filtered out masterKey",
-                toString.contains("masterKey"));
-        assertTrue("writeEntryProcessorV3's toString should contain flag", toString.contains("flag"));
-        assertTrue("writeEntryProcessorV3's toString should contain writeFlags", toString.contains("writeFlags"));
+        assertFalse(toString.contains("body"), "writeEntryProcessorV3's toString should have filtered out body");
+        assertFalse(toString.contains("masterKey"),
+                "writeEntryProcessorV3's toString should have filtered out masterKey");
+        assertTrue(toString.contains("flag"), "writeEntryProcessorV3's toString should contain flag");
+        assertTrue(toString.contains("writeFlags"), "writeEntryProcessorV3's toString should contain writeFlags");
 
         ReadRequest readRequest = ReadRequest.newBuilder().setLedgerId(10).setEntryId(23)
                 .setMasterKey(ByteString.copyFrom("masterKey".getBytes())).build();
         request = Request.newBuilder().setHeader(header).setReadRequest(readRequest).build();
         toString = RequestUtils.toSafeString(request);
-        assertFalse("ReadRequest's safeString should have filtered out masterKey", toString.contains("masterKey"));
-        assertTrue("ReadRequest's safeString should contain ledgerId", toString.contains("ledgerId"));
-        assertTrue("ReadRequest's safeString should contain entryId", toString.contains("entryId"));
-        assertTrue("ReadRequest's safeString should contain version", toString.contains("version"));
-        assertTrue("ReadRequest's safeString should contain operation", toString.contains("operation"));
-        assertTrue("ReadRequest's safeString should contain txnId", toString.contains("txnId"));
-        assertFalse("ReadRequest's safeString shouldn't contain flag", toString.contains("flag"));
-        assertFalse("ReadRequest's safeString shouldn't contain previousLAC", toString.contains("previousLAC"));
-        assertFalse("ReadRequest's safeString shouldn't contain timeOut", toString.contains("timeOut"));
+        assertFalse(toString.contains("masterKey"), "ReadRequest's safeString should have filtered out masterKey");
+        assertTrue(toString.contains("ledgerId"), "ReadRequest's safeString should contain ledgerId");
+        assertTrue(toString.contains("entryId"), "ReadRequest's safeString should contain entryId");
+        assertTrue(toString.contains("version"), "ReadRequest's safeString should contain version");
+        assertTrue(toString.contains("operation"), "ReadRequest's safeString should contain operation");
+        assertTrue(toString.contains("txnId"), "ReadRequest's safeString should contain txnId");
+        assertFalse(toString.contains("flag"), "ReadRequest's safeString shouldn't contain flag");
+        assertFalse(toString.contains("previousLAC"), "ReadRequest's safeString shouldn't contain previousLAC");
+        assertFalse(toString.contains("timeOut"), "ReadRequest's safeString shouldn't contain timeOut");
 
         readRequest = ReadRequest.newBuilder().setLedgerId(10).setEntryId(23).setPreviousLAC(2).setTimeOut(100)
                 .setMasterKey(ByteString.copyFrom("masterKey".getBytes())).setFlag(ReadRequest.Flag.ENTRY_PIGGYBACK)
                 .build();
         request = Request.newBuilder().setHeader(header).setReadRequest(readRequest).build();
         toString = RequestUtils.toSafeString(request);
-        assertFalse("ReadRequest's safeString should have filtered out masterKey", toString.contains("masterKey"));
-        assertTrue("ReadRequest's safeString shouldn contain flag", toString.contains("flag"));
-        assertTrue("ReadRequest's safeString shouldn contain previousLAC", toString.contains("previousLAC"));
-        assertTrue("ReadRequest's safeString shouldn contain timeOut", toString.contains("timeOut"));
+        assertFalse(toString.contains("masterKey"), "ReadRequest's safeString should have filtered out masterKey");
+        assertTrue(toString.contains("flag"), "ReadRequest's safeString shouldn contain flag");
+        assertTrue(toString.contains("previousLAC"), "ReadRequest's safeString shouldn contain previousLAC");
+        assertTrue(toString.contains("timeOut"), "ReadRequest's safeString shouldn contain timeOut");
 
         WriteLacRequest writeLacRequest = WriteLacRequest.newBuilder().setLedgerId(10).setLac(23)
                 .setMasterKey(ByteString.copyFrom("masterKey".getBytes()))
@@ -210,13 +210,13 @@ public class TestBookieRequestProcessor {
         request = Request.newBuilder().setHeader(header).setWriteLacRequest(writeLacRequest).build();
         WriteLacProcessorV3 writeLacProcessorV3 = new WriteLacProcessorV3(request, null, requestProcessor);
         toString = writeLacProcessorV3.toString();
-        assertFalse("writeLacProcessorV3's toString should have filtered out body", toString.contains("body"));
-        assertFalse("writeLacProcessorV3's toString should have filtered out masterKey",
-                toString.contains("masterKey"));
-        assertTrue("writeLacProcessorV3's toString should contain ledgerId", toString.contains("ledgerId"));
-        assertTrue("writeLacProcessorV3's toString should contain lac", toString.contains("lac"));
-        assertTrue("writeLacProcessorV3's toString should contain version", toString.contains("version"));
-        assertTrue("writeLacProcessorV3's toString should contain operation", toString.contains("operation"));
-        assertTrue("writeLacProcessorV3's toString should contain txnId", toString.contains("txnId"));
+        assertFalse(toString.contains("body"), "writeLacProcessorV3's toString should have filtered out body");
+        assertFalse(toString.contains("masterKey"),
+                "writeLacProcessorV3's toString should have filtered out masterKey");
+        assertTrue(toString.contains("ledgerId"), "writeLacProcessorV3's toString should contain ledgerId");
+        assertTrue(toString.contains("lac"), "writeLacProcessorV3's toString should contain lac");
+        assertTrue(toString.contains("version"), "writeLacProcessorV3's toString should contain version");
+        assertTrue(toString.contains("operation"), "writeLacProcessorV3's toString should contain operation");
+        assertTrue(toString.contains("txnId"), "writeLacProcessorV3's toString should contain txnId");
     }
 }

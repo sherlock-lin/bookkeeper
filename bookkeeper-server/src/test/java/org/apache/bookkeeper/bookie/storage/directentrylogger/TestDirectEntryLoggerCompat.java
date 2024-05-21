@@ -54,7 +54,7 @@ import org.junit.jupiter.api.condition.OS;
  * TestDirectEntryLoggerCompat.
  */
 @DisabledOnOs(OS.WINDOWS)
-public class TestDirectEntryLoggerCompat {
+class TestDirectEntryLoggerCompat {
     private final Slogger slog = Slogger.CONSOLE;
 
     private static final long ledgerId1 = 1234;
@@ -64,12 +64,12 @@ public class TestDirectEntryLoggerCompat {
     private final TmpDirs tmpDirs = new TmpDirs();
 
     @AfterEach
-    public void cleanup() throws Exception {
+    void cleanup() throws Exception {
         tmpDirs.cleanup();
     }
 
     @Test
-    public void testLegacyCanReadDirect() throws Exception {
+    void legacyCanReadDirect() throws Exception {
         File ledgerDir = tmpDirs.createNew("legacyCanRead", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();
@@ -106,7 +106,7 @@ public class TestDirectEntryLoggerCompat {
     }
 
     @Test
-    public void testDirectCanReadLegacy() throws Exception {
+    void directCanReadLegacy() throws Exception {
         File ledgerDir = tmpDirs.createNew("legacyCanRead", "ledgers");
 
         ByteBuf e1 = makeEntry(ledgerId1, 1L, 1000);
@@ -142,7 +142,7 @@ public class TestDirectEntryLoggerCompat {
     }
 
     @Test
-    public void testLegacyCanReadDirectAfterMultipleRolls() throws Exception {
+    void legacyCanReadDirectAfterMultipleRolls() throws Exception {
         File ledgerDir = tmpDirs.createNew("legacyCanRead", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();
@@ -179,7 +179,7 @@ public class TestDirectEntryLoggerCompat {
     }
 
     @Test
-    public void testLegacyCanReadMetadataOfDirectWithIndexWritten() throws Exception {
+    void legacyCanReadMetadataOfDirectWithIndexWritten() throws Exception {
         File ledgerDir = tmpDirs.createNew("legacyCanReadMeta", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();
@@ -230,7 +230,7 @@ public class TestDirectEntryLoggerCompat {
     }
 
     @Test
-    public void testLegacyCanReadMetadataOfDirectWithNoIndexWritten() throws Exception {
+    void legacyCanReadMetadataOfDirectWithNoIndexWritten() throws Exception {
         File ledgerDir = tmpDirs.createNew("legacyCanReadMeta", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();
@@ -278,7 +278,7 @@ public class TestDirectEntryLoggerCompat {
     }
 
     @Test
-    public void testDirectCanReadMetadataAndScanFromLegacy() throws Exception {
+    void directCanReadMetadataAndScanFromLegacy() throws Exception {
         File ledgerDir = tmpDirs.createNew("directCanReadLegacyMeta", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();
@@ -341,7 +341,7 @@ public class TestDirectEntryLoggerCompat {
     // DirectEntryLogger, DefaultEntryLogger and DirectEntryLogger.
     // DirectEntryLogger -> DefaultEntryLogge -> DirectEntryLogger.
     @Test
-    public void testCompatFromDirectToDefaultToDirectLogger() throws Exception {
+    void compatFromDirectToDefaultToDirectLogger() throws Exception {
         File ledgerDir = tmpDirs.createNew("entryCompatTest", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();
@@ -479,7 +479,7 @@ public class TestDirectEntryLoggerCompat {
     // DirectEntryLogger, DefaultEntryLogger and DirectEntryLogger.
     // DefaultEntryLogger -> DirectEntryLogger -> DefaultEntryLogger -> DirectEntryLogger.
     @Test
-    public void testCompatFromDefaultToDirectToDefaultToDirectLogger() throws Exception {
+    void compatFromDefaultToDirectToDefaultToDirectLogger() throws Exception {
         File ledgerDir = tmpDirs.createNew("entryCompatTest", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();

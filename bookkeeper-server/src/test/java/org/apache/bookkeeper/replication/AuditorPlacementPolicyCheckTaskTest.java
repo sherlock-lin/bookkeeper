@@ -18,7 +18,7 @@
 package org.apache.bookkeeper.replication;
 
 import static org.apache.bookkeeper.replication.ReplicationStats.AUDITOR_SCOPE;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -33,7 +33,8 @@ import org.apache.bookkeeper.meta.LedgerUnderreplicationManager;
 import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.test.TestStatsProvider;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +55,7 @@ public class AuditorPlacementPolicyCheckTaskTest extends BookKeeperClusterTestCa
         baseConf.setAutoRecoveryDaemonEnabled(false);
     }
 
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -65,7 +67,7 @@ public class AuditorPlacementPolicyCheckTaskTest extends BookKeeperClusterTestCa
     }
 
     @Test
-    public void testPlacementPolicyCheck() throws BKException, InterruptedException {
+    void placementPolicyCheck() throws BKException, InterruptedException {
 
         // 1. create ledgers
         final int numLedgers = 10;
@@ -92,14 +94,14 @@ public class AuditorPlacementPolicyCheckTaskTest extends BookKeeperClusterTestCa
         auditorPlacementPolicyCheckTask.runTask();
 
         // 4. verify
-        assertEquals("PLACEMENT_POLICY_CHECK_TIME", 1, ((TestStatsProvider.TestOpStatsLogger)
-                statsLogger.getOpStatsLogger(ReplicationStats.PLACEMENT_POLICY_CHECK_TIME)).getSuccessCount());
-        assertEquals("numOfClosedLedgersAuditedInPlacementPolicyCheck",
-                numLedgers,
-                auditorPlacementPolicyCheckTask.getNumOfClosedLedgersAuditedInPlacementPolicyCheck().get());
-        assertEquals("numOfLedgersFoundNotAdheringInPlacementPolicyCheck",
-                numLedgers,
-                auditorPlacementPolicyCheckTask.getNumOfLedgersFoundNotAdheringInPlacementPolicyCheck().get());
+        assertEquals(1, ((TestStatsProvider.TestOpStatsLogger)
+                statsLogger.getOpStatsLogger(ReplicationStats.PLACEMENT_POLICY_CHECK_TIME)).getSuccessCount(), "PLACEMENT_POLICY_CHECK_TIME");
+        assertEquals(numLedgers,
+                auditorPlacementPolicyCheckTask.getNumOfClosedLedgersAuditedInPlacementPolicyCheck().get(),
+                "numOfClosedLedgersAuditedInPlacementPolicyCheck");
+        assertEquals(numLedgers,
+                auditorPlacementPolicyCheckTask.getNumOfLedgersFoundNotAdheringInPlacementPolicyCheck().get(),
+                "numOfLedgersFoundNotAdheringInPlacementPolicyCheck");
     }
 
 }

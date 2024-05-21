@@ -41,20 +41,20 @@ import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
 @DisabledOnOs(OS.WINDOWS)
-public class TestMetadata {
+class TestMetadata {
     private final OpStatsLogger opLogger = NullStatsLogger.INSTANCE.getOpStatsLogger("null");
 
     private final TmpDirs tmpDirs = new TmpDirs();
     private final ExecutorService writeExecutor = Executors.newSingleThreadExecutor();
 
     @AfterEach
-    public void cleanup() throws Exception {
+    void cleanup() throws Exception {
         tmpDirs.cleanup();
         writeExecutor.shutdownNow();
     }
 
     @Test
-    public void testReadMetaFromHeader() throws Exception {
+    void readMetaFromHeader() throws Exception {
         File ledgerDir = tmpDirs.createNew("writeMetadataBeforeFsync", "logs");
         int logId = 5678;
         try (BufferPool buffers = new BufferPool(new NativeIOImpl(), ByteBufAllocator.DEFAULT, Buffer.ALIGNMENT, 8);

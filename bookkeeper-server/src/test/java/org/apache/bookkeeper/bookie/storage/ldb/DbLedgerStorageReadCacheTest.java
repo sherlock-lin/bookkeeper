@@ -23,9 +23,9 @@ package org.apache.bookkeeper.bookie.storage.ldb;
 import static org.apache.bookkeeper.bookie.storage.ldb.DbLedgerStorage.READ_AHEAD_CACHE_BATCH_BYTES_SIZE;
 import static org.apache.bookkeeper.bookie.storage.ldb.DbLedgerStorage.READ_AHEAD_CACHE_BATCH_SIZE;
 import static org.apache.bookkeeper.bookie.storage.ldb.DbLedgerStorage.READ_AHEAD_CACHE_MAX_SIZE_MB;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -37,7 +37,7 @@ import org.apache.bookkeeper.bookie.TestBookieImpl;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.conf.TestBKConfiguration;
 import org.apache.bookkeeper.test.TestStatsProvider;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +48,7 @@ public class DbLedgerStorageReadCacheTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(DbLedgerStorageReadCacheTest.class);
 
     @Test
-    public void chargeReadAheadCacheRegressionTest() {
+    void chargeReadAheadCacheRegressionTest() {
         TestDB testDB = new TestDB();
         try {
             long readAheadCacheMaxSizeMb = 16L;
@@ -90,7 +90,7 @@ public class DbLedgerStorageReadCacheTest {
     }
 
     @Test
-    public void chargeReadAheadCacheUnitTest() {
+    void chargeReadAheadCacheUnitTest() {
         TestDB testDB = new TestDB();
         try {
             long readAheadCacheMaxSizeMb = 16L;
@@ -135,7 +135,7 @@ public class DbLedgerStorageReadCacheTest {
     }
 
     @Test
-    public void compareDiffReadAheadPerfTest() {
+    void compareDiffReadAheadPerfTest() {
         /**
          * case1(read ahead cache by limit bytes size):
          * config: readAheadCacheMaxSizeMb = 2 * 8;
@@ -261,7 +261,7 @@ public class DbLedgerStorageReadCacheTest {
             addEntries(testDB.getStorage(), 0, 4, minEntryId, maxEntryId);
 
             testDB.getStorage().flush();
-            assertEquals(false, testDB.getStorage().isFlushRequired());
+            assertFalse(testDB.getStorage().isFlushRequired());
             // Read from db
             for (long eid = minEntryId; eid < maxEntryId / 2; eid++) {
                 testDB.getStorage().getEntry(0, eid);
@@ -297,7 +297,7 @@ public class DbLedgerStorageReadCacheTest {
             addEntries(testDB.getStorage(), 0, 4, minEntryId, maxEntryId);
 
             testDB.getStorage().flush();
-            assertEquals(false, testDB.getStorage().isFlushRequired());
+            assertFalse(testDB.getStorage().isFlushRequired());
             // Read from db
             for (long eid = minEntryId; eid < maxEntryId / 2; eid++) {
                 testDB.getStorage().getEntry(0, eid);

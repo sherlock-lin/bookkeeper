@@ -20,10 +20,10 @@
  */
 package org.apache.bookkeeper.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.util.Enumeration;
@@ -39,7 +39,7 @@ import org.apache.bookkeeper.client.LedgerHandle;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.util.PortManager;
 import org.awaitility.Awaitility;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test to verify the readonly feature of bookies.
@@ -57,7 +57,7 @@ public class ReadOnlyBookieTest extends BookKeeperClusterTestCase {
      * Check readonly bookie.
      */
     @Test
-    public void testBookieShouldServeAsReadOnly() throws Exception {
+    void bookieShouldServeAsReadOnly() throws Exception {
         killBookie(0);
         baseConf.setReadOnlyModeEnabled(true);
         startNewBookie();
@@ -66,8 +66,9 @@ public class ReadOnlyBookieTest extends BookKeeperClusterTestCase {
 
         // Check new bookie with readonly mode enabled.
         File[] ledgerDirs = confByIndex(1).getLedgerDirs();
-        assertEquals("Only one ledger dir should be present", 1,
-                ledgerDirs.length);
+        assertEquals(1,
+                ledgerDirs.length,
+                "Only one ledger dir should be present");
         Bookie bookie = serverByIndex(1).getBookie();
         LedgerDirsManager ledgerDirsManager = ((BookieImpl) bookie).getLedgerDirsManager();
 
@@ -85,8 +86,8 @@ public class ReadOnlyBookieTest extends BookKeeperClusterTestCase {
             // Expected
         }
 
-        assertTrue("Bookie should be running and converted to readonly mode",
-                bookie.isRunning() && bookie.isReadOnly());
+        assertTrue(bookie.isRunning() && bookie.isReadOnly(),
+                "Bookie should be running and converted to readonly mode");
 
         // Now kill the other bookie and read entries from the readonly bookie
         killBookie(0);
@@ -94,13 +95,14 @@ public class ReadOnlyBookieTest extends BookKeeperClusterTestCase {
         Enumeration<LedgerEntry> readEntries = ledger.readEntries(0, 9);
         while (readEntries.hasMoreElements()) {
             LedgerEntry entry = readEntries.nextElement();
-            assertEquals("Entry should contain correct data", "data",
-                    new String(entry.getEntry()));
+            assertEquals("data",
+                    new String(entry.getEntry()),
+                    "Entry should contain correct data");
         }
     }
 
     @Test
-    public void testBookieShouldTurnWritableFromReadOnly() throws Exception {
+    void bookieShouldTurnWritableFromReadOnly() throws Exception {
         killBookie(0);
         baseConf.setReadOnlyModeEnabled(true);
         baseConf.setDiskCheckInterval(Integer.MAX_VALUE);
@@ -110,8 +112,9 @@ public class ReadOnlyBookieTest extends BookKeeperClusterTestCase {
 
         // Check new bookie with readonly mode enabled.
         File[] ledgerDirs = confByIndex(1).getLedgerDirs();
-        assertEquals("Only one ledger dir should be present", 1,
-                ledgerDirs.length);
+        assertEquals(1,
+                ledgerDirs.length,
+                "Only one ledger dir should be present");
         BookieImpl bookie = (BookieImpl) serverByIndex(1).getBookie();
         LedgerDirsManager ledgerDirsManager = bookie.getLedgerDirsManager();
 
@@ -135,8 +138,8 @@ public class ReadOnlyBookieTest extends BookKeeperClusterTestCase {
         // which may be out of sync with the triggering of node changes in EnsemblePlacementPolicy.
         // This sequence leads to flaky test. So change from watching zk to Awaitility.await().
         Awaitility.await().untilAsserted(() -> {
-            assertTrue("Bookie should be running and converted to readonly mode",
-                    bookie.isRunning() && bookie.isReadOnly());
+            assertTrue(bookie.isRunning() && bookie.isReadOnly(),
+                    "Bookie should be running and converted to readonly mode");
         });
         LOG.info("bookie is running {}, readonly {}.", bookie.isRunning(), bookie.isReadOnly());
 
@@ -155,8 +158,8 @@ public class ReadOnlyBookieTest extends BookKeeperClusterTestCase {
         // which may be out of sync with the triggering of node changes in EnsemblePlacementPolicy.
         // This sequence leads to flaky test. So change from watching zk to Awaitility.await().
         Awaitility.await().untilAsserted(() -> {
-            assertTrue("Bookie should be running and converted back to writable mode", bookie.isRunning()
-                    && !bookie.isReadOnly());
+            assertTrue(bookie.isRunning()
+                    && !bookie.isReadOnly(), "Bookie should be running and converted back to writable mode");
         });
         LOG.info("bookie is running {}, readonly {}.", bookie.isRunning(), bookie.isReadOnly());
 
@@ -167,7 +170,7 @@ public class ReadOnlyBookieTest extends BookKeeperClusterTestCase {
         Enumeration<LedgerEntry> readEntries = newLedger.readEntries(0, 9);
         while (readEntries.hasMoreElements()) {
             LedgerEntry entry = readEntries.nextElement();
-            assertEquals("Entry should contain correct data", "data", new String(entry.getEntry()));
+            assertEquals("data", new String(entry.getEntry()), "Entry should contain correct data");
         }
     }
 
@@ -175,14 +178,15 @@ public class ReadOnlyBookieTest extends BookKeeperClusterTestCase {
      * check readOnlyModeEnabled=false.
      */
     @Test
-    public void testBookieShutdownIfReadOnlyModeNotEnabled() throws Exception {
+    void bookieShutdownIfReadOnlyModeNotEnabled() throws Exception {
         killBookie(1);
         baseConf.setReadOnlyModeEnabled(false);
         startNewBookie();
 
         File[] ledgerDirs = confByIndex(1).getLedgerDirs();
-        assertEquals("Only one ledger dir should be present", 1,
-                ledgerDirs.length);
+        assertEquals(1,
+                ledgerDirs.length,
+                "Only one ledger dir should be present");
         BookieImpl bookie = (BookieImpl) serverByIndex(1).getBookie();
         LedgerHandle ledger = bkc.createLedger(2, 2, DigestType.MAC,
                 "".getBytes());
@@ -206,21 +210,22 @@ public class ReadOnlyBookieTest extends BookKeeperClusterTestCase {
         for (int i = 0; i < 10 && bookie.isAlive(); i++) {
             Thread.sleep(1000);
         }
-        assertFalse("Bookie should shutdown if readOnlyMode not enabled",
-                bookie.isAlive());
+        assertFalse(bookie.isAlive(),
+                "Bookie should shutdown if readOnlyMode not enabled");
     }
 
     /**
      * Check multiple ledger dirs.
      */
     @Test
-    public void testBookieContinueWritingIfMultipleLedgersPresent()
+    void bookieContinueWritingIfMultipleLedgersPresent()
             throws Exception {
         startNewBookieWithMultipleLedgerDirs(2);
 
         File[] ledgerDirs = confByIndex(1).getLedgerDirs();
-        assertEquals("Only one ledger dir should be present", 2,
-                ledgerDirs.length);
+        assertEquals(2,
+                ledgerDirs.length,
+                "Only one ledger dir should be present");
         BookieImpl bookie = (BookieImpl) serverByIndex(1).getBookie();
         LedgerHandle ledger = bkc.createLedger(2, 2, DigestType.MAC,
                 "".getBytes());
@@ -235,10 +240,10 @@ public class ReadOnlyBookieTest extends BookKeeperClusterTestCase {
         for (int i = 0; i < 10; i++) {
             ledger.addEntry("data".getBytes());
         }
-        assertEquals("writable dirs should have one dir", 1, ledgerDirsManager
-                .getWritableLedgerDirs().size());
-        assertTrue("Bookie should shutdown if readOnlyMode not enabled",
-                bookie.isRunning());
+        assertEquals(1, ledgerDirsManager
+                .getWritableLedgerDirs().size(), "writable dirs should have one dir");
+        assertTrue(bookie.isRunning(),
+                "Bookie should shutdown if readOnlyMode not enabled");
     }
 
     private void startNewBookieWithMultipleLedgerDirs(int numOfLedgerDirs)
@@ -263,7 +268,7 @@ public class ReadOnlyBookieTest extends BookKeeperClusterTestCase {
      * Test ledger creation with readonly bookies.
      */
     @Test
-    public void testLedgerCreationShouldFailWithReadonlyBookie() throws Exception {
+    void ledgerCreationShouldFailWithReadonlyBookie() throws Exception {
         killBookie(1);
         baseConf.setReadOnlyModeEnabled(true);
         startNewBookie();
@@ -295,7 +300,7 @@ public class ReadOnlyBookieTest extends BookKeeperClusterTestCase {
 
         // Check new bookie with readonly mode enabled.
         File[] ledgerDirs = confByIndex(1).getLedgerDirs();
-        assertEquals("Only one ledger dir should be present", 1, ledgerDirs.length);
+        assertEquals(1, ledgerDirs.length, "Only one ledger dir should be present");
         BookieImpl bookie = (BookieImpl) serverByIndex(1).getBookie();
         LedgerDirsManager ledgerDirsManager = bookie.getLedgerDirsManager();
 
@@ -304,7 +309,7 @@ public class ReadOnlyBookieTest extends BookKeeperClusterTestCase {
 
         // Wait till Bookie converts to ReadOnly mode.
         Thread.sleep(1000);
-        assertTrue("Bookie should be converted to readonly mode", bookie.isRunning() && bookie.isReadOnly());
+        assertTrue(bookie.isRunning() && bookie.isReadOnly(), "Bookie should be converted to readonly mode");
 
         // Now kill the other bookie and read entries from the readonly bookie
         killBookie(0);
@@ -312,7 +317,7 @@ public class ReadOnlyBookieTest extends BookKeeperClusterTestCase {
         Enumeration<LedgerEntry> readEntries = ledger.readEntries(0, 9);
         while (readEntries.hasMoreElements()) {
             LedgerEntry entry = readEntries.nextElement();
-            assertEquals("Entry should contain correct data", "data", new String(entry.getEntry()));
+            assertEquals("data", new String(entry.getEntry()), "Entry should contain correct data");
         }
     }
 }

@@ -21,8 +21,8 @@
 package org.apache.bookkeeper.client;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -66,8 +66,8 @@ import org.apache.bookkeeper.versioning.Version;
 import org.apache.bookkeeper.versioning.Versioned;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.zookeeper.AsyncCallback.VoidCallback;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -227,7 +227,7 @@ public class ParallelLedgerRecoveryTest extends BookKeeperClusterTestCase {
         super.startBKCluster(metadataServiceUri);
     }
 
-    @After
+    @AfterEach
     @Override
     public void tearDown() throws Exception {
         try {
@@ -239,62 +239,62 @@ public class ParallelLedgerRecoveryTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testRecoverBeforeWriteMetadata1() throws Exception {
+    void recoverBeforeWriteMetadata1() throws Exception {
         rereadDuringRecovery(true, 1, false, false);
     }
 
     @Test
-    public void testRecoverBeforeWriteMetadata2() throws Exception {
+    void recoverBeforeWriteMetadata2() throws Exception {
         rereadDuringRecovery(true, 3, false, false);
     }
 
     @Test
-    public void testRecoverBeforeWriteMetadata3() throws Exception {
+    void recoverBeforeWriteMetadata3() throws Exception {
         rereadDuringRecovery(false, 1, false, false);
     }
 
     @Test
-    public void testRecoverBeforeWriteMetadata4() throws Exception {
+    void recoverBeforeWriteMetadata4() throws Exception {
         rereadDuringRecovery(false, 3, false, false);
     }
 
     @Test
-    public void testRereadDuringRecovery1() throws Exception {
+    void rereadDuringRecovery1() throws Exception {
         rereadDuringRecovery(true, 1, true, false);
     }
 
     @Test
-    public void testRereadDuringRecovery2() throws Exception {
+    void rereadDuringRecovery2() throws Exception {
         rereadDuringRecovery(true, 3, true, false);
     }
 
     @Test
-    public void testRereadDuringRecovery3() throws Exception {
+    void rereadDuringRecovery3() throws Exception {
         rereadDuringRecovery(false, 1, true, false);
     }
 
     @Test
-    public void testRereadDuringRecovery4() throws Exception {
+    void rereadDuringRecovery4() throws Exception {
         rereadDuringRecovery(false, 3, true, false);
     }
 
     @Test
-    public void testConcurrentRecovery1() throws Exception {
+    void concurrentRecovery1() throws Exception {
         rereadDuringRecovery(true, 1, true, false);
     }
 
     @Test
-    public void testConcurrentRecovery2() throws Exception {
+    void concurrentRecovery2() throws Exception {
         rereadDuringRecovery(true, 3, true, false);
     }
 
     @Test
-    public void testConcurrentRecovery3() throws Exception {
+    void concurrentRecovery3() throws Exception {
         rereadDuringRecovery(false, 1, true, false);
     }
 
     @Test
-    public void testConcurrentRecovery4() throws Exception {
+    void concurrentRecovery4() throws Exception {
         rereadDuringRecovery(false, 3, true, false);
     }
 
@@ -413,7 +413,7 @@ public class ParallelLedgerRecoveryTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testRecoveryOnEntryGap() throws Exception {
+    void recoveryOnEntryGap() throws Exception {
         byte[] passwd = "recovery-on-entry-gap".getBytes(UTF_8);
         LedgerHandle lh = bkc.createLedger(1, 1, 1, DigestType.CRC32, passwd);
         for (int i = 0; i < 10; i++) {
@@ -444,7 +444,7 @@ public class ParallelLedgerRecoveryTest extends BookKeeperClusterTestCase {
                                            }
                                        }, 0, BookieProtocol.FLAG_NONE, false, WriteFlag.NONE);
         addLatch.await();
-        assertTrue("add entry 14 should succeed", addSuccess.get());
+        assertTrue(addSuccess.get(), "add entry 14 should succeed");
 
         ClientConfiguration newConf = new ClientConfiguration();
         newConf.addConfiguration(baseClientConf);
@@ -456,7 +456,7 @@ public class ParallelLedgerRecoveryTest extends BookKeeperClusterTestCase {
         final LedgerHandle recoverLh =
                 newBk.openLedgerNoRecovery(lh.getId(), DigestType.CRC32, passwd);
 
-        assertEquals("wrong lac found", 8L, recoverLh.getLastAddConfirmed());
+        assertEquals(8L, recoverLh.getLastAddConfirmed(), "wrong lac found");
 
         final CountDownLatch recoverLatch = new CountDownLatch(1);
         final AtomicLong newLac = new AtomicLong(-1);
@@ -477,11 +477,11 @@ public class ParallelLedgerRecoveryTest extends BookKeeperClusterTestCase {
             }
         });
         recoverLatch.await();
-        assertEquals("wrong lac found", 9L, newLac.get());
-        assertTrue("metadata isn't closed after recovery", isMetadataClosed.get());
+        assertEquals(9L, newLac.get(), "wrong lac found");
+        assertTrue(isMetadataClosed.get(), "metadata isn't closed after recovery");
         Thread.sleep(5000);
-        assertEquals("recovery callback should be triggered only once", 1, numSuccessCalls.get());
-        assertEquals("recovery callback should be triggered only once", 0, numFailureCalls.get());
+        assertEquals(1, numSuccessCalls.get(), "recovery callback should be triggered only once");
+        assertEquals(0, numFailureCalls.get(), "recovery callback should be triggered only once");
     }
 
     static class DelayResponseBookie extends TestBookieImpl {
@@ -569,7 +569,7 @@ public class ParallelLedgerRecoveryTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testRecoveryWhenClosingLedgerHandle() throws Exception {
+    void recoveryWhenClosingLedgerHandle() throws Exception {
         byte[] passwd = "recovery-when-closing-ledger-handle".getBytes(UTF_8);
 
         ClientConfiguration newConf = new ClientConfiguration();
@@ -700,7 +700,7 @@ public class ParallelLedgerRecoveryTest extends BookKeeperClusterTestCase {
      * @throws Exception
      */
     @Test
-    public void testRecoveryWithUnavailableBookie() throws Exception {
+    void recoveryWithUnavailableBookie() throws Exception {
 
         byte[] passwd = "".getBytes(UTF_8);
         ClientConfiguration newConf = new ClientConfiguration();
@@ -721,12 +721,12 @@ public class ParallelLedgerRecoveryTest extends BookKeeperClusterTestCase {
         // Expected: Recovery successful Q(response) = 2
         int responseCode = readLACFromQuorum(readLh, BKException.Code.BookieHandleNotAvailableException,
                 BKException.Code.OK, BKException.Code.NoSuchLedgerExistsException);
-        assertEquals(responseCode, BKException.Code.OK);
+        assertEquals(BKException.Code.OK, responseCode);
         // Test 2: bookie response: OK, NOT_AVAILABLE, NOT_AVAILABLE
         // Expected: Recovery fail Q(response) = 1
         responseCode = readLACFromQuorum(readLh, BKException.Code.BookieHandleNotAvailableException,
                 BKException.Code.OK, BKException.Code.BookieHandleNotAvailableException);
-        assertEquals(responseCode, BKException.Code.BookieHandleNotAvailableException);
+        assertEquals(BKException.Code.BookieHandleNotAvailableException, responseCode);
 
         /**
          * Test Group-2 : Expected Response for recovery: Qr = (Qw - Qa)+1 = (2
@@ -741,18 +741,18 @@ public class ParallelLedgerRecoveryTest extends BookKeeperClusterTestCase {
         // Expected: Recovery successful Q(response) = 1
         responseCode = readLACFromQuorum(readLh, BKException.Code.BookieHandleNotAvailableException,
                 BKException.Code.OK);
-        assertEquals(responseCode, BKException.Code.OK);
+        assertEquals(BKException.Code.OK, responseCode);
 
         // Test 1: bookie response: OK, NO_SUCH_LEDGER_EXISTS
         // Expected: Recovery successful Q(response) = 2
         responseCode = readLACFromQuorum(readLh, BKException.Code.NoSuchLedgerExistsException, BKException.Code.OK);
-        assertEquals(responseCode, BKException.Code.OK);
+        assertEquals(BKException.Code.OK, responseCode);
 
         // Test 3: bookie response: NOT_AVAILABLE, NOT_AVAILABLE
         // Expected: Recovery fail Q(response) = 0
         responseCode = readLACFromQuorum(readLh, BKException.Code.BookieHandleNotAvailableException,
                 BKException.Code.BookieHandleNotAvailableException);
-        assertEquals(responseCode, BKException.Code.BookieHandleNotAvailableException);
+        assertEquals(BKException.Code.BookieHandleNotAvailableException, responseCode);
 
         newBk0.close();
         readBk.close();

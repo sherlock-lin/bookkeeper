@@ -17,10 +17,10 @@ package org.apache.bookkeeper.discover;
 
 import static org.apache.bookkeeper.discover.ZKRegistrationClient.deserializeBookieServiceInfo;
 import static org.apache.bookkeeper.discover.ZKRegistrationManager.serializeBookieServiceInfo;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,15 +29,15 @@ import java.util.Map;
 import java.util.Objects;
 import org.apache.bookkeeper.discover.BookieServiceInfo.Endpoint;
 import org.apache.bookkeeper.net.BookieId;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test of the {@link BookieServiceInfo} serialization/deserialization methods.
  */
-public class BookieServiceInfoTest {
+class BookieServiceInfoTest {
 
     @Test
-    public void testSerializeDeserializeBookieServiceInfo() throws Exception {
+    void serializeDeserializeBookieServiceInfo() throws Exception {
         String bookieId = "127.0.0.1:3181";
         {
             BookieServiceInfo expected = new BookieServiceInfo();
@@ -59,7 +59,7 @@ public class BookieServiceInfoTest {
     }
 
     @Test
-    public void testDeserializeBookieServiceInfo() throws Exception {
+    void deserializeBookieServiceInfo() throws Exception {
         BookieId bookieId = BookieId.parse("127.0.0.1:3181");
         {
             BookieServiceInfo expected = BookieServiceInfoUtils.buildLegacyBookieServiceInfo(bookieId.toString());

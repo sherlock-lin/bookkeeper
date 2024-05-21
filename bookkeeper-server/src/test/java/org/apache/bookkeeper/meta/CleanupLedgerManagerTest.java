@@ -19,6 +19,7 @@
 
 package org.apache.bookkeeper.meta;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -28,20 +29,19 @@ import java.util.concurrent.CompletableFuture;
 import org.apache.bookkeeper.client.api.LedgerMetadata;
 import org.apache.bookkeeper.versioning.Version;
 import org.apache.bookkeeper.versioning.Versioned;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test of {@link CleanupLedgerManager}.
  */
-public class CleanupLedgerManagerTest {
+class CleanupLedgerManagerTest {
 
     protected LedgerManager ledgerManager = null;
     protected CleanupLedgerManager cleanupLedgerManager = null;
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    void setup() throws Exception {
         ledgerManager = mock(LedgerManager.class);
         CompletableFuture<Versioned<LedgerMetadata>> future = new CompletableFuture<>();
         future.completeExceptionally(new Exception("LedgerNotExistException"));
@@ -56,26 +56,26 @@ public class CleanupLedgerManagerTest {
     }
 
     @Test
-    public void testCreateLedgerMetadataException() throws Exception {
+    void createLedgerMetadataException() throws Exception {
         cleanupLedgerManager.createLedgerMetadata(anyLong(), any(LedgerMetadata.class));
-        Assert.assertEquals(0, cleanupLedgerManager.getCurrentFuturePromiseSize());
+        assertEquals(0, cleanupLedgerManager.getCurrentFuturePromiseSize());
     }
 
     @Test
-    public void testReadLedgerMetadataException() throws Exception {
+    void readLedgerMetadataException() throws Exception {
         cleanupLedgerManager.readLedgerMetadata(anyLong());
-        Assert.assertEquals(0, cleanupLedgerManager.getCurrentFuturePromiseSize());
+        assertEquals(0, cleanupLedgerManager.getCurrentFuturePromiseSize());
     }
 
     @Test
-    public void testWriteLedgerMetadataException() throws Exception {
+    void writeLedgerMetadataException() throws Exception {
         cleanupLedgerManager.writeLedgerMetadata(anyLong(), any(LedgerMetadata.class), any(Version.class));
-        Assert.assertEquals(0, cleanupLedgerManager.getCurrentFuturePromiseSize());
+        assertEquals(0, cleanupLedgerManager.getCurrentFuturePromiseSize());
     }
 
     @Test
-    public void testRemoveLedgerMetadataException() throws Exception {
+    void removeLedgerMetadataException() throws Exception {
         cleanupLedgerManager.removeLedgerMetadata(anyLong(), any(Version.class));
-        Assert.assertEquals(0, cleanupLedgerManager.getCurrentFuturePromiseSize());
+        assertEquals(0, cleanupLedgerManager.getCurrentFuturePromiseSize());
     }
 }

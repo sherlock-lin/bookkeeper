@@ -17,17 +17,18 @@
  */
 package org.apache.bookkeeper.conf;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.NoSuchElementException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test Configuration API.
  *
  * @see SystemPropertiesConfigurationTest
  */
-public class NoSystemPropertiesConfigurationTest {
+class NoSystemPropertiesConfigurationTest {
 
     static {
         // this property is read when AbstractConfiguration class is loaded.
@@ -36,11 +37,13 @@ public class NoSystemPropertiesConfigurationTest {
         System.setProperty(ClientConfiguration.CLIENT_TCP_USER_TIMEOUT_MILLIS, "20000");
     }
 
-    @Test(expected = NoSuchElementException.class)
-    public void testUseSystemProperty() {
-        ClientConfiguration clientConfiguration = new ClientConfiguration();
-        assertEquals(5000, clientConfiguration.getThrottleValue());
-        // This should throw NoSuchElementException if the property has not been set.
-        clientConfiguration.getTcpUserTimeoutMillis();
+    @Test
+    void useSystemProperty() {
+        assertThrows(NoSuchElementException.class, () -> {
+            ClientConfiguration clientConfiguration = new ClientConfiguration();
+            assertEquals(5000, clientConfiguration.getThrottleValue());
+            // This should throw NoSuchElementException if the property has not been set.
+            clientConfiguration.getTcpUserTimeoutMillis();
+        });
     }
 }

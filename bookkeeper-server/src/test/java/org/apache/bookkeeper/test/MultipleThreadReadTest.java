@@ -21,8 +21,8 @@
 package org.apache.bookkeeper.test;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,7 +37,9 @@ import org.apache.bookkeeper.client.BookKeeper;
 import org.apache.bookkeeper.client.BookKeeperTestClient;
 import org.apache.bookkeeper.client.LedgerEntry;
 import org.apache.bookkeeper.client.LedgerHandle;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,6 +71,7 @@ public class MultipleThreadReadTest extends BookKeeperClusterTestCase {
         baseClientConf.setAddEntryTimeout(20);
     }
 
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -244,8 +247,8 @@ public class MultipleThreadReadTest extends BookKeeperClusterTestCase {
                 }
             }
             for (int i = 0; i < numLedgers; i++) {
-                assertTrue("Failed on adding entries for ledger " + oldLedgerHandles.get(i).getId(),
-                           writeResults.get(i).get());
+                assertTrue(writeResults.get(i).get(),
+                           "Failed on adding entries for ledger " + oldLedgerHandles.get(i).getId());
             }
             // Close the ledger handles.
             for (LedgerHandle lh : oldLedgerHandles) {
@@ -279,7 +282,7 @@ public class MultipleThreadReadTest extends BookKeeperClusterTestCase {
                 }
             }
             for (AtomicBoolean readResult : readResults) {
-                assertTrue("Failed on read entries", readResult.get());
+                assertTrue(readResult.get(), "Failed on read entries");
             }
         } catch (BKException e) {
             LOG.error("Test failed", e);
@@ -292,20 +295,21 @@ public class MultipleThreadReadTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void test10Ledgers20ThreadsRead() throws IOException {
+    void test10Ledgers20ThreadsRead() throws IOException {
         multiLedgerMultiThreadRead(10, 20);
     }
 
     @Test
-    public void test10Ledgers200ThreadsRead() throws IOException {
+    void test10Ledgers200ThreadsRead() throws IOException {
         multiLedgerMultiThreadRead(10, 200);
     }
 
     @Test
-    public void test1Ledger20ThreadsRead() throws IOException {
+    void test1Ledger20ThreadsRead() throws IOException {
         multiLedgerMultiThreadRead(1, 20);
     }
 
+    @AfterEach
     @Override
     public void tearDown() throws Exception {
         readBkc.close();

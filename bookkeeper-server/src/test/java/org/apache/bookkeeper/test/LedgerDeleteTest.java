@@ -20,7 +20,7 @@
  */
 package org.apache.bookkeeper.test;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.File;
 import java.util.List;
@@ -32,8 +32,8 @@ import org.apache.bookkeeper.client.BKException;
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.client.LedgerHandle;
 import org.apache.bookkeeper.util.TestUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +58,7 @@ public class LedgerDeleteTest extends BookKeeperClusterTestCase {
         baseClientConf.setLedgerManagerFactoryClassName(ledgerManagerFactory);
     }
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         // Set up the configuration properties needed.
@@ -116,7 +116,7 @@ public class LedgerDeleteTest extends BookKeeperClusterTestCase {
      * @throws Exception
      */
     @Test
-    public void testLedgerDelete() throws Exception {
+    void ledgerDelete() throws Exception {
         // Write enough ledger entries so that we roll over the initial entryLog (0.log)
         LedgerHandle[] lhs = writeLedgerEntries(3, 1024, 1024);
         // restart bookies to force rolling entry log files
@@ -132,8 +132,8 @@ public class LedgerDeleteTest extends BookKeeperClusterTestCase {
 
         // Verify that the first entry log (0.log) has been deleted from all of the Bookie Servers.
         for (File ledgerDirectory : ledgerDirectories) {
-            assertFalse("Found the entry log file (0.log) that should have been deleted in ledgerDirectory: "
-                + ledgerDirectory, TestUtils.hasLogFiles(ledgerDirectory, true, 0));
+            assertFalse(TestUtils.hasLogFiles(ledgerDirectory, true, 0), "Found the entry log file (0.log) that should have been deleted in ledgerDirectory: "
+                + ledgerDirectory);
         }
     }
 
@@ -146,7 +146,7 @@ public class LedgerDeleteTest extends BookKeeperClusterTestCase {
      * @throws Exception
      */
     @Test
-    public void testLedgerDeleteWithExistingEntryLogs() throws Exception {
+    void ledgerDeleteWithExistingEntryLogs() throws Exception {
         // Write enough ledger entries so that we roll over the initial entryLog (0.log)
         LedgerHandle[] lhs = writeLedgerEntries(3, 1024, 1024);
 
@@ -171,8 +171,8 @@ public class LedgerDeleteTest extends BookKeeperClusterTestCase {
          * entry logs should be deleted.
          */
         for (File ledgerDirectory : bookieLedgerDirs()) {
-            assertFalse("Found the entry log file ([0,1].log) that should have been deleted in ledgerDirectory: "
-                + ledgerDirectory, TestUtils.hasLogFiles(ledgerDirectory, true, 0, 1));
+            assertFalse(TestUtils.hasLogFiles(ledgerDirectory, true, 0, 1), "Found the entry log file ([0,1].log) that should have been deleted in ledgerDirectory: "
+                + ledgerDirectory);
         }
     }
 

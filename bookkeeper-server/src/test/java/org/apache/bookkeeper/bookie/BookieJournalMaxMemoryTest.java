@@ -31,32 +31,32 @@ import static org.mockito.Mockito.verify;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.bookkeeper.common.util.MemoryLimitController;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.conf.TestBKConfiguration;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Test the bookie journal max memory controller.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 @Slf4j
 public class BookieJournalMaxMemoryTest {
 
     private static final ByteBuf DATA = Unpooled.wrappedBuffer(new byte[1024 * 1024]);
 
-    @Rule
-    public TemporaryFolder tempDir = new TemporaryFolder();
+    @TempDir
+    public File tempDir;
 
     @Test
-    public void testAckAfterSyncPageCacheFlush() throws Exception {
-        File journalDir = tempDir.newFolder();
+    void ackAfterSyncPageCacheFlush() throws Exception {
+        File journalDir = newFolder(tempDir, "junit");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration()
@@ -89,5 +89,14 @@ public class BookieJournalMaxMemoryTest {
         verify(mlc, times(10)).releaseMemory(DATA.readableBytes());
 
         journal.shutdown();
+    }
+
+    private static File newFolder(File root, String... subDirs) throws IOException {
+        String subFolder = String.join("/", subDirs);
+        File result = new File(root, subFolder);
+        if (!result.mkdirs()) {
+            throw new IOException("Couldn't create folders " + root);
+        }
+        return result;
     }
 }

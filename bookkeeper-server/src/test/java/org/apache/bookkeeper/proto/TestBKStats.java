@@ -20,26 +20,27 @@
  */
 package org.apache.bookkeeper.proto;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.apache.bookkeeper.proto.BKStats.OpStats;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests that Statistics updation in Bookie Server.
  */
-public class TestBKStats {
+class TestBKStats {
 
     /**
      * Tests that updatLatency should not fail with
      * ArrayIndexOutOfBoundException when latency time coming as negative.
      */
     @Test
-    public void testUpdateLatencyShouldNotFailWithAIOBEWithNegativeLatency()
+    void updateLatencyShouldNotFailWithAIOBEWithNegativeLatency()
             throws Exception {
         OpStats opStat = new OpStats();
         opStat.updateLatency(-10);
-        assertEquals("Should not update any latency metrics", 0,
-                opStat.numSuccessOps);
+        assertEquals(0,
+                opStat.numSuccessOps,
+                "Should not update any latency metrics");
     }
 }

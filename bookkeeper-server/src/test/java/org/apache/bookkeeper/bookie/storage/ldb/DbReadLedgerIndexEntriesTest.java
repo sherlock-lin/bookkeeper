@@ -20,6 +20,9 @@
  */
 package org.apache.bookkeeper.bookie.storage.ldb;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -40,13 +43,12 @@ import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.test.TmpDirs;
 import org.apache.bookkeeper.util.DiskChecker;
 import org.apache.commons.io.FileUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test for class {@link DbLedgerStorage#readLedgerIndexEntries}.
  */
-public class DbReadLedgerIndexEntriesTest {
+class DbReadLedgerIndexEntriesTest {
     private static final int TEST_LEDGER_MIN_ID = 0;
     private static final int TEST_LEDGER_MAX_ID = 5;
     private static final int TEST_ENTRY_MIN_ID = 0;
@@ -87,7 +89,7 @@ public class DbReadLedgerIndexEntriesTest {
     }
 
     @Test
-    public void testReadLedgerIndexEntries() throws Exception {
+    void readLedgerIndexEntries() throws Exception {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         conf.setLedgerDirNames(new String[]{newDirectory(), newDirectory()});
         conf.setIndexDirName(new String[]{newDirectory(), newDirectory()});
@@ -130,12 +132,12 @@ public class DbReadLedgerIndexEntriesTest {
                     entrys.add(eId);
                 });
                 for (long entryId = TEST_ENTRY_MIN_ID; entryId <= TEST_ENTRY_MAX_ID; entryId++) {
-                    Assert.assertTrue(entrys.contains(entryId));
+                    assertTrue(entrys.contains(entryId));
                 }
             }
         } catch (Exception e) {
             System.err.printf("ERROR: initializing dbLedgerStorage %s", e.getMessage());
-            Assert.fail("fail to read this ledger(" + ledgerId + ") index entries");
+            fail("fail to read this ledger(" + ledgerId + ") index entries");
         }
 
         List<String> toDeleted = Lists.newArrayList(conf.getLedgerDirNames());

@@ -19,9 +19,9 @@
  */
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -44,7 +44,7 @@ import org.apache.bookkeeper.proto.BookkeeperInternalCallbacks.GenericCallback;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.versioning.LongVersion;
 import org.apache.bookkeeper.versioning.Versioned;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +86,7 @@ public class TestLedgerFragmentReplication extends BookKeeperClusterTestCase {
      * to target bookie passed.
      */
     @Test
-    public void testReplicateLFShouldCopyFailedBookieFragmentsToTargetBookie()
+    void replicateLFShouldCopyFailedBookieFragmentsToTargetBookie()
             throws Exception {
         byte[] data = "TestLedgerFragmentReplication".getBytes();
         LedgerHandle lh = bkc.createLedger(3, 3, TEST_DIGEST_TYPE,
@@ -140,7 +140,7 @@ public class TestLedgerFragmentReplication extends BookKeeperClusterTestCase {
      * fragments.
      */
     @Test
-    public void testReplicateLFFailsOnlyOnLastUnClosedFragments()
+    void replicateLFFailsOnlyOnLastUnClosedFragments()
             throws Exception {
         byte[] data = "TestLedgerFragmentReplication".getBytes();
         LedgerHandle lh = bkc.createLedger(3, 3, TEST_DIGEST_TYPE,
@@ -189,7 +189,7 @@ public class TestLedgerFragmentReplication extends BookKeeperClusterTestCase {
                 }
             }
         }
-        assertEquals("Should be only one unclosed fragment", 1, unclosedCount);
+        assertEquals(1, unclosedCount, "Should be only one unclosed fragment");
     }
 
     /**
@@ -197,7 +197,7 @@ public class TestLedgerFragmentReplication extends BookKeeperClusterTestCase {
      * fails.
      */
     @Test
-    public void testReplicateLFShouldReturnFalseIfTheReplicationFails()
+    void replicateLFShouldReturnFalseIfTheReplicationFails()
             throws Exception {
         byte[] data = "TestLedgerFragmentReplication".getBytes();
         LedgerHandle lh = bkc.createLedger(2, 1, TEST_DIGEST_TYPE,
@@ -238,7 +238,7 @@ public class TestLedgerFragmentReplication extends BookKeeperClusterTestCase {
      * passed fragment into sub fragments at correct boundaries.
      */
     @Test
-    public void testSplitIntoSubFragmentsWithDifferentFragmentBoundaries()
+    void splitIntoSubFragmentsWithDifferentFragmentBoundaries()
             throws Exception {
         List<BookieId> ensemble = Lists.newArrayList(new BookieSocketAddress("192.0.2.1", 1234).toBookieId(),
                 new BookieSocketAddress("192.0.2.2", 1234).toBookieId(),
@@ -290,29 +290,27 @@ public class TestLedgerFragmentReplication extends BookKeeperClusterTestCase {
                 if (entriesPerSubFragment <= 0
                         || totalEntriesToReplicate / entriesPerSubFragment == 0) {
                     assertEquals(
-                            "FirstEntryId should be same as original fragment's firstEntryId",
                             fr.getFirstEntryId(), ledgerFragment
-                                    .getFirstEntryId());
+                                    .getFirstEntryId(), "FirstEntryId should be same as original fragment's firstEntryId");
                     assertEquals(
-                            "LastEntryId should be same as original fragment's lastEntryId",
                             fr.getLastKnownEntryId(), ledgerFragment
-                                    .getLastKnownEntryId());
+                                    .getLastKnownEntryId(), "LastEntryId should be same as original fragment's lastEntryId");
                 } else {
                     long partialSplitEntries = totalEntriesToReplicate
                             % entriesPerSubFragment;
                     assertEquals(
-                            "Partial fragment with wrong entry boundaries",
                             ledgerFragment.getLastKnownEntryId()
                                     - ledgerFragment.getFirstEntryId() + 1,
-                            partialSplitEntries);
+                            partialSplitEntries,
+                            "Partial fragment with wrong entry boundaries");
                 }
                 partialSubFragment++;
             }
         }
-        assertEquals("Unexpected number of sub fargments", fullSubFragment
-                + partialSubFragment, expectedSubFragments);
-        assertTrue("There should be only one or zero partial sub Fragment",
-                partialSubFragment == 0 || partialSubFragment == 1);
+        assertEquals(fullSubFragment
+                + partialSubFragment, expectedSubFragments, "Unexpected number of sub fargments");
+        assertTrue(partialSubFragment == 0 || partialSubFragment == 1,
+                "There should be only one or zero partial sub Fragment");
     }
 
     private Set<LedgerFragment> getFragmentsToReplicate(LedgerHandle lh)
@@ -330,7 +328,7 @@ public class TestLedgerFragmentReplication extends BookKeeperClusterTestCase {
                 TEST_DIGEST_TYPE, TEST_PSSWD);
         Enumeration<LedgerEntry> entries = lhs.readEntries(startEntryId,
                 endEntryId);
-        assertTrue("Should have the elements", entries.hasMoreElements());
+        assertTrue(entries.hasMoreElements(), "Should have the elements");
         while (entries.hasMoreElements()) {
             LedgerEntry entry = entries.nextElement();
             assertEquals("TestLedgerFragmentReplication", new String(entry
@@ -339,7 +337,7 @@ public class TestLedgerFragmentReplication extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testSplitLedgerFragmentState() throws Exception {
+    void splitLedgerFragmentState() throws Exception {
         int lastEntryId = 10;
         int rereplicationEntryBatchSize = 10;
 
@@ -383,7 +381,7 @@ public class TestLedgerFragmentReplication extends BookKeeperClusterTestCase {
          */
         Set<LedgerFragment> partionedFragments = LedgerFragmentReplicator.splitIntoSubFragments(lh, lfrag,
                 rereplicationEntryBatchSize);
-        assertEquals("Number of sub-fragments", 2, partionedFragments.size());
+        assertEquals(2, partionedFragments.size(), "Number of sub-fragments");
         for (LedgerFragment partionedFragment : partionedFragments) {
             if (partionedFragment.getFirstEntryId() == 0) {
                 validateEntryIds(partionedFragment, 0, 0, 9, 8);
@@ -395,9 +393,9 @@ public class TestLedgerFragmentReplication extends BookKeeperClusterTestCase {
 
     private void validateEntryIds(LedgerFragment partionedFragment, long expectedFirstEntryId,
             long expectedFirstStoredEntryId, long expectedLastKnownEntryID, long expectedLastStoredEntryId) {
-        assertEquals("FirstEntryId", expectedFirstEntryId, partionedFragment.getFirstEntryId());
-        assertEquals("FirstStoredEntryId", expectedFirstStoredEntryId, partionedFragment.getFirstStoredEntryId());
-        assertEquals("LastKnownEntryID", expectedLastKnownEntryID, partionedFragment.getLastKnownEntryId());
-        assertEquals("LastStoredEntryId", expectedLastStoredEntryId, partionedFragment.getLastStoredEntryId());
+        assertEquals(expectedFirstEntryId, partionedFragment.getFirstEntryId(), "FirstEntryId");
+        assertEquals(expectedFirstStoredEntryId, partionedFragment.getFirstStoredEntryId(), "FirstStoredEntryId");
+        assertEquals(expectedLastKnownEntryID, partionedFragment.getLastKnownEntryId(), "LastKnownEntryID");
+        assertEquals(expectedLastStoredEntryId, partionedFragment.getLastStoredEntryId(), "LastStoredEntryId");
     }
 }

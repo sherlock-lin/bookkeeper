@@ -20,10 +20,10 @@
  */
 package org.apache.bookkeeper.bookie.storage.ldb;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
@@ -51,24 +51,25 @@ import org.apache.bookkeeper.bookie.storage.EntryLogger;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.conf.TestBKConfiguration;
 import org.apache.bookkeeper.proto.BookieProtocol;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Unit test for {@link DbLedgerStorage}.
  */
-public class DbLedgerStorageTest {
+class DbLedgerStorageTest {
     private static final Logger log = LoggerFactory.getLogger(DbLedgerStorageTest.class);
     protected DbLedgerStorage storage;
     protected File tmpDir;
     protected LedgerDirsManager ledgerDirsManager;
     protected ServerConfiguration conf;
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    void setup() throws Exception {
         tmpDir = File.createTempFile("bkTest", ".dir");
         tmpDir.delete();
         tmpDir.mkdir();
@@ -90,22 +91,22 @@ public class DbLedgerStorageTest {
         });
     }
 
-    @After
-    public void teardown() throws Exception {
+    @AfterEach
+    void teardown() throws Exception {
         storage.shutdown();
         tmpDir.delete();
     }
 
     @Test
-    public void simple() throws Exception {
-        assertEquals(false, storage.ledgerExists(3));
+    void simple() throws Exception {
+        assertFalse(storage.ledgerExists(3));
         try {
             storage.isFenced(3);
             fail("should have failed");
         } catch (Bookie.NoLedgerException nle) {
             // OK
         }
-        assertEquals(false, storage.ledgerExists(3));
+        assertFalse(storage.ledgerExists(3));
         try {
             storage.setFenced(3);
             fail("should have failed");
@@ -121,14 +122,14 @@ public class DbLedgerStorageTest {
         }
         // setting the same key is NOOP
         storage.setMasterKey(3, "key".getBytes());
-        assertEquals(true, storage.ledgerExists(3));
-        assertEquals(true, storage.setFenced(3));
-        assertEquals(true, storage.isFenced(3));
-        assertEquals(false, storage.setFenced(3));
+        assertTrue(storage.ledgerExists(3));
+        assertTrue(storage.setFenced(3));
+        assertTrue(storage.isFenced(3));
+        assertFalse(storage.setFenced(3));
 
         storage.setMasterKey(4, "key".getBytes());
-        assertEquals(false, storage.isFenced(4));
-        assertEquals(true, storage.ledgerExists(4));
+        assertFalse(storage.isFenced(4));
+        assertTrue(storage.ledgerExists(4));
 
         assertEquals("key", new String(storage.readMasterKey(4)));
 
@@ -143,11 +144,11 @@ public class DbLedgerStorageTest {
         entry.writeLong(0); // lac
         entry.writeBytes("entry-1".getBytes());
 
-        assertEquals(false, ((DbLedgerStorage) storage).isFlushRequired());
+        assertFalse(((DbLedgerStorage) storage).isFlushRequired());
 
         assertEquals(1, storage.addEntry(entry));
 
-        assertEquals(true, ((DbLedgerStorage) storage).isFlushRequired());
+        assertTrue(((DbLedgerStorage) storage).isFlushRequired());
 
         // Read from write cache
         assertTrue(storage.entryExists(4, 1));
@@ -156,7 +157,7 @@ public class DbLedgerStorageTest {
 
         storage.flush();
 
-        assertEquals(false, ((DbLedgerStorage) storage).isFlushRequired());
+        assertFalse(((DbLedgerStorage) storage).isFlushRequired());
 
         // Read from db
         assertTrue(storage.entryExists(4, 1));
@@ -205,9 +206,9 @@ public class DbLedgerStorageTest {
         assertEquals(3, storage.getLastAddConfirmed(4));
 
         // Delete
-        assertEquals(true, storage.ledgerExists(4));
+        assertTrue(storage.ledgerExists(4));
         storage.deleteLedger(4);
-        assertEquals(false, storage.ledgerExists(4));
+        assertFalse(storage.ledgerExists(4));
 
         // remove entries for ledger 4 from cache
         storage.flush();
@@ -221,7 +222,7 @@ public class DbLedgerStorageTest {
     }
 
     @Test
-    public void testBookieCompaction() throws Exception {
+    void bookieCompaction() throws Exception {
         storage.setMasterKey(4, "key".getBytes());
 
         ByteBuf entry3 = Unpooled.buffer(1024);
@@ -253,7 +254,7 @@ public class DbLedgerStorageTest {
     }
 
     @Test
-    public void doubleDirectory() throws Exception {
+    void doubleDirectory() throws Exception {
         int gcWaitTime = 1000;
         File firstDir = new File(tmpDir, "dir1");
         File secondDir = new File(tmpDir, "dir2");
@@ -272,7 +273,7 @@ public class DbLedgerStorageTest {
     }
 
     @Test
-    public void testRewritingEntries() throws Exception {
+    void rewritingEntries() throws Exception {
         storage.setMasterKey(1, "key".getBytes());
 
         try {
@@ -303,7 +304,7 @@ public class DbLedgerStorageTest {
     }
 
     @Test
-    public void testEntriesOutOfOrder() throws Exception {
+    void entriesOutOfOrder() throws Exception {
         storage.setMasterKey(1, "key".getBytes());
 
         ByteBuf entry2 = Unpooled.buffer(1024);
@@ -346,7 +347,7 @@ public class DbLedgerStorageTest {
     }
 
     @Test
-    public void testEntriesOutOfOrderWithFlush() throws Exception {
+    void entriesOutOfOrderWithFlush() throws Exception {
         storage.setMasterKey(1, "key".getBytes());
 
         ByteBuf entry2 = Unpooled.buffer(1024);
@@ -407,7 +408,7 @@ public class DbLedgerStorageTest {
     }
 
     @Test
-    public void testAddEntriesAfterDelete() throws Exception {
+    void addEntriesAfterDelete() throws Exception {
         storage.setMasterKey(1, "key".getBytes());
 
         ByteBuf entry0 = Unpooled.buffer(1024);
@@ -449,7 +450,7 @@ public class DbLedgerStorageTest {
     }
 
     @Test
-    public void testLimboStateSucceedsWhenInLimboButHasEntry() throws Exception {
+    void limboStateSucceedsWhenInLimboButHasEntry() throws Exception {
         storage.setMasterKey(1, "foobar".getBytes());
 
         ByteBuf entry0 = Unpooled.buffer(1024);
@@ -461,15 +462,13 @@ public class DbLedgerStorageTest {
         storage.flush();
         storage.setLimboState(1);
 
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             storage.getEntry(1, 0);
-        } catch (BookieException.DataUnknownException e) {
-            fail("Should have been able to read entry");
-        }
+        }, "Should have been able to read entry");
     }
 
     @Test
-    public void testLimboStateThrowsInLimboWhenNoEntry() throws Exception {
+    void limboStateThrowsInLimboWhenNoEntry() throws Exception {
         storage.setMasterKey(1, "foobar".getBytes());
 
         ByteBuf entry0 = Unpooled.buffer(1024);
@@ -508,7 +507,7 @@ public class DbLedgerStorageTest {
     }
 
     @Test
-    public void testLimboStateThrowsNoEntryExceptionWhenLimboCleared() throws Exception {
+    void limboStateThrowsNoEntryExceptionWhenLimboCleared() throws Exception {
         storage.setMasterKey(1, "foobar".getBytes());
 
         ByteBuf entry0 = Unpooled.buffer(1024);
@@ -539,7 +538,7 @@ public class DbLedgerStorageTest {
     }
 
     @Test
-    public void testLimboStateSucceedsWhenFenced() throws Exception {
+    void limboStateSucceedsWhenFenced() throws Exception {
         storage.setMasterKey(1, "foobar".getBytes());
 
         ByteBuf entry0 = Unpooled.buffer(1024);
@@ -552,15 +551,13 @@ public class DbLedgerStorageTest {
         storage.setFenced(1);
         storage.setLimboState(1);
 
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             storage.isFenced(1);
-        } catch (IOException ioe) {
-            fail("Should have been able to get isFenced response");
-        }
+        }, "Should have been able to get isFenced response");
     }
 
     @Test
-    public void testLimboStateThrowsInLimboWhenNotFenced() throws Exception {
+    void limboStateThrowsInLimboWhenNotFenced() throws Exception {
         storage.setMasterKey(1, "foobar".getBytes());
 
         ByteBuf entry0 = Unpooled.buffer(1024);
@@ -581,7 +578,7 @@ public class DbLedgerStorageTest {
     }
 
     @Test
-    public void testHasEntry() throws Exception {
+    void hasEntry() throws Exception {
         long ledgerId = 0xbeefee;
         storage.setMasterKey(ledgerId, "foobar".getBytes());
 
@@ -611,7 +608,7 @@ public class DbLedgerStorageTest {
     }
 
     @Test
-    public void testStorageStateFlags() throws Exception {
+    void storageStateFlags() throws Exception {
         assertTrue(storage.getStorageStateFlags().isEmpty());
 
         storage.setStorageStateFlag(LedgerStorage.StorageState.NEEDS_INTEGRITY_CHECK);
@@ -646,7 +643,7 @@ public class DbLedgerStorageTest {
     }
 
     @Test
-    public void testMultiLedgerDirectoryCheckpoint() throws Exception {
+    void multiLedgerDirectoryCheckpoint() throws Exception {
         int gcWaitTime = 1000;
         File firstDir = new File(tmpDir, "dir1");
         File secondDir = new File(tmpDir, "dir2");
@@ -719,16 +716,14 @@ public class DbLedgerStorageTest {
         CheckpointSource.Checkpoint checkpoint = checkpointSource.newCheckpoint();
         checkpointSource.checkpointComplete(checkpoint, false);
 
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             LogMark firstLogMark = readLogMark(firstDirMark);
             LogMark secondLogMark = readLogMark(secondDirMark);
             assertEquals(7, firstLogMark.getLogFileId());
             assertEquals(8, firstLogMark.getLogFileOffset());
             assertEquals(7, secondLogMark.getLogFileId());
             assertEquals(8, secondLogMark.getLogFileOffset());
-        } catch (Exception e) {
-            fail();
-        }
+        });
 
         // test replay journal lastMark, to make sure we get the right LastMark position
         bookie.getJournals().get(0).getLastLogMark().readLog();
@@ -755,7 +750,7 @@ public class DbLedgerStorageTest {
     }
 
     @Test
-    public void testSingleLedgerDirectoryCheckpoint() throws Exception {
+    void singleLedgerDirectoryCheckpoint() throws Exception {
         int gcWaitTime = 1000;
         File ledgerDir = new File(tmpDir, "dir");
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
@@ -776,13 +771,11 @@ public class DbLedgerStorageTest {
         ((DbLedgerStorage) bookie.getLedgerStorage()).getLedgerStorageList().get(0).flush();
 
         File ledgerDirMark = new File(ledgerDir + "/current", "lastMark");
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             LogMark logMark = readLogMark(ledgerDirMark);
             assertEquals(1, logMark.getLogFileId());
             assertEquals(2, logMark.getLogFileOffset());
-        } catch (Exception e) {
-            fail();
-        }
+        });
 
         ByteBuf entry2 = Unpooled.buffer(1024);
         entry2.writeLong(2); // ledger id
@@ -795,26 +788,22 @@ public class DbLedgerStorageTest {
         bookie.getJournals().get(0).getLastLogMark().getCurMark().setLogMark(4, 5);
 
         bookie.getLedgerStorage().flush();
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             LogMark logMark = readLogMark(ledgerDirMark);
             assertEquals(4, logMark.getLogFileId());
             assertEquals(5, logMark.getLogFileOffset());
-        } catch (Exception e) {
-            fail();
-        }
+        });
 
         CheckpointSource checkpointSource = new CheckpointSourceList(bookie.getJournals());
         bookie.getJournals().get(0).getLastLogMark().getCurMark().setLogMark(7, 8);
         CheckpointSource.Checkpoint checkpoint = checkpointSource.newCheckpoint();
         checkpointSource.checkpointComplete(checkpoint, false);
 
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             LogMark firstLogMark = readLogMark(ledgerDirMark);
             assertEquals(7, firstLogMark.getLogFileId());
             assertEquals(8, firstLogMark.getLogFileOffset());
-        } catch (Exception e) {
-            fail();
-        }
+        });
 
         // test replay journal lastMark, to make sure we get the right LastMark position
         bookie.getJournals().get(0).getLastLogMark().readLog();

@@ -20,11 +20,11 @@
  */
 package org.apache.bookkeeper.server.http.service;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,8 +45,8 @@ import org.apache.bookkeeper.stats.StatsProvider;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.test.TestStatsProvider;
 import org.apache.commons.lang3.RandomUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link ListLedgerService}.
@@ -60,7 +60,7 @@ public class ListLedgerServiceTest extends BookKeeperClusterTestCase {
     }
 
     @Override
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         super.setUp();
         StatsProvider provider = new TestStatsProvider();
@@ -70,7 +70,7 @@ public class ListLedgerServiceTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testEmptyList() throws Exception {
+    void emptyList() throws Exception {
         HttpServiceResponse response = listLedgerService.handle(new HttpServiceRequest());
         assertEquals(response.getStatusCode(), HttpServer.StatusCode.OK.getValue());
         JsonNode json = mapper.readTree(response.getBody());
@@ -78,7 +78,7 @@ public class ListLedgerServiceTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testListLedgers() throws Exception {
+    void listLedgers() throws Exception {
         int ledgerNum = RandomUtils.nextInt(1, 10);
         Map<Long, LedgerMetadata> ledgers = new HashMap<>();
         for (int i = 0; i < ledgerNum; i++) {
@@ -99,7 +99,7 @@ public class ListLedgerServiceTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testListLedgersWithMetadata() throws Exception {
+    void listLedgersWithMetadata() throws Exception {
         int ledgerNum = RandomUtils.nextInt(1, 10);
         Map<Long, LedgerMetadata> ledgers = new HashMap<>();
         for (int i = 0; i < ledgerNum; i++) {
@@ -122,7 +122,7 @@ public class ListLedgerServiceTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testListLedgersWithMetadataDecoded() throws Exception {
+    void listLedgersWithMetadataDecoded() throws Exception {
         int ledgerNum = RandomUtils.nextInt(1, 10);
         Map<Long, LedgerMetadata> ledgers = new HashMap<>();
         for (int i = 0; i < ledgerNum; i++) {

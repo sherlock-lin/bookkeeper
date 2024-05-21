@@ -20,12 +20,12 @@ package org.apache.bookkeeper.meta;
 
 import static org.apache.bookkeeper.common.concurrent.FutureUtils.result;
 import static org.apache.bookkeeper.meta.AbstractZkLedgerManager.ZK_CONNECT_BACKOFF_MS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -74,18 +74,22 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.data.Stat;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * Unit test of {@link AbstractZkLedgerManager}.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
-public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
 
     private ClientConfiguration conf;
     private AbstractZkLedgerManager ledgerManager;
@@ -95,40 +99,40 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
     private LedgerMetadataSerDe serDe;
     private MockedStatic<Executors> executorsMockedStatic;
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    void setup() throws Exception {
         executorsMockedStatic = mockStatic(Executors.class, CALLS_REAL_METHODS);
 
         super.setup();
 
         this.scheduler = mock(ScheduledExecutorService.class);
         this.schedulerController = new MockExecutorController()
-            .controlSubmit(scheduler)
-            .controlSchedule(scheduler)
-            .controlExecute(scheduler)
-            .controlScheduleAtFixedRate(scheduler, 10);
+                .controlSubmit(scheduler)
+                .controlSchedule(scheduler)
+                .controlExecute(scheduler)
+                .controlScheduleAtFixedRate(scheduler, 10);
 
         executorsMockedStatic.when(() -> Executors.newSingleThreadScheduledExecutor(any())).thenReturn(scheduler);
 
         this.conf = new ClientConfiguration();
         this.ledgerManager = mock(
-            AbstractZkLedgerManager.class,
-            withSettings()
-                .useConstructor(conf, mockZk)
-                .defaultAnswer(CALLS_REAL_METHODS));
+                AbstractZkLedgerManager.class,
+                withSettings()
+                        .useConstructor(conf, mockZk)
+                        .defaultAnswer(CALLS_REAL_METHODS));
         List<BookieId> ensemble = Lists.newArrayList(new BookieSocketAddress("192.0.2.1", 3181).toBookieId(),
                 new BookieSocketAddress("192.0.2.2", 3181).toBookieId(),
                 new BookieSocketAddress("192.0.2.3", 3181).toBookieId(),
                 new BookieSocketAddress("192.0.2.4", 3181).toBookieId(),
                 new BookieSocketAddress("192.0.2.5", 3181).toBookieId());
         this.metadata = LedgerMetadataBuilder.create()
-            .withId(123L)
-            .withDigestType(DigestType.CRC32C).withPassword(new byte[0])
-            .withEnsembleSize(5)
-            .withWriteQuorumSize(3)
-            .withAckQuorumSize(3)
-            .newEnsembleEntry(0L, ensemble)
-            .withCreationTime(12345L).build();
+                .withId(123L)
+                .withDigestType(DigestType.CRC32C).withPassword(new byte[0])
+                .withEnsembleSize(5)
+                .withWriteQuorumSize(3)
+                .withAckQuorumSize(3)
+                .newEnsembleEntry(0L, ensemble)
+                .withCreationTime(12345L).build();
 
         doAnswer(invocationOnMock -> {
             long ledgerId = invocationOnMock.getArgument(0);
@@ -148,8 +152,8 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         this.serDe = new LedgerMetadataSerDe();
     }
 
-    @After
-    public void teardown() throws Exception {
+    @AfterEach
+    void teardown() throws Exception {
         super.teardown();
 
         executorsMockedStatic.close();
@@ -164,12 +168,12 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
     }
 
     @Test
-    public void testCreateLedgerMetadataSuccess() throws Exception {
+    void createLedgerMetadataSuccess() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
         mockZkUtilsAsyncCreateFullPathOptimistic(
-            ledgerStr, CreateMode.PERSISTENT,
-            KeeperException.Code.OK.intValue(), ledgerStr
+                ledgerStr, CreateMode.PERSISTENT,
+                KeeperException.Code.OK.intValue(), ledgerStr
         );
 
         Versioned<LedgerMetadata> result = ledgerManager.createLedgerMetadata(ledgerId, metadata).get();
@@ -178,12 +182,12 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
     }
 
     @Test
-    public void testCreateLedgerMetadataNodeExists() throws Exception {
+    void createLedgerMetadataNodeExists() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
         mockZkUtilsAsyncCreateFullPathOptimistic(
-            ledgerStr, CreateMode.PERSISTENT,
-            KeeperException.Code.NODEEXISTS.intValue(), null);
+                ledgerStr, CreateMode.PERSISTENT,
+                KeeperException.Code.NODEEXISTS.intValue(), null);
         Stat stat = mock(Stat.class);
         when(stat.getVersion()).thenReturn(1234);
         when(stat.getCtime()).thenReturn(metadata.getCtime());
@@ -207,12 +211,12 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
     }
 
     @Test
-    public void testCreateLedgerMetadataException() throws Exception {
+    void createLedgerMetadataException() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
         mockZkUtilsAsyncCreateFullPathOptimistic(
-            ledgerStr, CreateMode.PERSISTENT,
-            KeeperException.Code.CONNECTIONLOSS.intValue(), null);
+                ledgerStr, CreateMode.PERSISTENT,
+                KeeperException.Code.CONNECTIONLOSS.intValue(), null);
 
         try {
             result(ledgerManager.createLedgerMetadata(ledgerId, metadata));
@@ -226,43 +230,43 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
     }
 
     @Test
-    public void testRemoveLedgerMetadataSuccess() throws Exception {
+    void removeLedgerMetadataSuccess() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
         LongVersion version = new LongVersion(1234L);
 
         mockZkDelete(
-            ledgerStr, (int) version.getLongVersion(),
-            KeeperException.Code.OK.intValue());
+                ledgerStr, (int) version.getLongVersion(),
+                KeeperException.Code.OK.intValue());
 
         ledgerManager.removeLedgerMetadata(ledgerId, version).get();
 
         verify(mockZk, times(1))
-            .delete(eq(ledgerStr), eq(1234), any(VoidCallback.class), eq(null));
+                .delete(eq(ledgerStr), eq(1234), any(VoidCallback.class), eq(null));
     }
 
     @Test
-    public void testRemoveLedgerMetadataVersionAny() throws Exception {
+    void removeLedgerMetadataVersionAny() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
 
         mockZkDelete(
-            ledgerStr, -1,
-            KeeperException.Code.OK.intValue());
+                ledgerStr, -1,
+                KeeperException.Code.OK.intValue());
 
         ledgerManager.removeLedgerMetadata(ledgerId, Version.ANY).get();
 
         verify(mockZk, times(1))
-            .delete(eq(ledgerStr), eq(-1), any(VoidCallback.class), eq(null));
+                .delete(eq(ledgerStr), eq(-1), any(VoidCallback.class), eq(null));
     }
 
     @Test
-    public void testRemoveLedgerMetadataVersionNew() throws Exception {
+    void removeLedgerMetadataVersionNew() throws Exception {
         testRemoveLedgerMetadataInvalidVersion(Version.NEW);
     }
 
     @Test
-    public void testRemoveLedgerMetadataUnknownVersionType() throws Exception {
+    void removeLedgerMetadataUnknownVersionType() throws Exception {
         Version version = mock(Version.class);
         testRemoveLedgerMetadataInvalidVersion(version);
     }
@@ -279,34 +283,32 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
     }
 
     @Test
-    public void testRemoveLedgerMetadataNoNode() throws Exception {
+    void removeLedgerMetadataNoNode() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
         LongVersion version = new LongVersion(1234L);
 
         mockZkDelete(
-            ledgerStr, (int) version.getLongVersion(),
-            KeeperException.Code.NONODE.intValue());
+                ledgerStr, (int) version.getLongVersion(),
+                KeeperException.Code.NONODE.intValue());
 
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             result(ledgerManager.removeLedgerMetadata(ledgerId, version));
-        } catch (BKException bke) {
-            fail("Should succeed");
-        }
+        }, "Should succeed");
 
         verify(mockZk, times(1))
-            .delete(eq(ledgerStr), eq(1234), any(VoidCallback.class), eq(null));
+                .delete(eq(ledgerStr), eq(1234), any(VoidCallback.class), eq(null));
     }
 
     @Test
-    public void testRemoveLedgerMetadataException() throws Exception {
+    void removeLedgerMetadataException() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
         LongVersion version = new LongVersion(1234L);
 
         mockZkDelete(
-            ledgerStr, (int) version.getLongVersion(),
-            KeeperException.Code.CONNECTIONLOSS.intValue());
+                ledgerStr, (int) version.getLongVersion(),
+                KeeperException.Code.CONNECTIONLOSS.intValue());
 
         try {
             result(ledgerManager.removeLedgerMetadata(ledgerId, version));
@@ -316,17 +318,17 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         }
 
         verify(mockZk, times(1))
-            .delete(eq(ledgerStr), eq(1234), any(VoidCallback.class), eq(null));
+                .delete(eq(ledgerStr), eq(1234), any(VoidCallback.class), eq(null));
     }
 
     @Test
-    public void testRemoveLedgerMetadataHierarchical() throws Exception {
+    void removeLedgerMetadataHierarchical() throws Exception {
         HierarchicalLedgerManager hlm = new HierarchicalLedgerManager(conf, mockZk);
         testRemoveLedgerMetadataHierarchicalLedgerManager(hlm);
     }
 
     @Test
-    public void testRemoveLedgerMetadataLongHierarchical() throws Exception {
+    void removeLedgerMetadataLongHierarchical() throws Exception {
         LongHierarchicalLedgerManager hlm = new LongHierarchicalLedgerManager(conf, mockZk);
         testRemoveLedgerMetadataHierarchicalLedgerManager(hlm);
     }
@@ -337,18 +339,18 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         LongVersion version = new LongVersion(1234L);
 
         mockZkUtilsAsyncDeleteFullPathOptimistic(
-            ledgerStr, (int) version.getLongVersion(),
-            KeeperException.Code.OK.intValue());
+                ledgerStr, (int) version.getLongVersion(),
+                KeeperException.Code.OK.intValue());
 
         lm.removeLedgerMetadata(ledgerId, version).get();
 
         ZkUtils.asyncDeleteFullPathOptimistic(
-            eq(mockZk), eq(ledgerStr), eq(1234), any(VoidCallback.class), eq(ledgerStr));
+                eq(mockZk), eq(ledgerStr), eq(1234), any(VoidCallback.class), eq(ledgerStr));
 
     }
 
     @Test
-    public void testReadLedgerMetadataSuccess() throws Exception {
+    void readLedgerMetadataSuccess() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
 
@@ -356,25 +358,25 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         when(stat.getVersion()).thenReturn(1234);
         when(stat.getCtime()).thenReturn(metadata.getCtime());
         mockZkGetData(
-            ledgerStr, false,
-            KeeperException.Code.OK.intValue(), serDe.serialize(metadata), stat);
+                ledgerStr, false,
+                KeeperException.Code.OK.intValue(), serDe.serialize(metadata), stat);
 
         Versioned<LedgerMetadata> readMetadata = result(ledgerManager.readLedgerMetadata(ledgerId));
         assertEquals(metadata, readMetadata.getValue());
         assertEquals(new LongVersion(1234), readMetadata.getVersion());
 
         verify(mockZk, times(1))
-            .getData(eq(ledgerStr), eq(null), any(DataCallback.class), any());
+                .getData(eq(ledgerStr), eq(null), any(DataCallback.class), any());
     }
 
     @Test
-    public void testReadLedgerMetadataNoNode() throws Exception {
+    void readLedgerMetadataNoNode() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
 
         mockZkGetData(
-            ledgerStr, false,
-            KeeperException.Code.NONODE.intValue(), null, null);
+                ledgerStr, false,
+                KeeperException.Code.NONODE.intValue(), null, null);
 
         try {
             result(ledgerManager.readLedgerMetadata(ledgerId));
@@ -384,17 +386,17 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         }
 
         verify(mockZk, times(1))
-            .getData(eq(ledgerStr), eq(null), any(DataCallback.class), any());
+                .getData(eq(ledgerStr), eq(null), any(DataCallback.class), any());
     }
 
     @Test
-    public void testReadLedgerMetadataException() throws Exception {
+    void readLedgerMetadataException() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
 
         mockZkGetData(
-            ledgerStr, false,
-            KeeperException.Code.CONNECTIONLOSS.intValue(), null, null);
+                ledgerStr, false,
+                KeeperException.Code.CONNECTIONLOSS.intValue(), null, null);
 
         try {
             result(ledgerManager.readLedgerMetadata(ledgerId));
@@ -404,17 +406,17 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         }
 
         verify(mockZk, times(1))
-            .getData(eq(ledgerStr), eq(null), any(DataCallback.class), any());
+                .getData(eq(ledgerStr), eq(null), any(DataCallback.class), any());
     }
 
     @Test
-    public void testReadLedgerMetadataStatMissing() throws Exception {
+    void readLedgerMetadataStatMissing() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
 
         mockZkGetData(
-            ledgerStr, false,
-            KeeperException.Code.OK.intValue(), serDe.serialize(metadata), null);
+                ledgerStr, false,
+                KeeperException.Code.OK.intValue(), serDe.serialize(metadata), null);
 
         try {
             result(ledgerManager.readLedgerMetadata(ledgerId));
@@ -424,11 +426,11 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         }
 
         verify(mockZk, times(1))
-            .getData(eq(ledgerStr), eq(null), any(DataCallback.class), any());
+                .getData(eq(ledgerStr), eq(null), any(DataCallback.class), any());
     }
 
     @Test
-    public void testReadLedgerMetadataDataCorrupted() throws Exception {
+    void readLedgerMetadataDataCorrupted() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
 
@@ -436,8 +438,8 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         when(stat.getVersion()).thenReturn(1234);
         when(stat.getCtime()).thenReturn(metadata.getCtime());
         mockZkGetData(
-            ledgerStr, false,
-            KeeperException.Code.OK.intValue(), new byte[0], stat);
+                ledgerStr, false,
+                KeeperException.Code.OK.intValue(), new byte[0], stat);
 
         try {
             result(ledgerManager.readLedgerMetadata(ledgerId));
@@ -447,11 +449,11 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         }
 
         verify(mockZk, times(1))
-            .getData(eq(ledgerStr), eq(null), any(DataCallback.class), any());
+                .getData(eq(ledgerStr), eq(null), any(DataCallback.class), any());
     }
 
     @Test
-    public void testWriteLedgerMetadataSuccess() throws Exception {
+    void writeLedgerMetadataSuccess() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
 
@@ -459,25 +461,25 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         when(stat.getVersion()).thenReturn(1235);
         when(stat.getCtime()).thenReturn(metadata.getCtime());
         mockZkSetData(
-            ledgerStr, serDe.serialize(metadata), 1234,
-            KeeperException.Code.OK.intValue(), stat);
+                ledgerStr, serDe.serialize(metadata), 1234,
+                KeeperException.Code.OK.intValue(), stat);
 
         Version v = ledgerManager.writeLedgerMetadata(ledgerId, metadata, new LongVersion(1234L)).get().getVersion();
 
         assertEquals(new LongVersion(1235L), v);
 
         verify(mockZk, times(1))
-            .setData(eq(ledgerStr), any(byte[].class), eq(1234), any(StatCallback.class), any());
+                .setData(eq(ledgerStr), any(byte[].class), eq(1234), any(StatCallback.class), any());
     }
 
     @Test
-    public void testWriteLedgerMetadataBadVersion() throws Exception {
+    void writeLedgerMetadataBadVersion() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
 
         mockZkSetData(
-            ledgerStr, serDe.serialize(metadata), 1234,
-            KeeperException.Code.BADVERSION.intValue(), null);
+                ledgerStr, serDe.serialize(metadata), 1234,
+                KeeperException.Code.BADVERSION.intValue(), null);
 
         try {
             result(ledgerManager.writeLedgerMetadata(ledgerId, metadata, new LongVersion(1234L)));
@@ -487,17 +489,17 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         }
 
         verify(mockZk, times(1))
-            .setData(eq(ledgerStr), any(byte[].class), eq(1234), any(StatCallback.class), any());
+                .setData(eq(ledgerStr), any(byte[].class), eq(1234), any(StatCallback.class), any());
     }
 
     @Test
-    public void testWriteLedgerMetadataException() throws Exception {
+    void writeLedgerMetadataException() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
 
         mockZkSetData(
-            ledgerStr, serDe.serialize(metadata), 1234,
-            KeeperException.Code.CONNECTIONLOSS.intValue(), null);
+                ledgerStr, serDe.serialize(metadata), 1234,
+                KeeperException.Code.CONNECTIONLOSS.intValue(), null);
 
         try {
             result(ledgerManager.writeLedgerMetadata(ledgerId, metadata, new LongVersion(1234L)));
@@ -508,15 +510,15 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
 
 
         verify(mockZk, times(1))
-            .setData(eq(ledgerStr), any(byte[].class), eq(1234), any(StatCallback.class), any());
+                .setData(eq(ledgerStr), any(byte[].class), eq(1234), any(StatCallback.class), any());
     }
 
     @Test
-    public void testWriteLedgerMetadataInvalidVersion() throws Exception {
-        Version[] versions = new Version[] {
-            Version.NEW,
-            Version.ANY,
-            mock(Version.class)
+    void writeLedgerMetadataInvalidVersion() throws Exception {
+        Version[] versions = new Version[]{
+                Version.NEW,
+                Version.ANY,
+                mock(Version.class)
         };
         for (Version version : versions) {
             testWriteLedgerMetadataInvalidVersion(version);
@@ -534,11 +536,11 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         }
 
         verify(mockZk, times(0))
-            .setData(anyString(), any(byte[].class), anyInt(), any(StatCallback.class), any());
+                .setData(anyString(), any(byte[].class), anyInt(), any(StatCallback.class), any());
     }
 
     @Test
-    public void testLedgerMetadataListener() throws Exception {
+    void ledgerMetadataListener() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
 
@@ -549,8 +551,8 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         when(stat.getVersion()).thenReturn(1234);
         when(stat.getCtime()).thenReturn(metadata.getCtime());
         mockZkGetData(
-            ledgerStr, true,
-            KeeperException.Code.OK.intValue(), serDe.serialize(metadata), stat);
+                ledgerStr, true,
+                KeeperException.Code.OK.intValue(), serDe.serialize(metadata), stat);
 
         ledgerManager.registerLedgerMetadataListener(ledgerId, listener);
 
@@ -558,7 +560,7 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         LedgerMetadata change1 = changes.take();
         assertEquals(metadata, change1);
         verify(mockZk, times(1))
-            .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
+                .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
 
         // the watcher is registered for receiving watched event
         assertTrue(watchers.containsKey(ledgerStr));
@@ -569,18 +571,18 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         // mock get data to return an updated metadata
         when(stat.getVersion()).thenReturn(1235);
         mockZkGetData(
-            ledgerStr, true,
-            KeeperException.Code.OK.intValue(), serDe.serialize(metadata), stat);
+                ledgerStr, true,
+                KeeperException.Code.OK.intValue(), serDe.serialize(metadata), stat);
 
         // notify the watcher event
         notifyWatchedEvent(
-            EventType.NodeDataChanged, KeeperState.SyncConnected, ledgerStr);
+                EventType.NodeDataChanged, KeeperState.SyncConnected, ledgerStr);
 
         // the listener should receive an updated metadata
         LedgerMetadata change2 = changes.take();
         assertEquals(metadata, change2);
         verify(mockZk, times(2))
-            .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
+                .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
 
         // after the listener receive an updated metadata, a new watcher should be registered
         // for subsequent changes again.
@@ -595,24 +597,24 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         // verify scheduler
         verify(scheduler, times(2)).submit(any(Runnable.class));
         verify(scheduler, times(0))
-            .schedule(any(Runnable.class), anyLong(), any(TimeUnit.class));
+                .schedule(any(Runnable.class), anyLong(), any(TimeUnit.class));
     }
 
     @Test
-    public void testLedgerMetadataListenerOnLedgerDeleted() throws Exception {
+    void ledgerMetadataListenerOnLedgerDeleted() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
 
         LinkedBlockingQueue<Optional<LedgerMetadata>> changes = new LinkedBlockingQueue<>();
         LedgerMetadataListener listener =
-            (ledgerId1, metadata) -> changes.add(Optional.ofNullable(metadata != null ? metadata.getValue() : null));
+                (ledgerId1, metadata) -> changes.add(Optional.ofNullable(metadata != null ? metadata.getValue() : null));
 
         Stat stat = mock(Stat.class);
         when(stat.getVersion()).thenReturn(1234);
         when(stat.getCtime()).thenReturn(metadata.getCtime());
         mockZkGetData(
-            ledgerStr, true,
-            KeeperException.Code.OK.intValue(), serDe.serialize(metadata), stat);
+                ledgerStr, true,
+                KeeperException.Code.OK.intValue(), serDe.serialize(metadata), stat);
 
         ledgerManager.registerLedgerMetadataListener(ledgerId, listener);
         assertTrue(ledgerManager.listeners.containsKey(ledgerId));
@@ -621,19 +623,19 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         LedgerMetadata change1 = changes.take().get();
         assertEquals(metadata, change1);
         verify(mockZk, times(1))
-            .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
+                .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
 
         // the watcher is registered for receiving watched event
         assertTrue(watchers.containsKey(ledgerStr));
 
         // mock get data to simulate an ledger is deleted
         mockZkGetData(
-            ledgerStr, true,
-            KeeperException.Code.NONODE.intValue(), null, null);
+                ledgerStr, true,
+                KeeperException.Code.NONODE.intValue(), null, null);
 
         // notify the watcher event
         notifyWatchedEvent(
-            EventType.NodeDataChanged, KeeperState.SyncConnected, ledgerStr);
+                EventType.NodeDataChanged, KeeperState.SyncConnected, ledgerStr);
 
         // the listener should be removed from listener set and not receive an updated metadata anymore
         Optional<LedgerMetadata> change2 = changes.take();
@@ -643,28 +645,28 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         // verify scheduler: the listener is only triggered once
         verify(scheduler, times(1)).submit(any(Runnable.class));
         verify(scheduler, times(0)).schedule(
-            any(Runnable.class), anyLong(), any(TimeUnit.class));
+                any(Runnable.class), anyLong(), any(TimeUnit.class));
 
         // no watcher is registered
         assertFalse(watchers.containsKey(ledgerStr));
     }
 
     @Test
-    public void testLedgerMetadataListenerOnLedgerDeletedEvent() throws Exception {
+    void ledgerMetadataListenerOnLedgerDeletedEvent() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
 
         LinkedBlockingQueue<Optional<LedgerMetadata>> changes = new LinkedBlockingQueue<>();
         LedgerMetadataListener listener =
-            (ledgerId1, metadata) -> changes.add(
-                    Optional.ofNullable(metadata != null ? metadata.getValue() : null));
+                (ledgerId1, metadata) -> changes.add(
+                        Optional.ofNullable(metadata != null ? metadata.getValue() : null));
 
         Stat stat = mock(Stat.class);
         when(stat.getVersion()).thenReturn(1234);
         when(stat.getCtime()).thenReturn(metadata.getCtime());
         mockZkGetData(
-            ledgerStr, true,
-            KeeperException.Code.OK.intValue(), serDe.serialize(metadata), stat);
+                ledgerStr, true,
+                KeeperException.Code.OK.intValue(), serDe.serialize(metadata), stat);
 
         ledgerManager.registerLedgerMetadataListener(ledgerId, listener);
         assertTrue(ledgerManager.listeners.containsKey(ledgerId));
@@ -673,27 +675,27 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         LedgerMetadata change1 = changes.take().get();
         assertEquals(metadata, change1);
         verify(mockZk, times(1))
-            .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
+                .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
 
         // the watcher is registered for receiving watched event
         assertTrue(watchers.containsKey(ledgerStr));
 
         // notify the watcher event
         notifyWatchedEvent(
-            EventType.NodeDeleted, KeeperState.SyncConnected, ledgerStr);
+                EventType.NodeDeleted, KeeperState.SyncConnected, ledgerStr);
 
         // the listener should be removed from listener set and a null change is notified.
         Optional<LedgerMetadata> change2 = changes.take();
         assertFalse(change2.isPresent());
         // no more `getData` is called.
         verify(mockZk, times(1))
-            .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
+                .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
         // listener is automatically unregistered after a ledger is deleted.
         assertFalse(ledgerManager.listeners.containsKey(ledgerId));
     }
 
     @Test
-    public void testLedgerMetadataListenerOnRetries() throws Exception {
+    void ledgerMetadataListenerOnRetries() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
 
@@ -706,8 +708,8 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
 
         // fail the first get, so the ledger manager will retry get data again.
         mockZkGetData(
-            ledgerStr, true,
-            KeeperException.Code.SESSIONEXPIRED.intValue(), null, null);
+                ledgerStr, true,
+                KeeperException.Code.SESSIONEXPIRED.intValue(), null, null);
 
         ledgerManager.registerLedgerMetadataListener(ledgerId, listener);
         assertTrue(ledgerManager.listeners.containsKey(ledgerId));
@@ -716,17 +718,17 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         assertNull(changes.poll());
         // an retry task is scheduled
         verify(scheduler, times(1))
-            .schedule(any(Runnable.class), anyLong(), any(TimeUnit.class));
+                .schedule(any(Runnable.class), anyLong(), any(TimeUnit.class));
         // zookeeper is called once
         verify(mockZk, times(1))
-            .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
+                .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
         // watcher is not registered since getData call is failed
         assertFalse(watchers.containsKey(ledgerStr));
 
         // mock get data to return a valid response
         mockZkGetData(
-            ledgerStr, true,
-            KeeperException.Code.OK.intValue(), serDe.serialize(metadata), stat);
+                ledgerStr, true,
+                KeeperException.Code.OK.intValue(), serDe.serialize(metadata), stat);
 
         schedulerController.advance(Duration.ofMillis(ZK_CONNECT_BACKOFF_MS));
 
@@ -734,14 +736,14 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         LedgerMetadata change = changes.take();
         assertEquals(metadata, change);
         verify(mockZk, times(2))
-            .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
+                .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
 
         // watcher is registered after successfully `getData`
         assertTrue(watchers.containsKey(ledgerStr));
     }
 
     @Test
-    public void testLedgerMetadataListenerOnSessionExpired() throws Exception {
+    void ledgerMetadataListenerOnSessionExpired() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
 
@@ -752,8 +754,8 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         when(stat.getVersion()).thenReturn(1234);
         when(stat.getCtime()).thenReturn(metadata.getCtime());
         mockZkGetData(
-            ledgerStr, true,
-            KeeperException.Code.OK.intValue(), serDe.serialize(metadata), stat);
+                ledgerStr, true,
+                KeeperException.Code.OK.intValue(), serDe.serialize(metadata), stat);
 
         ledgerManager.registerLedgerMetadataListener(ledgerId, listener);
 
@@ -761,7 +763,7 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         LedgerMetadata change1 = changes.take();
         assertEquals(metadata, change1);
         verify(mockZk, times(1))
-            .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
+                .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
 
         // the watcher is registered for receiving watched event
         assertTrue(watchers.containsKey(ledgerStr));
@@ -771,13 +773,13 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
 
         // simulate session expired
         notifyWatchedEvent(
-            EventType.None, KeeperState.Expired, ledgerStr);
+                EventType.None, KeeperState.Expired, ledgerStr);
 
         // ledger manager will retry to read metadata again
         LedgerMetadata change2 = changes.take();
         assertEquals(metadata, change2);
         verify(mockZk, times(2))
-            .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
+                .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
 
         // the watcher is registered for receiving watched event
         assertTrue(watchers.containsKey(ledgerStr));
@@ -789,7 +791,7 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
     }
 
     @Test
-    public void testUnregisterLedgerMetadataListener() throws Exception {
+    void unregisterLedgerMetadataListener() throws Exception {
         long ledgerId = System.currentTimeMillis();
         String ledgerStr = String.valueOf(ledgerId);
 
@@ -800,8 +802,8 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         when(stat.getVersion()).thenReturn(1234);
         when(stat.getCtime()).thenReturn(metadata.getCtime());
         mockZkGetData(
-            ledgerStr, true,
-            KeeperException.Code.OK.intValue(), serDe.serialize(metadata), stat);
+                ledgerStr, true,
+                KeeperException.Code.OK.intValue(), serDe.serialize(metadata), stat);
 
         ledgerManager.registerLedgerMetadataListener(ledgerId, listener);
         assertTrue(ledgerManager.listeners.containsKey(ledgerId));
@@ -810,7 +812,7 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         LedgerMetadata change1 = changes.take();
         assertEquals(metadata, change1);
         verify(mockZk, times(1))
-            .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
+                .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
 
         // the watcher is registered for receiving watched event
         assertTrue(watchers.containsKey(ledgerStr));
@@ -821,8 +823,8 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
         // mock get data to return an updated metadata
         when(stat.getVersion()).thenReturn(1235);
         mockZkGetData(
-            ledgerStr, true,
-            KeeperException.Code.OK.intValue(), serDe.serialize(metadata), stat);
+                ledgerStr, true,
+                KeeperException.Code.OK.intValue(), serDe.serialize(metadata), stat);
 
         mockZkRemoveWatcher();
 
@@ -837,12 +839,12 @@ public class AbstractZkLedgerManagerTest extends MockZooKeeperTestCase {
 
         // notify the watcher event
         notifyWatchedEvent(
-            EventType.NodeDataChanged, KeeperState.SyncConnected, ledgerStr);
+                EventType.NodeDataChanged, KeeperState.SyncConnected, ledgerStr);
 
         // since listener is already unregistered so no more `getData` is issued.
         assertNull(changes.poll());
         verify(mockZk, times(1))
-            .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
+                .getData(anyString(), any(Watcher.class), any(DataCallback.class), any());
     }
 
 }

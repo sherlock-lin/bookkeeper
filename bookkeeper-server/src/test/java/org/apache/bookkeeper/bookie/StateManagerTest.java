@@ -20,10 +20,12 @@
  */
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
+import java.lang.reflect.Method;
+import java.util.Optional;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.conf.TestBKConfiguration;
 import org.apache.bookkeeper.discover.RegistrationManager;
@@ -31,23 +33,24 @@ import org.apache.bookkeeper.meta.MetadataBookieDriver;
 import org.apache.bookkeeper.meta.zk.ZKMetadataBookieDriver;
 import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestName;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Testing StateManager cases.
  */
 public class StateManagerTest extends BookKeeperClusterTestCase {
 
-    @Rule
-    public final TestName runtime = new TestName();
+    
+    public final String runtime;
     final ServerConfiguration conf;
     MetadataBookieDriver driver;
 
     public StateManagerTest(){
         super(0);
-        String ledgersPath = "/" + "ledgers" + runtime.getMethodName();
+        String ledgersPath = "/" + "ledgers" + runtime;
         baseClientConf.setMetadataServiceUri(zkUtil.getMetadataServiceUri(ledgersPath));
         baseConf.setMetadataServiceUri(zkUtil.getMetadataServiceUri(ledgersPath));
         conf = TestBKConfiguration.newServerConfiguration();
@@ -55,10 +58,11 @@ public class StateManagerTest extends BookKeeperClusterTestCase {
 
     }
 
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        zkUtil.createBKEnsemble("/" + runtime.getMethodName());
+        zkUtil.createBKEnsemble("/" + runtime);
         File tmpDir = tmpDirs.createNew("stateManger", "test");
         conf.setJournalDirName(tmpDir.getPath())
                 .setLedgerDirNames(new String[] { tmpDir.getPath() })
@@ -66,6 +70,7 @@ public class StateManagerTest extends BookKeeperClusterTestCase {
                 .setMetadataServiceUri(zkUtil.getMetadataServiceUri());
     }
 
+    @AfterEach
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
@@ -78,7 +83,7 @@ public class StateManagerTest extends BookKeeperClusterTestCase {
      * StateManager can transition between writable mode and readOnly mode if it was not created with readOnly mode.
      */
     @Test
-    public void testNormalBookieTransitions() throws Exception {
+    void normalBookieTransitions() throws Exception {
         driver.initialize(conf, NullStatsLogger.INSTANCE);
         try (RegistrationManager rm = driver.createRegistrationManager();
              BookieStateManager stateManager = new BookieStateManager(conf, rm)) {
@@ -105,7 +110,7 @@ public class StateManagerTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testReadOnlyDisableBookieTransitions() throws Exception {
+    void readOnlyDisableBookieTransitions() throws Exception {
         conf.setReadOnlyModeEnabled(false);
         // readOnly disabled bk stateManager
         driver.initialize(
@@ -148,7 +153,7 @@ public class StateManagerTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testReadOnlyBookieTransitions() throws Exception{
+    void readOnlyBookieTransitions() throws Exception{
         // readOnlybk, which use override stateManager impl
         File tmpDir = tmpDirs.createNew("stateManger", "test-readonly");
         final ServerConfiguration readOnlyConf = TestBKConfiguration.newServerConfiguration();
@@ -178,7 +183,7 @@ public class StateManagerTest extends BookKeeperClusterTestCase {
      * Verify the bookie reg.
      */
     @Test
-    public void testRegistration() throws Exception {
+    void registration() throws Exception {
         driver.initialize(
             conf,
             NullStatsLogger.INSTANCE);
@@ -218,6 +223,14 @@ public class StateManagerTest extends BookKeeperClusterTestCase {
         stateManager.getShutdownHandler().shutdown(ExitCode.OK);
         // readOnly
         assertTrue(stateManager.isReadOnly());
+    }
+
+    @BeforeEach
+    void setup(TestInfo testInfo) {
+        Optional<Method> testMethod = testInfo.getTestMethod();
+        if (testMethod.isPresent()) {
+            this.runtime = testMethod.get().getName();
+        }
     }
 
 }

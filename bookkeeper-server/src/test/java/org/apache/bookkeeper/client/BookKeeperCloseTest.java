@@ -20,9 +20,9 @@
  */
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.util.concurrent.SettableFuture;
 import io.netty.buffer.ByteBuf;
@@ -47,7 +47,7 @@ import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.proto.BookkeeperInternalCallbacks.GenericCallback;
 import org.apache.bookkeeper.proto.BookkeeperInternalCallbacks.WriteCallback;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,7 +123,7 @@ public class BookKeeperCloseTest extends BookKeeperClusterTestCase {
      * throw ClientClosedException.
      */
     @Test
-    public void testCreateLedger() throws Exception {
+    void createLedger() throws Exception {
         BookKeeper bk = new BookKeeper(baseClientConf, zkc);
         LOG.info("Closing bookkeeper client");
         bk.close();
@@ -149,10 +149,9 @@ public class BookKeeperCloseTest extends BookKeeperClusterTestCase {
 
         LOG.info("Waiting to finish the ledger creation");
         // wait for creating the ledger
-        assertTrue("create ledger call should have completed",
-                openLatch.await(20, TimeUnit.SECONDS));
-        assertEquals("Succesfully created ledger through closed bkclient!",
-                BKException.Code.ClientClosedException, returnCode.get());
+        assertTrue(openLatch.await(20, TimeUnit.SECONDS),
+                "create ledger call should have completed");
+        assertEquals(BKException.Code.ClientClosedException, returnCode.get(), "Succesfully created ledger through closed bkclient!");
     }
 
     /**
@@ -160,7 +159,7 @@ public class BookKeeperCloseTest extends BookKeeperClusterTestCase {
      * throw ClientClosedException.
      */
     @Test
-    public void testFenceLedger() throws Exception {
+    void fenceLedger() throws Exception {
         BookKeeper bk = new BookKeeper(baseClientConf, zkc);
         LOG.info("Create ledger and add entries to it");
         LedgerHandle lh = createLedgerWithEntries(bk, 100);
@@ -196,10 +195,9 @@ public class BookKeeperCloseTest extends BookKeeperClusterTestCase {
                            openLatch);
 
         LOG.info("Waiting to open the ledger asynchronously");
-        assertTrue("Open call should have completed",
-                openLatch.await(20, TimeUnit.SECONDS));
-        assertTrue("Open should not have succeeded through closed bkclient!",
-                   BKException.Code.ClientClosedException == returnCode.get());
+        assertTrue(openLatch.await(20, TimeUnit.SECONDS),
+                "Open call should have completed");
+        assertEquals(BKException.Code.ClientClosedException, returnCode.get(), "Open should not have succeeded through closed bkclient!");
     }
 
     /**
@@ -207,7 +205,7 @@ public class BookKeeperCloseTest extends BookKeeperClusterTestCase {
      * should throw ClientClosedException.
      */
     @Test
-    public void testDeleteLedger() throws Exception {
+    void deleteLedger() throws Exception {
         BookKeeper bk = new BookKeeper(baseClientConf, zkc);
         LOG.info("Create ledger and add entries to it");
         LedgerHandle lh = createLedgerWithEntries(bk, 100);
@@ -232,10 +230,9 @@ public class BookKeeperCloseTest extends BookKeeperClusterTestCase {
         bk.asyncDeleteLedger(lh.getId(), cb, openLatch);
 
         LOG.info("Waiting to delete the ledger asynchronously");
-        assertTrue("Delete call should have completed",
-                openLatch.await(20, TimeUnit.SECONDS));
-        assertEquals("Delete should not have succeeded through closed bkclient!",
-                     BKException.Code.ClientClosedException, returnCode.get());
+        assertTrue(openLatch.await(20, TimeUnit.SECONDS),
+                "Delete call should have completed");
+        assertEquals(BKException.Code.ClientClosedException, returnCode.get(), "Delete should not have succeeded through closed bkclient!");
     }
 
     /**
@@ -243,7 +240,7 @@ public class BookKeeperCloseTest extends BookKeeperClusterTestCase {
      * closed should throw ClientClosedException.
      */
     @Test
-    public void testAddLedgerEntry() throws Exception {
+    void addLedgerEntry() throws Exception {
         BookKeeper bk = new BookKeeper(baseClientConf, zkc);
         LOG.info("Create ledger and add entries to it");
         LedgerHandle lh = createLedgerWithEntries(bk, 1);
@@ -271,11 +268,10 @@ public class BookKeeperCloseTest extends BookKeeperClusterTestCase {
             }, null);
 
         LOG.info("Waiting to finish adding another entry asynchronously");
-        assertTrue("Add entry to ledger call should have completed",
-                completeLatch.await(20, TimeUnit.SECONDS));
+        assertTrue(completeLatch.await(20, TimeUnit.SECONDS),
+                "Add entry to ledger call should have completed");
         assertEquals(
-                "Add entry to ledger should not have succeeded through closed bkclient!",
-                BKException.Code.ClientClosedException, rc.get());
+                BKException.Code.ClientClosedException, rc.get(), "Add entry to ledger should not have succeeded through closed bkclient!");
     }
 
     /**
@@ -283,7 +279,7 @@ public class BookKeeperCloseTest extends BookKeeperClusterTestCase {
      * throw ClientClosedException.
      */
     @Test
-    public void testCloseLedger() throws Exception {
+    void closeLedger() throws Exception {
         BookKeeper bk = new BookKeeper(baseClientConf, zkc);
         LOG.info("Create ledger and add entries to it");
         LedgerHandle lh = createLedgerWithEntries(bk, 100);
@@ -309,11 +305,10 @@ public class BookKeeperCloseTest extends BookKeeperClusterTestCase {
             }, null);
 
         LOG.info("Waiting to finish adding another entry asynchronously");
-        assertTrue("Close ledger call should have completed",
-                completeLatch.await(20, TimeUnit.SECONDS));
+        assertTrue(completeLatch.await(20, TimeUnit.SECONDS),
+                "Close ledger call should have completed");
         assertEquals(
-                "Close ledger should have succeeded through closed bkclient!",
-                BKException.Code.ClientClosedException, rc.get());
+                BKException.Code.ClientClosedException, rc.get(), "Close ledger should have succeeded through closed bkclient!");
     }
 
     /**
@@ -321,7 +316,7 @@ public class BookKeeperCloseTest extends BookKeeperClusterTestCase {
      * closed should throw ClientClosedException.
      */
     @Test
-    public void testReadLedgerEntry() throws Exception {
+    void readLedgerEntry() throws Exception {
         BookKeeper bk = new BookKeeper(baseClientConf, zkc);
         LOG.info("Create ledger and add entries to it");
         int numOfEntries = 100;
@@ -352,11 +347,10 @@ public class BookKeeperCloseTest extends BookKeeperClusterTestCase {
         lh.asyncReadEntries(0, numOfEntries - 1, cb, readLatch);
 
         LOG.info("Waiting to finish reading the entries asynchronously");
-        assertTrue("Read entry ledger call should have completed",
-                readLatch.await(20, TimeUnit.SECONDS));
+        assertTrue(readLatch.await(20, TimeUnit.SECONDS),
+                "Read entry ledger call should have completed");
         assertEquals(
-                "Read entry ledger should have succeeded through closed bkclient!",
-                BKException.Code.ClientClosedException, rc.get());
+                BKException.Code.ClientClosedException, rc.get(), "Read entry ledger should have succeeded through closed bkclient!");
     }
 
     /**
@@ -364,7 +358,7 @@ public class BookKeeperCloseTest extends BookKeeperClusterTestCase {
      * which is closed should throw ClientClosedException.
      */
     @Test
-    public void testReadLastConfirmed() throws Exception {
+    void readLastConfirmed() throws Exception {
         BookKeeper bk = new BookKeeper(baseClientConf, zkc);
         LOG.info("Create ledger and add entries to it");
         LedgerHandle lh = createLedgerWithEntries(bk, 100);
@@ -391,11 +385,10 @@ public class BookKeeperCloseTest extends BookKeeperClusterTestCase {
         lh.asyncReadLastConfirmed(cb, readLatch);
 
         LOG.info("Waiting to finish reading last confirmed entry asynchronously");
-        assertTrue("ReadLastConfirmed call should have completed",
-                readLatch.await(20, TimeUnit.SECONDS));
+        assertTrue(readLatch.await(20, TimeUnit.SECONDS),
+                "ReadLastConfirmed call should have completed");
         assertEquals(
-                "ReadLastConfirmed should have succeeded through closed bkclient!",
-                BKException.Code.ClientClosedException, rc.get());
+                BKException.Code.ClientClosedException, rc.get(), "ReadLastConfirmed should have succeeded through closed bkclient!");
 
         try {
             lh.readLastConfirmed();
@@ -410,7 +403,7 @@ public class BookKeeperCloseTest extends BookKeeperClusterTestCase {
      * throw a ClientClosedException.
      */
     @Test
-    public void testLedgerCheck() throws Exception {
+    void ledgerCheck() throws Exception {
         BookKeeper bk = new BookKeeper(baseClientConf, zkc);
         LOG.info("Create ledger and add entries to it");
         LedgerHandle lh = createLedgerWithEntries(bk, 100);
@@ -429,9 +422,8 @@ public class BookKeeperCloseTest extends BookKeeperClusterTestCase {
                     postLatch.countDown();
                 }
             });
-        assertTrue("checkLedger should have finished", postLatch.await(30, TimeUnit.SECONDS));
-        assertEquals("Should have client closed exception",
-                     postRc.get(), BKException.Code.ClientClosedException);
+        assertTrue(postLatch.await(30, TimeUnit.SECONDS), "checkLedger should have finished");
+        assertEquals(BKException.Code.ClientClosedException, postRc.get(), "Should have client closed exception");
     }
 
     private static class CheckerCb implements GenericCallback<Set<LedgerFragment>> {
@@ -462,12 +454,13 @@ public class BookKeeperCloseTest extends BookKeeperClusterTestCase {
             }
         }
     }
+
     /**
      * Test that BookKeeperAdmin operationg using a closed BK client will
      * throw a ClientClosedException.
      */
     @Test
-    public void testBookKeeperAdmin() throws Exception {
+    void bookKeeperAdmin() throws Exception {
         BookKeeper bk = new BookKeeper(baseClientConf, zkc);
         try (BookKeeperAdmin bkadmin = new BookKeeperAdmin(bk, baseClientConf)) {
 
@@ -484,10 +477,8 @@ public class BookKeeperCloseTest extends BookKeeperClusterTestCase {
             CheckerCb checkercb = new CheckerCb();
             LedgerChecker lc = new LedgerChecker(bk);
             lc.checkLedger(lh3, checkercb);
-            assertEquals("Should have completed",
-                         checkercb.getRc(30, TimeUnit.SECONDS), BKException.Code.OK);
-            assertEquals("Should have a missing fragment",
-                         1, checkercb.getResult(30, TimeUnit.SECONDS).size());
+            assertEquals(BKException.Code.OK, checkercb.getRc(30, TimeUnit.SECONDS), "Should have completed");
+            assertEquals(1, checkercb.getResult(30, TimeUnit.SECONDS).size(), "Should have a missing fragment");
 
             // make sure a bookie in each quorum is slow
             restartBookieSlow();
@@ -531,7 +522,7 @@ public class BookKeeperCloseTest extends BookKeeperClusterTestCase {
      * See {@link https://issues.apache.org/jira/browse/BOOKKEEPER-804}
      */
     @Test
-    public void testBookKeeperCloseThreads() throws Exception {
+    void bookKeeperCloseThreads() throws Exception {
         ThreadGroup group = new ThreadGroup("test-group");
         final SettableFuture<Void> future = SettableFuture.<Void>create();
 
@@ -579,7 +570,7 @@ public class BookKeeperCloseTest extends BookKeeperClusterTestCase {
                 break;
             }
         }
-        assertEquals("Should be no threads left in group", 0, group.activeCount());
+        assertEquals(0, group.activeCount(), "Should be no threads left in group");
     }
 
     private LedgerHandle createLedgerWithEntries(BookKeeper bk, int numOfEntries)

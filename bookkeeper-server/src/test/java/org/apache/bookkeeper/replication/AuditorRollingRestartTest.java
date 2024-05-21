@@ -21,7 +21,7 @@
 package org.apache.bookkeeper.replication;
 
 import static org.apache.bookkeeper.meta.MetadataDrivers.runFunctionWithLedgerManagerFactory;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import lombok.Cleanup;
@@ -34,7 +34,7 @@ import org.apache.bookkeeper.meta.LedgerUnderreplicationManager;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.test.TestCallbacks;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test auditor behaviours during a rolling restart.
@@ -51,7 +51,7 @@ public class AuditorRollingRestartTest extends BookKeeperClusterTestCase {
      * Test no auditing during restart if disabled.
      */
     @Test
-    public void testAuditingDuringRollingRestart() throws Exception {
+    void auditingDuringRollingRestart() throws Exception {
         runFunctionWithLedgerManagerFactory(
             confByIndex(0),
             mFactory -> {
@@ -75,8 +75,7 @@ public class AuditorRollingRestartTest extends BookKeeperClusterTestCase {
         lh.addEntry("foobar".getBytes());
         lh.close();
 
-        assertEquals("shouldn't be anything under replicated",
-                     underReplicationManager.pollLedgerToRereplicate(), -1);
+        assertEquals(-1, underReplicationManager.pollLedgerToRereplicate(), "shouldn't be anything under replicated");
         underReplicationManager.disableLedgerReplication();
 
         @Cleanup
@@ -86,7 +85,8 @@ public class AuditorRollingRestartTest extends BookKeeperClusterTestCase {
         Thread.sleep(2000);
         startBookie(conf);
         Thread.sleep(2000); // give it time to run
-        assertEquals("shouldn't be anything under replicated", -1,
-                underReplicationManager.pollLedgerToRereplicate());
+        assertEquals(-1,
+                underReplicationManager.pollLedgerToRereplicate(),
+                "shouldn't be anything under replicated");
     }
 }

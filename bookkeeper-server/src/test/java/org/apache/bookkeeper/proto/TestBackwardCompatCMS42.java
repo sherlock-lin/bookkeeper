@@ -20,9 +20,9 @@
  */
 package org.apache.bookkeeper.proto;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.ExtensionRegistry;
@@ -48,7 +48,7 @@ import org.apache.bookkeeper.proto.BookieProtocol.Response;
 import org.apache.bookkeeper.proto.BookkeeperProtocol.AuthMessage;
 import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test backward compatibility.
@@ -74,7 +74,7 @@ public class TestBackwardCompatCMS42 extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testAuthSingleMessage() throws Exception {
+    void authSingleMessage() throws Exception {
         ServerConfiguration bookieConf = newServerConfiguration();
         bookieConf.setBookieAuthProviderFactoryClass(
                 TestAuth.AlwaysSucceedBookieAuthProviderFactory.class.getName());
@@ -91,12 +91,12 @@ public class TestBackwardCompatCMS42 extends BookKeeperClusterTestCase {
         client.sendRequest(request);
 
         Response response = client.takeResponse();
-        assertTrue("Should be auth response", response instanceof AuthResponse);
-        assertEquals("Should have succeeded", response.getErrorCode(), BookieProtocol.EOK);
+        assertTrue(response instanceof AuthResponse, "Should be auth response");
+        assertEquals(BookieProtocol.EOK, response.getErrorCode(), "Should have succeeded");
     }
 
     @Test
-    public void testAuthMultiMessage() throws Exception {
+    void authMultiMessage() throws Exception {
         ServerConfiguration bookieConf = newServerConfiguration();
         bookieConf.setBookieAuthProviderFactoryClass(
                 TestAuth.SucceedAfter3BookieAuthProviderFactory.class.getName());
@@ -112,24 +112,23 @@ public class TestBackwardCompatCMS42 extends BookKeeperClusterTestCase {
         for (int i = 0; i < 3; i++) {
             client.sendRequest(request);
             Response response = client.takeResponse();
-            assertTrue("Should be auth response", response instanceof AuthResponse);
+            assertTrue(response instanceof AuthResponse, "Should be auth response");
             AuthResponse authResponse = (AuthResponse) response;
-            assertEquals("Should have succeeded",
-                         response.getErrorCode(), BookieProtocol.EOK);
+            assertEquals(BookieProtocol.EOK, response.getErrorCode(), "Should have succeeded");
             byte[] type = authResponse.getAuthMessage()
                 .getPayload().toByteArray();
             if (i == 2) {
-                assertArrayEquals("Should succeed after 3",
-                             type, SUCCESS_RESPONSE);
+                assertArrayEquals(SUCCESS_RESPONSE, type, "Should succeed after 3");
             } else {
-                assertArrayEquals("Should be payload", type,
-                             PAYLOAD_MESSAGE);
+                assertArrayEquals(
+                        PAYLOAD_MESSAGE, type,
+                        "Should be payload");
             }
         }
     }
 
     @Test
-    public void testAuthFail() throws Exception {
+    void authFail() throws Exception {
         ServerConfiguration bookieConf = newServerConfiguration();
         bookieConf.setBookieAuthProviderFactoryClass(
                 TestAuth.FailAfter3BookieAuthProviderFactory.class.getName());
@@ -145,18 +144,17 @@ public class TestBackwardCompatCMS42 extends BookKeeperClusterTestCase {
         for (int i = 0; i < 3; i++) {
             client.sendRequest(request);
             Response response = client.takeResponse();
-            assertTrue("Should be auth response", response instanceof AuthResponse);
+            assertTrue(response instanceof AuthResponse, "Should be auth response");
             AuthResponse authResponse = (AuthResponse) response;
-            assertEquals("Should have succeeded",
-                         response.getErrorCode(), BookieProtocol.EOK);
+            assertEquals(BookieProtocol.EOK, response.getErrorCode(), "Should have succeeded");
             byte[] type = authResponse.getAuthMessage()
                 .getPayload().toByteArray();
             if (i == 2) {
-                assertArrayEquals("Should fail after 3",
-                             type, FAILURE_RESPONSE);
+                assertArrayEquals(FAILURE_RESPONSE, type, "Should fail after 3");
             } else {
-                assertArrayEquals("Should be payload", type,
-                             PAYLOAD_MESSAGE);
+                assertArrayEquals(
+                        PAYLOAD_MESSAGE, type,
+                        "Should be payload");
             }
 
         }
@@ -165,8 +163,7 @@ public class TestBackwardCompatCMS42 extends BookKeeperClusterTestCase {
                 1L, 1L, (short) 0, null);
         client.sendRequest(read);
         Response response = client.takeResponse();
-        assertEquals("Should have failed",
-                     response.getErrorCode(), BookieProtocol.EUA);
+        assertEquals(BookieProtocol.EUA, response.getErrorCode(), "Should have failed");
     }
 
     // copy from TestAuth

@@ -21,11 +21,11 @@
 
 package org.apache.bookkeeper.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.apache.bookkeeper.proto.LocalBookiesRegistry;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test the correctness and the availability outside of its package of LocalBookiesRegistryTest.
@@ -39,7 +39,7 @@ public class LocalBookiesRegistryTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testAccessibleLocalBookiesRegistry() throws Exception {
+    void accessibleLocalBookiesRegistry() throws Exception {
         assertEquals(1, bookieCount());
         bookieAddresses().forEach(a -> assertTrue(LocalBookiesRegistry.isLocalBookie(a)));
     }

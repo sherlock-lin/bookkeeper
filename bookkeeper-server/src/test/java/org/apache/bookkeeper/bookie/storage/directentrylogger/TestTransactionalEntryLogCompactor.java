@@ -65,7 +65,7 @@ import org.junit.jupiter.api.condition.OS;
  * TestTransactionalEntryLogCompactor.
  */
 @DisabledOnOs(OS.WINDOWS)
-public class TestTransactionalEntryLogCompactor {
+class TestTransactionalEntryLogCompactor {
     private static final Slogger slog = Slogger.CONSOLE;
 
     private final TmpDirs tmpDirs = new TmpDirs();
@@ -73,12 +73,12 @@ public class TestTransactionalEntryLogCompactor {
     private static final long liveLedger = 2L;
 
     @AfterEach
-    public void cleanup() throws Exception {
+    void cleanup() throws Exception {
         tmpDirs.cleanup();
     }
 
     @Test
-    public void testHappyCase() throws Exception {
+    void happyCase() throws Exception {
         File ledgerDir = tmpDirs.createNew("compactHappyCase", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();
@@ -121,7 +121,7 @@ public class TestTransactionalEntryLogCompactor {
     }
 
     @Test
-    public void testHappyCase1000() throws Exception {
+    void happyCase1000() throws Exception {
         File ledgerDir = tmpDirs.createNew("compactHappyCase1000", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();
@@ -167,7 +167,7 @@ public class TestTransactionalEntryLogCompactor {
     }
 
     @Test
-    public void testScanFail() throws Exception {
+    void scanFail() throws Exception {
         File ledgerDir = tmpDirs.createNew("compactScanFail", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();
@@ -198,7 +198,7 @@ public class TestTransactionalEntryLogCompactor {
     }
 
     @Test
-    public void testScanFailNoAbortAndContinue() throws Exception {
+    void scanFailNoAbortAndContinue() throws Exception {
         File ledgerDir = tmpDirs.createNew("compactScanFail", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();
@@ -251,7 +251,7 @@ public class TestTransactionalEntryLogCompactor {
     }
 
     @Test
-    public void testFlushFail() throws Exception {
+    void flushFail() throws Exception {
         File ledgerDir = tmpDirs.createNew("compactScanFail", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();
@@ -282,7 +282,7 @@ public class TestTransactionalEntryLogCompactor {
     }
 
     @Test
-    public void testMarkCompactFailNoAbort() throws Exception {
+    void markCompactFailNoAbort() throws Exception {
         File ledgerDir = tmpDirs.createNew("compactScanFail", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();
@@ -346,7 +346,7 @@ public class TestTransactionalEntryLogCompactor {
     }
 
     @Test
-    public void testIndexFail() throws Exception {
+    void indexFail() throws Exception {
         File ledgerDir = tmpDirs.createNew("compactScanFail", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();
@@ -416,7 +416,7 @@ public class TestTransactionalEntryLogCompactor {
     }
 
     @Test
-    public void testMetadataWritten() throws Exception {
+    void metadataWritten() throws Exception {
         File ledgerDir = tmpDirs.createNew("compactHappyCase", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();

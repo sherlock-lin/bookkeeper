@@ -20,6 +20,10 @@
  */
 package org.apache.bookkeeper.bookie;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
@@ -31,11 +35,13 @@ import io.netty.buffer.PooledByteBufAllocator;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
@@ -60,28 +66,26 @@ import org.apache.bookkeeper.test.ZooKeeperUtil;
 import org.apache.bookkeeper.util.IOUtils;
 import org.apache.bookkeeper.util.PortManager;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestName;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * LedgerStorageCheckpointTest.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class LedgerStorageCheckpointTest {
     private static final Logger LOG = LoggerFactory
             .getLogger(LedgerStorageCheckpointTest.class);
 
-    @Rule
-    public final TestName runtime = new TestName();
+    
+    public final String runtime;
 
     // ZooKeeper related variables
     protected final ZooKeeperUtil zkUtil = new ZooKeeperUtil();
@@ -95,8 +99,12 @@ public class LedgerStorageCheckpointTest {
     private MockedStatic<GarbageCollectorThread> garbageCollectorThreadMockedStatic;
     private MockedStatic<SortedLedgerStorage> sortedLedgerStorageMockedStatic;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp(TestInfo testInfo) throws Exception {
+        Optional<Method> testMethod = testInfo.getTestMethod();
+        if (testMethod.isPresent()) {
+            this.runtime = testMethod.get().getName();
+        }
         LOG.info("Setting up test {}", getClass());
 
         try {
@@ -126,8 +134,8 @@ public class LedgerStorageCheckpointTest {
                 .thenReturn(scheduledExecutorService);
     }
 
-    @After
-    public void tearDown() throws Exception {
+    @AfterEach
+    void tearDown() throws Exception {
         LOG.info("TearDown");
 
         sortedLedgerStorageMockedStatic.close();
@@ -204,7 +212,7 @@ public class LedgerStorageCheckpointTest {
      * checkpoint is called for every flushinterval period.
      */
     @Test
-    public void testPeriodicCheckpointForInterleavedLedgerStorage() throws Exception {
+    void periodicCheckpointForInterleavedLedgerStorage() throws Exception {
         testPeriodicCheckpointForLedgerStorage(InterleavedLedgerStorage.class.getName());
     }
 
@@ -213,7 +221,7 @@ public class LedgerStorageCheckpointTest {
      * checkpoint is called for every flushinterval period.
      */
     @Test
-    public void testPeriodicCheckpointForSortedLedgerStorage() throws Exception {
+    void periodicCheckpointForSortedLedgerStorage() throws Exception {
         testPeriodicCheckpointForLedgerStorage(SortedLedgerStorage.class.getName());
     }
 
@@ -231,7 +239,7 @@ public class LedgerStorageCheckpointTest {
                 // entrylog per ledger is enabled
                 .setEntryLogPerLedgerEnabled(true)
                 .setLedgerStorageClass(ledgerStorageClassName);
-        Assert.assertEquals("Number of JournalDirs", 1, conf.getJournalDirs().length);
+        assertEquals(1, conf.getJournalDirs().length, "Number of JournalDirs");
         // we know there is only one ledgerDir
         File ledgerDir = BookieImpl.getCurrentDirectories(conf.getLedgerDirs())[0];
         BookieServer server = new BookieServer(
@@ -263,8 +271,9 @@ public class LedgerStorageCheckpointTest {
         File lastMarkFile = new File(ledgerDir, "lastMark");
         // lastMark file should be zero, because checkpoint hasn't happenend
         LogMark logMarkFileBeforeCheckpoint = readLastMarkFile(lastMarkFile);
-        Assert.assertEquals("lastMarkFile before checkpoint should be zero", 0,
-                logMarkFileBeforeCheckpoint.compare(new LogMark()));
+        assertEquals(0,
+                logMarkFileBeforeCheckpoint.compare(new LogMark()),
+                "lastMarkFile before checkpoint should be zero");
 
         // wait for flushInterval for SyncThread to do next iteration of checkpoint
         executorController.advance(Duration.ofMillis(conf.getFlushInterval()));
@@ -275,27 +284,26 @@ public class LedgerStorageCheckpointTest {
          * entrylogperledger is enabled, then we checkpoint for every
          * flushInterval period
          */
-        Assert.assertTrue("lastMark file must be existing, because checkpoint should have happened",
-                lastMarkFile.exists());
+        assertTrue(lastMarkFile.exists(),
+                "lastMark file must be existing, because checkpoint should have happened");
 
         LastLogMark lastLogMarkAfterCheckpoint = ((BookieImpl) server.getBookie()).journals.get(0).getLastLogMark();
         LogMark curMarkAfterCheckpoint = lastLogMarkAfterCheckpoint.getCurMark();
 
         LogMark rolledLogMark = readLastMarkFile(lastMarkFile);
-        Assert.assertNotEquals("rolledLogMark should not be zero, since checkpoint has happenend", 0,
-                rolledLogMark.compare(new LogMark()));
+        assertNotEquals(0,
+                rolledLogMark.compare(new LogMark()),
+                "rolledLogMark should not be zero, since checkpoint has happenend");
         /*
          * Curmark should be equal before and after checkpoint, because we didnt
          * add new entries during this period
          */
-        Assert.assertTrue("Curmark should be equal before and after checkpoint",
-                curMarkAfterCheckpoint.compare(curMarkAfterFirstSetOfAdds) == 0);
+        assertEquals(0, curMarkAfterCheckpoint.compare(curMarkAfterFirstSetOfAdds), "Curmark should be equal before and after checkpoint");
         /*
          * Curmark after checkpoint should be equal to rolled logmark, because
          * we checkpointed
          */
-        Assert.assertTrue("Curmark after first set of adds should be equal to rolled logmark",
-                curMarkAfterCheckpoint.compare(rolledLogMark) == 0);
+        assertEquals(0, curMarkAfterCheckpoint.compare(rolledLogMark), "Curmark after first set of adds should be equal to rolled logmark");
 
         // add more ledger/entries
         for (int i = numOfLedgers; i < 2 * numOfLedgers; i++) {
@@ -320,8 +328,7 @@ public class LedgerStorageCheckpointTest {
          * Curmark after checkpoint should be equal to rolled logmark, because
          * we checkpointed
          */
-        Assert.assertTrue("Curmark after second set of adds should be equal to rolled logmark",
-                curMarkAfterSecondSetOfAdds.compare(rolledLogMark) == 0);
+        assertEquals(0, curMarkAfterSecondSetOfAdds.compare(rolledLogMark), "Curmark after second set of adds should be equal to rolled logmark");
 
         server.shutdown();
         bkClient.close();
@@ -333,7 +340,7 @@ public class LedgerStorageCheckpointTest {
      * checkpoint.
      */
     @Test
-    public void testCheckpointOfILSEntryLogIsRotatedWithELPLEnabled() throws Exception {
+    void checkpointOfILSEntryLogIsRotatedWithELPLEnabled() throws Exception {
         testCheckpointofILSWhenEntryLogIsRotated(true);
     }
 
@@ -343,7 +350,7 @@ public class LedgerStorageCheckpointTest {
      * checkpoint.
      */
     @Test
-    public void testCheckpointOfILSEntryLogIsRotatedWithELPLDisabled() throws Exception {
+    void checkpointOfILSEntryLogIsRotatedWithELPLDisabled() throws Exception {
         testCheckpointofILSWhenEntryLogIsRotated(false);
     }
 
@@ -363,7 +370,7 @@ public class LedgerStorageCheckpointTest {
                 .setEntryLogPerLedgerEnabled(entryLogPerLedgerEnabled)
                 .setLedgerStorageClass(InterleavedLedgerStorage.class.getName());
 
-        Assert.assertEquals("Number of JournalDirs", 1, conf.getJournalDirs().length);
+        assertEquals(1, conf.getJournalDirs().length, "Number of JournalDirs");
         // we know there is only one ledgerDir
         File ledgerDir = BookieImpl.getCurrentDirectories(conf.getLedgerDirs())[0];
         BookieServer server = new BookieServer(
@@ -394,13 +401,12 @@ public class LedgerStorageCheckpointTest {
         File lastMarkFile = new File(ledgerDir, "lastMark");
         LogMark rolledLogMark = readLastMarkFile(lastMarkFile);
         if (entryLogPerLedgerEnabled) {
-            Assert.assertEquals(
-                    "rolledLogMark should be zero, since checkpoint"
-                            + "shouldn't have happened when entryLog is rotated",
-                    0, rolledLogMark.compare(new LogMark()));
+            assertEquals(
+                    0, rolledLogMark.compare(new LogMark()), "rolledLogMark should be zero, since checkpoint"
+                            + "shouldn't have happened when entryLog is rotated");
         } else {
-            Assert.assertNotEquals("rolledLogMark shouldn't be zero, since checkpoint"
-                    + "should have happened when entryLog is rotated", 0, rolledLogMark.compare(new LogMark()));
+            assertNotEquals(0, rolledLogMark.compare(new LogMark()), "rolledLogMark shouldn't be zero, since checkpoint"
+                    + "should have happened when entryLog is rotated");
         }
         bkClient.close();
         server.shutdown();
@@ -412,7 +418,7 @@ public class LedgerStorageCheckpointTest {
      * checkpoint.
      */
     @Test
-    public void testCheckpointOfSLSEntryLogIsRotatedWithELPLEnabled() throws Exception {
+    void checkpointOfSLSEntryLogIsRotatedWithELPLEnabled() throws Exception {
         testCheckpointOfSLSWhenEntryLogIsRotated(true);
     }
 
@@ -422,7 +428,7 @@ public class LedgerStorageCheckpointTest {
      * checkpoint.
      */
     @Test
-    public void testCheckpointOfSLSEntryLogIsRotatedWithELPLDisabled() throws Exception {
+    void checkpointOfSLSEntryLogIsRotatedWithELPLDisabled() throws Exception {
         testCheckpointOfSLSWhenEntryLogIsRotated(false);
     }
 
@@ -445,7 +451,7 @@ public class LedgerStorageCheckpointTest {
                 .setSkipListSizeLimit(1 * 1000 * 1000)
                 .setEntryLogSizeLimit(2 * 1000 * 1000);
 
-        Assert.assertEquals("Number of JournalDirs", 1, conf.getJournalDirs().length);
+        assertEquals(1, conf.getJournalDirs().length, "Number of JournalDirs");
         // we know there is only one ledgerDir
         File ledgerDir = BookieImpl.getCurrentDirectories(conf.getLedgerDirs())[0];
         BookieServer server = new BookieServer(
@@ -474,13 +480,12 @@ public class LedgerStorageCheckpointTest {
         File lastMarkFile = new File(ledgerDir, "lastMark");
         LogMark rolledLogMark = readLastMarkFile(lastMarkFile);
         if (entryLogPerLedgerEnabled) {
-            Assert.assertEquals(
-                    "rolledLogMark should be zero, since checkpoint"
-                            + "shouldn't have happened when entryLog is rotated",
-                    0, rolledLogMark.compare(new LogMark()));
+            assertEquals(
+                    0, rolledLogMark.compare(new LogMark()), "rolledLogMark should be zero, since checkpoint"
+                            + "shouldn't have happened when entryLog is rotated");
         } else {
-            Assert.assertNotEquals("rolledLogMark shouldn't be zero, since checkpoint"
-                    + "should have happened when entryLog is rotated", 0, rolledLogMark.compare(new LogMark()));
+            assertNotEquals(0, rolledLogMark.compare(new LogMark()), "rolledLogMark shouldn't be zero, since checkpoint"
+                    + "should have happened when entryLog is rotated");
         }
         bkClient.close();
         server.shutdown();
@@ -493,7 +498,7 @@ public class LedgerStorageCheckpointTest {
      *
      */
     @Test
-    public void testIfEntryLogPerLedgerEnabledCheckpointFlushesAllLogs() throws Exception {
+    void ifEntryLogPerLedgerEnabledCheckpointFlushesAllLogs() throws Exception {
         File tmpDir = createTempDir("DiskCheck", "test");
 
         final ServerConfiguration conf = TestBKConfiguration.newServerConfiguration()
@@ -511,7 +516,7 @@ public class LedgerStorageCheckpointTest {
                 // set setFlushIntervalInBytes to some very high number
                 .setFlushIntervalInBytes(10000000);
 
-        Assert.assertEquals("Number of JournalDirs", 1, conf.getJournalDirs().length);
+        assertEquals(1, conf.getJournalDirs().length, "Number of JournalDirs");
         // we know there is only one ledgerDir
         File ledgerDir = BookieImpl.getCurrentDirectories(conf.getLedgerDirs())[0];
         BookieServer server = new BookieServer(
@@ -546,11 +551,13 @@ public class LedgerStorageCheckpointTest {
 
         Set<BufferedLogChannelWithDirInfo> copyOfCurrentLogsWithDirInfo = entryLogManager.getCopyOfCurrentLogs();
         for (BufferedLogChannelWithDirInfo currentLogWithDirInfo : copyOfCurrentLogsWithDirInfo) {
-            Assert.assertNotEquals("bytesWrittenSinceLastFlush shouldn't be zero", 0,
-                    currentLogWithDirInfo.getLogChannel().getUnpersistedBytes());
+            assertNotEquals(0,
+                    currentLogWithDirInfo.getLogChannel().getUnpersistedBytes(),
+                    "bytesWrittenSinceLastFlush shouldn't be zero");
         }
-        Assert.assertNotEquals("There should be logChannelsToFlush", 0,
-                entryLogManager.getRotatedLogChannels().size());
+        assertNotEquals(0,
+                entryLogManager.getRotatedLogChannels().size(),
+                "There should be logChannelsToFlush");
 
         /*
          * wait for atleast flushInterval period, so that checkpoint can happen.
@@ -562,13 +569,14 @@ public class LedgerStorageCheckpointTest {
          * and bytesWrittenSinceLastFlush should be zero.
          */
         List<DefaultEntryLogger.BufferedLogChannel> copyOfRotatedLogChannels = entryLogManager.getRotatedLogChannels();
-        Assert.assertTrue("There shouldn't be logChannelsToFlush",
-                ((copyOfRotatedLogChannels == null) || (copyOfRotatedLogChannels.size() == 0)));
+        assertTrue(((copyOfRotatedLogChannels == null) || (copyOfRotatedLogChannels.size() == 0)),
+                "There shouldn't be logChannelsToFlush");
 
         copyOfCurrentLogsWithDirInfo = entryLogManager.getCopyOfCurrentLogs();
         for (BufferedLogChannelWithDirInfo currentLogWithDirInfo : copyOfCurrentLogsWithDirInfo) {
-            Assert.assertEquals("bytesWrittenSinceLastFlush should be zero", 0,
-                    currentLogWithDirInfo.getLogChannel().getUnpersistedBytes());
+            assertEquals(0,
+                    currentLogWithDirInfo.getLogChannel().getUnpersistedBytes(),
+                    "bytesWrittenSinceLastFlush should be zero");
         }
     }
 
@@ -603,7 +611,7 @@ public class LedgerStorageCheckpointTest {
      * 8) validate that the entries which were written can be read successfully.
      */
     @Test
-    public void testCheckPointForEntryLoggerWithMultipleActiveEntryLogs() throws Exception {
+    void checkPointForEntryLoggerWithMultipleActiveEntryLogs() throws Exception {
         File tmpDir = createTempDir("DiskCheck", "test");
 
         final ServerConfiguration conf = TestBKConfiguration.newServerConfiguration()
@@ -618,7 +626,7 @@ public class LedgerStorageCheckpointTest {
                 .setEntryLogPerLedgerEnabled(true)
                 .setLedgerStorageClass(MockInterleavedLedgerStorage.class.getName());
 
-        Assert.assertEquals("Number of JournalDirs", 1, conf.getJournalDirs().length);
+        assertEquals(1, conf.getJournalDirs().length, "Number of JournalDirs");
         // we know there is only one ledgerDir
         File ledgerDir = BookieImpl.getCurrentDirectories(conf.getLedgerDirs())[0];
         BookieServer server = new BookieServer(
@@ -661,20 +669,21 @@ public class LedgerStorageCheckpointTest {
             }
         });
 
-        Assert.assertFalse(
-                "There shouldn't be any exceptions while creating writeHandle and adding entries to writeHandle",
-                receivedExceptionForAdd.get());
+        assertFalse(
+                receivedExceptionForAdd.get(),
+                "There shouldn't be any exceptions while creating writeHandle and adding entries to writeHandle");
 
         executorController.advance(Duration.ofMillis(conf.getFlushInterval()));
         // since we have waited for more than flushInterval SyncThread should have checkpointed.
         // if entrylogperledger is not enabled, then we checkpoint only when currentLog in EntryLogger
         // is rotated. but if entrylogperledger is enabled, then we checkpoint for every flushInterval period
         File lastMarkFile = new File(ledgerDir, "lastMark");
-        Assert.assertTrue("lastMark file must be existing, because checkpoint should have happened",
-                lastMarkFile.exists());
+        assertTrue(lastMarkFile.exists(),
+                "lastMark file must be existing, because checkpoint should have happened");
         LogMark rolledLogMark = readLastMarkFile(lastMarkFile);
-        Assert.assertNotEquals("rolledLogMark should not be zero, since checkpoint has happenend", 0,
-                rolledLogMark.compare(new LogMark()));
+        assertNotEquals(0,
+                rolledLogMark.compare(new LogMark()),
+                "rolledLogMark should not be zero, since checkpoint has happenend");
 
         bkClient.close();
         // here we are calling shutdown, but MockInterleavedLedgerStorage shudown/flush
@@ -719,8 +728,9 @@ public class LedgerStorageCheckpointTest {
                 while (entries.hasMoreElements()) {
                     LedgerEntry entry = entries.nextElement();
                     byte[] readData = entry.getEntry();
-                    Assert.assertEquals("Ledger Entry Data should match", new String("data".getBytes()),
-                            new String(readData));
+                    assertEquals(new String("data".getBytes()),
+                            new String(readData),
+                            "Ledger Entry Data should match");
                 }
                 lh.close();
             } catch (BKException | InterruptedException e) {
@@ -728,8 +738,8 @@ public class LedgerStorageCheckpointTest {
                 LOG.error("Got Exception while trying to read entries of ledger, ledgerId: " + ledgerId, e);
             }
         });
-        Assert.assertFalse("There shouldn't be any exceptions while creating readHandle and while reading"
-                + "entries using readHandle", receivedExceptionForRead.get());
+        assertFalse(receivedExceptionForRead.get(), "There shouldn't be any exceptions while creating readHandle and while reading"
+                + "entries using readHandle");
 
         newBKClient.close();
         server.shutdown();

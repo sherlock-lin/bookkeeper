@@ -25,11 +25,12 @@ import static org.apache.bookkeeper.bookie.BookKeeperServerStats.BOOKIE_SCOPE;
 import static org.apache.bookkeeper.bookie.BookKeeperServerStats.LD_INDEX_SCOPE;
 import static org.apache.bookkeeper.bookie.BookKeeperServerStats.LD_LEDGER_SCOPE;
 import static org.apache.bookkeeper.util.BookKeeperConstants.AVAILABLE_NODE;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import com.google.common.base.Stopwatch;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,13 +81,10 @@ import org.apache.bookkeeper.util.DiskChecker;
 import org.apache.bookkeeper.util.PortManager;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
-import org.junit.rules.TestName;
 import org.junit.rules.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,8 +96,8 @@ public abstract class BookKeeperClusterTestCase {
 
     static final Logger LOG = LoggerFactory.getLogger(BookKeeperClusterTestCase.class);
 
-    @Rule
-    public final TestName runtime = new TestName();
+    
+    public final String runtime;
 
     @Rule
     public final Timeout globalTimeout;
@@ -162,19 +160,23 @@ public abstract class BookKeeperClusterTestCase {
         }
     }
 
-    @Before
+    @BeforeEach
     @BeforeEach
     public void setUp() throws Exception {
         setUp("/ledgers");
     }
 
-    @Before
+    @BeforeEach
     public void setTestNameJunit4() {
-        testName = runtime.getMethodName();
+        testName = runtime;
     }
 
     @BeforeEach
     void setTestNameJunit5(TestInfo testInfo) {
+        Optional<Method> testMethod = testInfo.getTestMethod();
+        if (testMethod.isPresent()) {
+            this.runtime = testMethod.get().getName();
+        }
         testName = testInfo.getDisplayName();
     }
 
@@ -203,7 +205,7 @@ public abstract class BookKeeperClusterTestCase {
         return zkUtil.getMetadataServiceUri(ledgersRootPath);
     }
 
-    @After
+    @AfterEach
     @AfterEach
     public void tearDown() throws Exception {
         boolean failed = false;
@@ -211,7 +213,7 @@ public abstract class BookKeeperClusterTestCase {
             LOG.error("Got async exception: ", e);
             failed = true;
         }
-        assertFalse("Async failure", failed);
+        assertFalse(failed, "Async failure");
         Stopwatch sw = Stopwatch.createStarted();
         LOG.info("TearDown");
         Exception tearDownException = null;

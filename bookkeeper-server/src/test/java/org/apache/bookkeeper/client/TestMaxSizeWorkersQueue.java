@@ -17,9 +17,9 @@
  */
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Lists;
 import java.util.Enumeration;
@@ -36,7 +36,7 @@ import org.apache.bookkeeper.client.AsyncCallback.AddCallback;
 import org.apache.bookkeeper.client.AsyncCallback.ReadCallback;
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test the maximum size of a worker queue.
@@ -56,7 +56,7 @@ public class TestMaxSizeWorkersQueue extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testReadRejected() throws Exception {
+    void readRejected() throws Exception {
         LedgerHandle lh = bkc.createLedger(1, 1, digestType, new byte[0]);
         byte[] content = new byte[100];
 
@@ -99,7 +99,7 @@ public class TestMaxSizeWorkersQueue extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testAddRejected() throws Exception {
+    void addRejected() throws Exception {
         LedgerHandle lh = bkc.createLedger(1, 1, digestType, new byte[0]);
         byte[] content = new byte[100];
 
@@ -131,7 +131,7 @@ public class TestMaxSizeWorkersQueue extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testRecoveryNotRejected() throws Exception {
+    void recoveryNotRejected() throws Exception {
         LedgerHandle lh = bkc.createLedger(1, 1, digestType, new byte[0]);
         byte[] content = new byte[100];
 

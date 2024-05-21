@@ -21,7 +21,8 @@ package org.apache.bookkeeper.proto;
  *
  */
 
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -50,9 +51,8 @@ import org.apache.bookkeeper.client.LedgerHandle;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.hamcrest.Matchers;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +90,7 @@ public class BookieBackpressureTest extends BookKeeperClusterTestCase
         baseClientConf.setReadEntryTimeout(100);
     }
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -153,7 +153,7 @@ public class BookieBackpressureTest extends BookKeeperClusterTestCase
     }
 
     @Test
-    public void testWriteNoBackpressureSlowJournal() throws Exception {
+    void writeNoBackpressureSlowJournal() throws Exception {
         //disable backpressure for writes
         confByIndex(0).setMaxAddsInProgressLimit(0);
         addDelay = 1;
@@ -162,7 +162,7 @@ public class BookieBackpressureTest extends BookKeeperClusterTestCase
     }
 
     @Test
-    public void testWriteNoBackpressureSlowJournalFlush() throws Exception {
+    void writeNoBackpressureSlowJournalFlush() throws Exception {
         //disable backpressure for writes
         confByIndex(0).setMaxAddsInProgressLimit(0);
         // to increase frequency of flushes
@@ -173,7 +173,7 @@ public class BookieBackpressureTest extends BookKeeperClusterTestCase
     }
 
     @Test
-    public void testWriteWithBackpressureSlowJournal() throws Exception {
+    void writeWithBackpressureSlowJournal() throws Exception {
         //enable backpressure with MAX_PENDING writes in progress
         confByIndex(0).setMaxAddsInProgressLimit(MAX_PENDING);
         flushDelay = 1;
@@ -183,7 +183,7 @@ public class BookieBackpressureTest extends BookKeeperClusterTestCase
 
 
     @Test
-    public void testWriteWithBackpressureSlowJournalFlush() throws Exception {
+    void writeWithBackpressureSlowJournalFlush() throws Exception {
         //enable backpressure with MAX_PENDING writes in progress
         confByIndex(0).setMaxAddsInProgressLimit(MAX_PENDING);
         // to increase frequency of flushes
@@ -194,7 +194,7 @@ public class BookieBackpressureTest extends BookKeeperClusterTestCase
     }
 
     @Test
-    public void testWriteNoBackpressureSlowInterleavedStorage() throws Exception {
+    void writeNoBackpressureSlowInterleavedStorage() throws Exception {
         //disable backpressure for writes
         confByIndex(0).setMaxAddsInProgressLimit(0);
         confByIndex(0).setLedgerStorageClass(SlowInterleavedLedgerStorage.class.getName());
@@ -206,7 +206,7 @@ public class BookieBackpressureTest extends BookKeeperClusterTestCase
     }
 
     @Test
-    public void testWriteWithBackpressureSlowInterleavedStorage() throws Exception {
+    void writeWithBackpressureSlowInterleavedStorage() throws Exception {
         //enable backpressure with MAX_PENDING writes in progress
         confByIndex(0).setMaxAddsInProgressLimit(MAX_PENDING);
         confByIndex(0).setLedgerStorageClass(SlowInterleavedLedgerStorage.class.getName());
@@ -218,7 +218,7 @@ public class BookieBackpressureTest extends BookKeeperClusterTestCase
     }
 
     @Test
-    public void testWriteNoBackpressureSlowInterleavedStorageFlush() throws Exception {
+    void writeNoBackpressureSlowInterleavedStorageFlush() throws Exception {
         //disable backpressure for writes
         confByIndex(0).setMaxAddsInProgressLimit(0);
         confByIndex(0).setLedgerStorageClass(SlowInterleavedLedgerStorage.class.getName());
@@ -230,7 +230,7 @@ public class BookieBackpressureTest extends BookKeeperClusterTestCase
     }
 
     @Test
-    public void testWriteWithBackpressureSlowInterleavedStorageFlush() throws Exception {
+    void writeWithBackpressureSlowInterleavedStorageFlush() throws Exception {
         //enable backpressure with MAX_PENDING writes in progress
         confByIndex(0).setMaxAddsInProgressLimit(MAX_PENDING);
         confByIndex(0).setLedgerStorageClass(SlowInterleavedLedgerStorage.class.getName());
@@ -242,15 +242,15 @@ public class BookieBackpressureTest extends BookKeeperClusterTestCase
     }
 
     @Test
-    public void testWriteNoBackpressureSortedStorage() throws Exception {
+    void writeNoBackpressureSortedStorage() throws Exception {
         //disable backpressure for writes
         confByIndex(0).setMaxAddsInProgressLimit(0);
         confByIndex(0).setLedgerStorageClass(SlowSortedLedgerStorage.class.getName());
         confByIndex(0).setWriteBufferBytes(data.length);
 
         // one for memtable being flushed, one for the part accepting the data
-        assertTrue("for the test, memtable should not keep more entries than allowed",
-                ENTRIES_IN_MEMTABLE * 2 <= MAX_PENDING);
+        assertTrue(ENTRIES_IN_MEMTABLE * 2 <= MAX_PENDING,
+                "for the test, memtable should not keep more entries than allowed");
         confByIndex(0).setSkipListSizeLimit(data.length * ENTRIES_IN_MEMTABLE - 1);
         confByIndex(0).setProperty(SlowInterleavedLedgerStorage.PROP_SLOW_STORAGE_ADD_DELAY, "1");
         confByIndex(0).setProperty(SlowInterleavedLedgerStorage.PROP_SLOW_STORAGE_FLUSH_DELAY, "10");
@@ -259,15 +259,15 @@ public class BookieBackpressureTest extends BookKeeperClusterTestCase
     }
 
     @Test
-    public void testWriteWithBackpressureSortedStorage() throws Exception {
+    void writeWithBackpressureSortedStorage() throws Exception {
         //enable backpressure with MAX_PENDING writes in progress
         confByIndex(0).setMaxAddsInProgressLimit(MAX_PENDING);
         confByIndex(0).setLedgerStorageClass(SlowSortedLedgerStorage.class.getName());
         confByIndex(0).setWriteBufferBytes(data.length);
 
         // one for memtable being flushed, one for the part accepting the data
-        assertTrue("for the test, memtable should not keep more entries than allowed",
-                ENTRIES_IN_MEMTABLE * 2 <= MAX_PENDING);
+        assertTrue(ENTRIES_IN_MEMTABLE * 2 <= MAX_PENDING,
+                "for the test, memtable should not keep more entries than allowed");
         confByIndex(0).setSkipListSizeLimit(data.length * ENTRIES_IN_MEMTABLE - 1);
         confByIndex(0).setProperty(SlowInterleavedLedgerStorage.PROP_SLOW_STORAGE_ADD_DELAY, "1");
         confByIndex(0).setProperty(SlowInterleavedLedgerStorage.PROP_SLOW_STORAGE_FLUSH_DELAY, "10");
@@ -276,7 +276,7 @@ public class BookieBackpressureTest extends BookKeeperClusterTestCase
     }
 
     @Test
-    public void testReadsNoBackpressure() throws Exception {
+    void readsNoBackpressure() throws Exception {
         //disable backpressure for reads
         confByIndex(0).setMaxReadsInProgressLimit(0);
         confByIndex(0).setLedgerStorageClass(SlowInterleavedLedgerStorage.class.getName());
@@ -286,12 +286,12 @@ public class BookieBackpressureTest extends BookKeeperClusterTestCase
 
         final BookieRequestProcessor brp = generateDataAndDoReads(0);
 
-        Assert.assertThat("reads in progress should exceed MAX_PENDING",
+        assertThat("reads in progress should exceed MAX_PENDING",
                 brp.maxReadsInProgressCount(), Matchers.greaterThan(MAX_PENDING));
     }
 
-   @Test
-    public void testReadsWithBackpressure() throws Exception {
+    @Test
+    void readsWithBackpressure() throws Exception {
         //enable backpressure for reads
         confByIndex(0).setMaxReadsInProgressLimit(MAX_PENDING);
         confByIndex(0).setLedgerStorageClass(SlowInterleavedLedgerStorage.class.getName());
@@ -301,12 +301,12 @@ public class BookieBackpressureTest extends BookKeeperClusterTestCase
 
         final BookieRequestProcessor brp = generateDataAndDoReads(0);
 
-        Assert.assertThat("reads in progress should NOT exceed MAX_PENDING ",
+        assertThat("reads in progress should NOT exceed MAX_PENDING ",
                 brp.maxReadsInProgressCount(), Matchers.lessThanOrEqualTo(MAX_PENDING));
     }
 
     private BookieRequestProcessor generateDataAndDoReads(final int bkId) throws Exception {
-        Assert.assertThat("should be only one bookie",
+        assertThat("should be only one bookie",
                           bookieCount(), Matchers.equalTo(1));
         ServerConfiguration conf = killBookie(0);
         BookieServer bks = startAndAddBookie(conf,
@@ -347,7 +347,7 @@ public class BookieBackpressureTest extends BookKeeperClusterTestCase
     // here we expect that backpressure is disabled and number of writes in progress
     // will exceed the limit
     private void doWritesNoBackpressure(final int bkId) throws Exception {
-        Assert.assertThat("should be only one bookie",
+        assertThat("should be only one bookie",
                           bookieCount(), Matchers.equalTo(1));
         ServerConfiguration conf = killBookie(0);
         BookieServer bks = startAndAddBookie(conf,
@@ -382,7 +382,7 @@ public class BookieBackpressureTest extends BookKeeperClusterTestCase
                     val, MAX_PENDING);
         }
 
-        assertTrue("expected to exceed number of pending writes", exceededLimit);
+        assertTrue(exceededLimit, "expected to exceed number of pending writes");
 
         for (int i = 0; i < NUM_OF_LEDGERS; i++) {
             lhs[i].close();
@@ -392,7 +392,7 @@ public class BookieBackpressureTest extends BookKeeperClusterTestCase
     // here we expect that backpressure is enabled and number of writes in progress
     // will never exceed the limit
     private void doWritesWithBackpressure(final int bkId) throws Exception {
-        Assert.assertThat("should be only one bookie",
+        assertThat("should be only one bookie",
                           bookieCount(), Matchers.equalTo(1));
         ServerConfiguration conf = killBookie(0);
         BookieServer bks = startAndAddBookie(conf,
@@ -423,7 +423,7 @@ public class BookieBackpressureTest extends BookKeeperClusterTestCase
         BookieRequestProcessor brp = bks.getBookieRequestProcessor();
         while (!completeLatch.await(1, TimeUnit.MILLISECONDS)) {
             int val = brp.maxAddsInProgressCount();
-            assertTrue("writes in progress should not exceed limit, got " + val, val <= MAX_PENDING);
+            assertTrue(val <= MAX_PENDING, "writes in progress should not exceed limit, got " + val);
             LOG.info("Waiting for all writes to succeed, left {} of {}",
                     completeLatch.getCount(), NUM_ENTRIES_TO_WRITE * NUM_OF_LEDGERS);
         }

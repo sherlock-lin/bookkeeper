@@ -21,6 +21,11 @@
 
 package org.apache.bookkeeper.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -32,14 +37,13 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test the subtree cache.
  */
-public class SubTreeCacheTest {
+class SubTreeCacheTest {
     class TestTreeProvider implements SubTreeCache.TreeProvider {
         class Node {
             Watcher watcher = null;
@@ -70,7 +74,7 @@ public class SubTreeCacheTest {
             Node node = getNode(path);
 
             /* Enforce only one live watch per node */
-            Assert.assertTrue(null == node.watcher);
+            assertTrue(null == node.watcher);
 
             node.watcher = watcher;
             return new ArrayList<String>(node.children.keySet());
@@ -160,11 +164,11 @@ public class SubTreeCacheTest {
     }
 
     void assertFired(TestWatch watch) {
-        Assert.assertTrue(watch.getFired());
+        assertTrue(watch.getFired());
     }
 
     void assertNotFired(TestWatch watch) {
-        Assert.assertFalse(watch.getFired());
+        assertFalse(watch.getFired());
     }
 
     class TestWatchGuard extends TestWatch implements AutoCloseable {
@@ -191,11 +195,11 @@ public class SubTreeCacheTest {
         List<String> returned = cache.getChildren(path);
         SortedSet<String> is = new TreeSet<String>(returned);
         returned.clear(); // trip up implementations which return an internal reference
-        Assert.assertEquals(shouldBe, is);
+        assertEquals(shouldBe, is);
     }
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() throws Exception {
         String[] preCreate =
                 {"/a"
                         , "/a/a"
@@ -212,14 +216,14 @@ public class SubTreeCacheTest {
     }
 
     @Test
-    public void testNoUpdate() throws Exception {
+    void noUpdate() throws Exception {
         TestWatch watch = setWatch();
         readAssertChildren("/a/a", new String[]{"a", "b"});
         assertNotFired(watch);
     }
 
     @Test
-    public void testSingleCreate() throws Exception {
+    void singleCreate() throws Exception {
         TestWatch watch = setWatch();
         readAssertChildren("/a/a", new String[]{"a", "b"});
         tree.createNode("/a/a/c");
@@ -227,7 +231,7 @@ public class SubTreeCacheTest {
     }
 
     @Test
-    public void testSingleRemoval() throws Exception {
+    void singleRemoval() throws Exception {
         TestWatch watch = setWatch();
         readAssertChildren("/a/a", new String[]{"a", "b"});
         tree.removeNode("/a/a/b");
@@ -235,7 +239,7 @@ public class SubTreeCacheTest {
     }
 
     @Test
-    public void testCancelation() throws Exception {
+    void cancelation() throws Exception {
         TestWatch watch = setWatch();
         readAssertChildren("/a/a", new String[]{"a", "b"});
         cache.cancelWatcher(watch);
@@ -244,7 +248,7 @@ public class SubTreeCacheTest {
     }
 
     @Test
-    public void testGuardCancelation() throws Exception {
+    void guardCancelation() throws Exception {
         TestWatch watch;
         try (TestWatchGuard guard = setWatchWithGuard()) {
             readAssertChildren("/a/a", new String[]{"a", "b"});
@@ -255,7 +259,7 @@ public class SubTreeCacheTest {
     }
 
     @Test
-    public void testGuardCancelationExceptional() throws Exception {
+    void guardCancelationExceptional() throws Exception {
         TestWatch watch = null;
         try (TestWatchGuard guard = setWatchWithGuard()) {
             watch = guard;
@@ -267,7 +271,7 @@ public class SubTreeCacheTest {
     }
 
     @Test
-    public void testDuplicateWatch() throws Exception {
+    void duplicateWatch() throws Exception {
         try (TestWatchGuard watch = setWatchWithGuard()) {
             readAssertChildren("/a/a", new String[]{"a", "b"});
         }
@@ -279,15 +283,17 @@ public class SubTreeCacheTest {
         }
     }
 
-    @Test(expected = NoNodeException.class)
-    public void testNoNode() throws Exception {
-        try (TestWatchGuard watch = setWatchWithGuard()) {
-            readAssertChildren("/z/a", new String[]{});
-        }
+    @Test
+    void noNode() throws Exception {
+        assertThrows(NoNodeException.class, () -> {
+            try (TestWatchGuard watch = setWatchWithGuard()) {
+                readAssertChildren("/z/a", new String[]{});
+            }
+        });
     }
 
     @Test
-    public void testRemoveEmptyNode() throws Exception {
+    void removeEmptyNode() throws Exception {
         try (TestWatchGuard watch = setWatchWithGuard()) {
             readAssertChildren("/a/a/a", new String[]{});
             tree.removeNode("/a/a/a");
@@ -296,7 +302,7 @@ public class SubTreeCacheTest {
     }
 
     @Test
-    public void doubleWatch() throws Exception {
+    void doubleWatch() throws Exception {
         try (TestWatchGuard watch1 = setWatchWithGuard()) {
             readAssertChildren("/a/a", new String[]{"a", "b"});
             try (TestWatchGuard watch2 = setWatchWithGuard()) {
@@ -310,7 +316,7 @@ public class SubTreeCacheTest {
     }
 
     @Test
-    public void sequentialWatch() throws Exception {
+    void sequentialWatch() throws Exception {
         try (TestWatchGuard watch = setWatchWithGuard()) {
             readAssertChildren("/a/a", new String[]{"a", "b"});
             tree.removeNode("/a/a/a");

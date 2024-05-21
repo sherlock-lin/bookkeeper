@@ -17,8 +17,8 @@
  */
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,27 +32,24 @@ import org.apache.bookkeeper.bookie.storage.ldb.DbLedgerStorage;
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 /**
  * Test read last confirmed long by polling.
  */
-@RunWith(Parameterized.class)
 public class TestReadLastConfirmedLongPoll extends BookKeeperClusterTestCase {
     private static final Logger log = LoggerFactory.getLogger(TestReadLastConfirmedLongPoll.class);
-    final DigestType digestType;
+    DigestType digestType;
 
-    public TestReadLastConfirmedLongPoll(Class<? extends LedgerStorage> storageClass) {
+    public void initTestReadLastConfirmedLongPoll(Class<? extends LedgerStorage> storageClass) {
         super(6);
         this.digestType = DigestType.CRC32;
         baseConf.setLedgerStorageClass(storageClass.getName());
     }
 
-    @Parameters
     public static Collection<Object[]> configs() {
         return Arrays.asList(new Object[][] {
             { InterleavedLedgerStorage.class },
@@ -61,8 +58,10 @@ public class TestReadLastConfirmedLongPoll extends BookKeeperClusterTestCase {
         });
     }
 
-    @Test
-    public void testReadLACLongPollWhenAllBookiesUp() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void readLACLongPollWhenAllBookiesUp(Class<? extends LedgerStorage> storageClass) throws Exception {
+        initTestReadLastConfirmedLongPoll(storageClass);
         final int numEntries = 3;
 
         final LedgerHandle lh = bkc.createLedger(3, 3, 1, digestType, "".getBytes());
@@ -89,7 +88,7 @@ public class TestReadLastConfirmedLongPoll extends BookKeeperClusterTestCase {
         }, null);
         firstReadComplete.await();
         assertTrue(success.get());
-        assertTrue(numCallbacks.get() == 1);
+        assertEquals(1, numCallbacks.get());
         assertEquals(numEntries - 3, readLh.getLastAddConfirmed());
         // try read last confirmed again
         success.set(false);
@@ -112,7 +111,7 @@ public class TestReadLastConfirmedLongPoll extends BookKeeperClusterTestCase {
         lh.addEntry(("data" + (numEntries - 1)).getBytes());
         secondReadComplete.await();
         assertTrue(success.get());
-        assertTrue(numCallbacks.get() == 1);
+        assertEquals(1, numCallbacks.get());
         assertEquals(numEntries - 2, readLh.getLastAddConfirmed());
 
         success.set(false);
@@ -134,14 +133,16 @@ public class TestReadLastConfirmedLongPoll extends BookKeeperClusterTestCase {
         lh.addEntry(("data" + numEntries).getBytes());
         thirdReadComplete.await();
         assertTrue(success.get());
-        assertTrue(numCallbacks.get() == 1);
+        assertEquals(1, numCallbacks.get());
         assertEquals(numEntries - 1, readLh.getLastAddConfirmed());
         lh.close();
         readLh.close();
     }
 
-    @Test
-    public void testReadLACLongPollWhenSomeBookiesDown() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void readLACLongPollWhenSomeBookiesDown(Class<? extends LedgerStorage> storageClass) throws Exception {
+        initTestReadLastConfirmedLongPoll(storageClass);
         final int numEntries = 3;
         final LedgerHandle lh = bkc.createLedger(3, 1, 1, digestType, "".getBytes());
         LedgerHandle readLh = bkc.openLedgerNoRecovery(lh.getId(), digestType, "".getBytes());
@@ -180,7 +181,7 @@ public class TestReadLastConfirmedLongPoll extends BookKeeperClusterTestCase {
             readComplete.await();
             assertTrue(success.get());
             assertTrue(entryAsExpected.get());
-            assertTrue(numCallbacks.get() == 1);
+            assertEquals(1, numCallbacks.get());
 
             lh.close();
             readLh.close();

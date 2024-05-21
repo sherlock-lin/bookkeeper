@@ -19,10 +19,10 @@
  */
 package org.apache.bookkeeper.replication;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.net.URI;
@@ -55,7 +55,9 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.data.Stat;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,6 +96,7 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
         setAutoRecoveryEnabled(true);
     }
 
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -119,6 +122,7 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
         ledgerManager = mFactory.newLedgerManager();
     }
 
+    @AfterEach
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
@@ -145,7 +149,7 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
      * picking up the entries and finishing the rereplication of open ledger.
      */
     @Test
-    public void testOpenLedgers() throws Exception {
+    void openLedgers() throws Exception {
         List<LedgerHandle> listOfLedgerHandle = createLedgersAndAddEntries(1, 5);
         LedgerHandle lh = listOfLedgerHandle.get(0);
         int ledgerReplicaIndex = 0;
@@ -155,8 +159,8 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
         ledgerReplicaIndex = getReplicaIndexInLedger(lh, replicaToKillAddr);
 
         CountDownLatch latch = new CountDownLatch(1);
-        assertNull("UrLedger already exists!",
-                watchUrLedgerNode(urLedgerZNode, latch));
+        assertNull(watchUrLedgerNode(urLedgerZNode, latch),
+                "UrLedger already exists!");
 
         LOG.info("Killing Bookie :" + replicaToKillAddr);
         killBookie(replicaToKillAddr);
@@ -166,8 +170,8 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
         latch = new CountDownLatch(1);
         LOG.info("Watching on urLedgerPath:" + urLedgerZNode
                 + " to know the status of rereplication process");
-        assertNotNull("UrLedger doesn't exists!",
-                watchUrLedgerNode(urLedgerZNode, latch));
+        assertNotNull(watchUrLedgerNode(urLedgerZNode, latch),
+                "UrLedger doesn't exists!");
 
         // starting the replication service, so that he will be able to act as
         // target bookie
@@ -193,7 +197,7 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
      * picking up the entries and finishing the rereplication of closed ledgers.
      */
     @Test
-    public void testClosedLedgers() throws Exception {
+    void closedLedgers() throws Exception {
         List<Integer> listOfReplicaIndex = new ArrayList<Integer>();
         List<LedgerHandle> listOfLedgerHandle = createLedgersAndAddEntries(1, 5);
         closeLedgers(listOfLedgerHandle);
@@ -205,8 +209,8 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
         for (LedgerHandle lh : listOfLedgerHandle) {
             ledgerReplicaIndex = getReplicaIndexInLedger(lh, replicaToKillAddr);
             listOfReplicaIndex.add(ledgerReplicaIndex);
-            assertNull("UrLedger already exists!",
-                    watchUrLedgerNode(getUrLedgerZNode(lh), latch));
+            assertNull(watchUrLedgerNode(getUrLedgerZNode(lh), latch),
+                    "UrLedger already exists!");
         }
 
         LOG.info("Killing Bookie :" + replicaToKillAddr);
@@ -221,8 +225,8 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
             String urLedgerZNode = getUrLedgerZNode(lh);
             LOG.info("Watching on urLedgerPath:" + urLedgerZNode
                     + " to know the status of rereplication process");
-            assertNotNull("UrLedger doesn't exists!",
-                    watchUrLedgerNode(urLedgerZNode, latch));
+            assertNotNull(watchUrLedgerNode(urLedgerZNode, latch),
+                    "UrLedger doesn't exists!");
         }
 
         // starting the replication service, so that he will be able to act as
@@ -255,7 +259,7 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
      * restarting should be able to finish the re-replication activities
      */
     @Test
-    public void testStopWhileReplicationInProgress() throws Exception {
+    void stopWhileReplicationInProgress() throws Exception {
         int numberOfLedgers = 2;
         List<Integer> listOfReplicaIndex = new ArrayList<Integer>();
         List<LedgerHandle> listOfLedgerHandle = createLedgersAndAddEntries(
@@ -271,8 +275,8 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
         for (int i = 0; i < listOfLedgerHandle.size(); i++) {
             final String urLedgerZNode = getUrLedgerZNode(listOfLedgerHandle
                     .get(i));
-            assertNull("UrLedger already exists!",
-                    watchUrLedgerNode(urLedgerZNode, latch));
+            assertNull(watchUrLedgerNode(urLedgerZNode, latch),
+                    "UrLedger already exists!");
             int replicaIndexInLedger = getReplicaIndexInLedger(
                     listOfLedgerHandle.get(i), replicaToKillAddr);
             listOfReplicaIndex.add(replicaIndexInLedger);
@@ -290,8 +294,8 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
             String urLedgerZNode = getUrLedgerZNode(lh);
             LOG.info("Watching on urLedgerPath:" + urLedgerZNode
                     + " to know the status of rereplication process");
-            assertNotNull("UrLedger doesn't exists!",
-                    watchUrLedgerNode(urLedgerZNode, latch));
+            assertNotNull(watchUrLedgerNode(urLedgerZNode, latch),
+                    "UrLedger doesn't exists!");
         }
 
         // starting the replication service, so that he will be able to act as
@@ -335,12 +339,12 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
      * by the newly selected replica bookie.
      */
     @Test
-    public void testNoSuchLedgerExists() throws Exception {
+    void noSuchLedgerExists() throws Exception {
         List<LedgerHandle> listOfLedgerHandle = createLedgersAndAddEntries(2, 5);
         CountDownLatch latch = new CountDownLatch(listOfLedgerHandle.size());
         for (LedgerHandle lh : listOfLedgerHandle) {
-            assertNull("UrLedger already exists!",
-                    watchUrLedgerNode(getUrLedgerZNode(lh), latch));
+            assertNull(watchUrLedgerNode(getUrLedgerZNode(lh), latch),
+                    "UrLedger already exists!");
         }
         BookieId replicaToKillAddr = listOfLedgerHandle.get(0)
             .getLedgerMetadata().getAllEnsembles()
@@ -355,8 +359,8 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
 
         latch = new CountDownLatch(listOfLedgerHandle.size());
         for (LedgerHandle lh : listOfLedgerHandle) {
-            assertNotNull("UrLedger doesn't exists!",
-                    watchUrLedgerNode(getUrLedgerZNode(lh), latch));
+            assertNotNull(watchUrLedgerNode(getUrLedgerZNode(lh), latch),
+                    "UrLedger doesn't exists!");
         }
 
         // delete ledgers
@@ -369,8 +373,8 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
         latch.await();
 
         for (LedgerHandle lh : listOfLedgerHandle) {
-            assertNull("UrLedger still exists after rereplication",
-                    watchUrLedgerNode(getUrLedgerZNode(lh), latch));
+            assertNull(watchUrLedgerNode(getUrLedgerZNode(lh), latch),
+                    "UrLedger still exists after rereplication");
         }
     }
 
@@ -379,7 +383,7 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
      * still be openable when it loses enough bookies to lose a whole quorum.
      */
     @Test
-    public void testEmptyLedgerLosesQuorumEventually() throws Exception {
+    void emptyLedgerLosesQuorumEventually() throws Exception {
         LedgerHandle lh = bkc.createLedger(3, 2, 2, DigestType.CRC32, PASSWD);
         CountDownLatch latch = new CountDownLatch(1);
         String urZNode = getUrLedgerZNode(lh);
@@ -393,11 +397,11 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
 
         getAuditor(10, TimeUnit.SECONDS).submitAuditTask().get(); // ensure auditor runs
 
-        assertTrue("Should be marked as underreplicated", latch.await(5, TimeUnit.SECONDS));
+        assertTrue(latch.await(5, TimeUnit.SECONDS), "Should be marked as underreplicated");
         latch = new CountDownLatch(1);
         Stat s = watchUrLedgerNode(urZNode, latch); // should be marked as replicated
         if (s != null) {
-            assertTrue("Should be marked as replicated", latch.await(15, TimeUnit.SECONDS));
+            assertTrue(latch.await(15, TimeUnit.SECONDS), "Should be marked as replicated");
         }
 
         replicaToKill = lh.getLedgerMetadata().getAllEnsembles().get(0L).get(1);
@@ -407,7 +411,7 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
 
         getAuditor(10, TimeUnit.SECONDS).submitAuditTask().get(); // ensure auditor runs
 
-        assertTrue("Should be marked as underreplicated", latch.await(5, TimeUnit.SECONDS));
+        assertTrue(latch.await(5, TimeUnit.SECONDS), "Should be marked as underreplicated");
         latch = new CountDownLatch(1);
         s = watchUrLedgerNode(urZNode, latch); // should be marked as replicated
 
@@ -415,7 +419,7 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
         getAuditor(10, TimeUnit.SECONDS).submitAuditTask().get(); // ensure auditor runs
 
         if (s != null) {
-            assertTrue("Should be marked as replicated", latch.await(20, TimeUnit.SECONDS));
+            assertTrue(latch.await(20, TimeUnit.SECONDS), "Should be marked as replicated");
         }
 
         // should be able to open ledger without issue
@@ -427,7 +431,7 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
      * ledgermetadata).
      */
     @Test
-    public void testLedgerMetadataContainsIpAddressAsBookieID()
+    void ledgerMetadataContainsIpAddressAsBookieID()
             throws Exception {
         stopBKCluster();
         bkc = new BookKeeperTestClient(baseClientConf);
@@ -460,8 +464,8 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
         ledgerReplicaIndex = getReplicaIndexInLedger(lh, replicaToKillAddr);
 
         CountDownLatch latch = new CountDownLatch(1);
-        assertNull("UrLedger already exists!",
-                watchUrLedgerNode(urLedgerZNode, latch));
+        assertNull(watchUrLedgerNode(urLedgerZNode, latch),
+                "UrLedger already exists!");
 
         LOG.info("Killing Bookie :" + replicaToKillAddr);
         killBookie(replicaToKillAddr);
@@ -471,8 +475,8 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
         latch = new CountDownLatch(1);
         LOG.info("Watching on urLedgerPath:" + urLedgerZNode
                 + " to know the status of rereplication process");
-        assertNotNull("UrLedger doesn't exists!",
-                watchUrLedgerNode(urLedgerZNode, latch));
+        assertNotNull(watchUrLedgerNode(urLedgerZNode, latch),
+                "UrLedger doesn't exists!");
 
         // starting the replication service, so that he will be able to act as
         // target bookie
@@ -502,7 +506,7 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
      * ledgermetadata).
      */
     @Test
-    public void testLedgerMetadataContainsHostNameAsBookieID()
+    void ledgerMetadataContainsHostNameAsBookieID()
             throws Exception {
         stopBKCluster();
 
@@ -536,8 +540,8 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
         ledgerReplicaIndex = getReplicaIndexInLedger(lh, replicaToKillAddr);
 
         CountDownLatch latch = new CountDownLatch(1);
-        assertNull("UrLedger already exists!",
-                watchUrLedgerNode(urLedgerZNode, latch));
+        assertNull(watchUrLedgerNode(urLedgerZNode, latch),
+                "UrLedger already exists!");
 
         LOG.info("Killing Bookie :" + replicaToKillAddr);
         killBookie(replicaToKillAddr);
@@ -547,8 +551,8 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
         latch = new CountDownLatch(1);
         LOG.info("Watching on urLedgerPath:" + urLedgerZNode
                 + " to know the status of rereplication process");
-        assertNotNull("UrLedger doesn't exists!",
-                watchUrLedgerNode(urLedgerZNode, latch));
+        assertNotNull(watchUrLedgerNode(urLedgerZNode, latch),
+                "UrLedger doesn't exists!");
 
         // creates new bkclient
         bkc = new BookKeeperTestClient(baseClientConf);
@@ -595,9 +599,10 @@ public class BookieAutoRecoveryTest extends BookKeeperClusterTestCase {
 
         BookieId inetSocketAddress = openLedger.getLedgerMetadata().getAllEnsembles().get(0L)
                 .get(ledgerReplicaIndex);
-        assertEquals("Rereplication has been failed and ledgerReplicaIndex :"
-                + ledgerReplicaIndex, newBookieServer.getBookieId(),
-                inetSocketAddress);
+        assertEquals(newBookieServer.getBookieId(),
+                inetSocketAddress,
+                "Rereplication has been failed and ledgerReplicaIndex :"
+                + ledgerReplicaIndex);
         openLedger.close();
     }
 

@@ -18,6 +18,8 @@
 package org.apache.bookkeeper.meta;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.google.common.collect.Lists;
 import java.io.IOException;
@@ -28,13 +30,12 @@ import org.apache.bookkeeper.client.LedgerMetadataBuilder;
 import org.apache.bookkeeper.client.api.DigestType;
 import org.apache.bookkeeper.client.api.LedgerMetadata;
 import org.apache.bookkeeper.net.BookieSocketAddress;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test Ledger Metadata serialization and deserialization.
  */
-public class TestLedgerMetadataSerDe {
+class TestLedgerMetadataSerDe {
     // as used in 4.0.x & 4.1.x
     private static final String version1 =
         "Qm9va2llTWV0YWRhdGFGb3JtYXRWZXJzaW9uCTEKMgozCjAKMAkxOTIuMC4yLjE6MTIzNAkxOTIu"
@@ -69,60 +70,68 @@ public class TestLedgerMetadataSerDe {
         LedgerMetadata md = serDe.parseConfig(Base64.getDecoder().decode(encoded), 59L, Optional.empty());
         String reserialized = Base64.getEncoder().encodeToString(serDe.serialize(md));
 
-        Assert.assertEquals(encoded, reserialized);
+        assertEquals(encoded, reserialized);
     }
 
     @Test
-    public void testVersion1SerDe() throws Exception {
+    void version1SerDe() throws Exception {
         testDecodeEncode(version1);
     }
 
     @Test
-    public void testVersion2SerDe() throws Exception {
+    void version2SerDe() throws Exception {
         testDecodeEncode(version2);
     }
 
     @Test
-    public void testVersion2CtimeSerDe() throws Exception {
+    void version2CtimeSerDe() throws Exception {
         testDecodeEncode(version2ctime);
     }
 
     @Test
-    public void testVersion3SerDe() throws Exception {
+    void version3SerDe() throws Exception {
         testDecodeEncode(version3);
     }
 
-    @Test(expected = IOException.class)
-    public void testJunkSerDe() throws Exception {
-        LedgerMetadataSerDe serDe = new LedgerMetadataSerDe();
-        String junk = "";
-        serDe.parseConfig(junk.getBytes(UTF_8), 59L, Optional.empty());
-    }
-
-    @Test(expected = IOException.class)
-    public void testJunk2SerDe() throws Exception {
-        byte[] randomBytes = new byte[1000];
-        new Random().nextBytes(randomBytes);
-        LedgerMetadataSerDe serDe = new LedgerMetadataSerDe();
-        serDe.parseConfig(randomBytes, 59L, Optional.empty());
-    }
-
-    @Test(expected = IOException.class)
-    public void testJunkVersionSerDe() throws Exception {
-        byte[] junkVersion = "BookieMetadataFormatVersion\tfoobar\nblahblah".getBytes(UTF_8);
-        LedgerMetadataSerDe serDe = new LedgerMetadataSerDe();
-        serDe.parseConfig(junkVersion, 59L, Optional.empty());
-    }
-
-    @Test(expected = IOException.class)
-    public void testVeryLongVersionSerDe() throws Exception {
-        byte[] veryLongVersion = "BookieMetadataFormatVersion\t123456789123456789\nblahblah".getBytes(UTF_8);
-        LedgerMetadataSerDe serDe = new LedgerMetadataSerDe();
-        serDe.parseConfig(veryLongVersion, 59L, Optional.empty());
+    @Test
+    void junkSerDe() throws Exception {
+        assertThrows(IOException.class, () -> {
+            LedgerMetadataSerDe serDe = new LedgerMetadataSerDe();
+            String junk = "";
+            serDe.parseConfig(junk.getBytes(UTF_8), 59L, Optional.empty());
+        });
     }
 
     @Test
-    public void testPeggedToV3SerDe() throws Exception {
+    void junk2SerDe() throws Exception {
+        assertThrows(IOException.class, () -> {
+            byte[] randomBytes = new byte[1000];
+            new Random().nextBytes(randomBytes);
+            LedgerMetadataSerDe serDe = new LedgerMetadataSerDe();
+            serDe.parseConfig(randomBytes, 59L, Optional.empty());
+        });
+    }
+
+    @Test
+    void junkVersionSerDe() throws Exception {
+        assertThrows(IOException.class, () -> {
+            byte[] junkVersion = "BookieMetadataFormatVersion\tfoobar\nblahblah".getBytes(UTF_8);
+            LedgerMetadataSerDe serDe = new LedgerMetadataSerDe();
+            serDe.parseConfig(junkVersion, 59L, Optional.empty());
+        });
+    }
+
+    @Test
+    void veryLongVersionSerDe() throws Exception {
+        assertThrows(IOException.class, () -> {
+            byte[] veryLongVersion = "BookieMetadataFormatVersion\t123456789123456789\nblahblah".getBytes(UTF_8);
+            LedgerMetadataSerDe serDe = new LedgerMetadataSerDe();
+            serDe.parseConfig(veryLongVersion, 59L, Optional.empty());
+        });
+    }
+
+    @Test
+    void peggedToV3SerDe() throws Exception {
         LedgerMetadataSerDe serDe = new LedgerMetadataSerDe();
         LedgerMetadata metadata = LedgerMetadataBuilder.create().withId(13L)
             .withEnsembleSize(3).withWriteQuorumSize(2).withAckQuorumSize(1)
@@ -134,11 +143,11 @@ public class TestLedgerMetadataSerDe {
         byte[] encoded = serDe.serialize(metadata);
 
         LedgerMetadata decoded = serDe.parseConfig(encoded, 59L, Optional.empty());
-        Assert.assertEquals(LedgerMetadataSerDe.METADATA_FORMAT_VERSION_3, decoded.getMetadataFormatVersion());
+        assertEquals(LedgerMetadataSerDe.METADATA_FORMAT_VERSION_3, decoded.getMetadataFormatVersion());
     }
 
     @Test
-    public void testStoreSystemtimeAsLedgerCtimeEnabledWithNewerVersion()
+    void storeSystemtimeAsLedgerCtimeEnabledWithNewerVersion()
             throws Exception {
         LedgerMetadata lm = LedgerMetadataBuilder.create().withId(13L)
             .withEnsembleSize(3).withWriteQuorumSize(2).withAckQuorumSize(1)
@@ -152,15 +161,15 @@ public class TestLedgerMetadataSerDe {
         LedgerMetadataSerDe serDe = new LedgerMetadataSerDe();
         byte[] serialized = serDe.serialize(lm);
         LedgerMetadata deserialized = serDe.parseConfig(serialized, 59L, Optional.of(654321L));
-        Assert.assertEquals(deserialized.getCtime(), 123456L);
+        assertEquals(123456L, deserialized.getCtime());
 
         // give it another round
         LedgerMetadata deserialized2 = serDe.parseConfig(serDe.serialize(deserialized), 59L, Optional.of(98765L));
-        Assert.assertEquals(deserialized2.getCtime(), 123456L);
+        assertEquals(123456L, deserialized2.getCtime());
     }
 
     @Test
-    public void testStoreSystemtimeAsLedgerCtimeDisabledWithNewerVersion()
+    void storeSystemtimeAsLedgerCtimeDisabledWithNewerVersion()
             throws Exception {
         LedgerMetadata lm = LedgerMetadataBuilder.create().withId(13L)
             .withEnsembleSize(3).withWriteQuorumSize(2).withAckQuorumSize(1)
@@ -172,10 +181,10 @@ public class TestLedgerMetadataSerDe {
         LedgerMetadataSerDe serDe = new LedgerMetadataSerDe();
         byte[] serialized = serDe.serialize(lm);
         LedgerMetadata deserialized = serDe.parseConfig(serialized, 59L, Optional.of(654321L));
-        Assert.assertEquals(654321L, deserialized.getCtime());
+        assertEquals(654321L, deserialized.getCtime());
 
         // give it another round
         LedgerMetadata deserialized2 = serDe.parseConfig(serDe.serialize(deserialized), 59L, Optional.of(98765L));
-        Assert.assertEquals(98765L, deserialized2.getCtime());
+        assertEquals(98765L, deserialized2.getCtime());
     }
 }

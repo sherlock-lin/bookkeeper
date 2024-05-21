@@ -21,12 +21,12 @@
 
 package org.apache.bookkeeper.meta;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
@@ -79,7 +79,7 @@ import org.apache.bookkeeper.stats.StatsLogger;
 import org.apache.bookkeeper.test.TestStatsProvider;
 import org.apache.bookkeeper.versioning.Version;
 import org.apache.bookkeeper.versioning.Versioned;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -159,7 +159,7 @@ public class GcLedgersTest extends LedgerManagerTestCase {
     }
 
     @Test
-    public void testGarbageCollectLedgers() throws Exception {
+    void garbageCollectLedgers() throws Exception {
         int numLedgers = 100;
         int numRemovedLedgers = 10;
 
@@ -247,13 +247,11 @@ public class GcLedgersTest extends LedgerManagerTestCase {
         for (Long ledger : createdLedgers) {
             assertTrue(activeLedgers.containsKey(ledger));
         }
-        assertTrue(
-                "Wrong ACTIVE_LEDGER_COUNT",
-                garbageCollector.getNumActiveLedgers() == createdLedgers.size());
+        assertEquals(garbageCollector.getNumActiveLedgers(), createdLedgers.size(), "Wrong ACTIVE_LEDGER_COUNT");
     }
 
     @Test
-    public void testGcLedgersOutsideRange() throws Exception {
+    void gcLedgersOutsideRange() throws Exception {
         final SortedSet<Long> createdLedgers = Collections.synchronizedSortedSet(new TreeSet<Long>());
         final Queue<Long> cleaned = new LinkedList<Long>();
         int numLedgers = 100;
@@ -279,32 +277,28 @@ public class GcLedgersTest extends LedgerManagerTestCase {
             };
 
         garbageCollector.gc(cleaner);
-        assertNull("Should have cleaned nothing", cleaned.poll());
-        assertTrue(
-                "Wrong ACTIVE_LEDGER_COUNT",
-                garbageCollector.getNumActiveLedgers() == numLedgers);
+        assertNull(cleaned.poll(), "Should have cleaned nothing");
+        assertEquals(garbageCollector.getNumActiveLedgers(), numLedgers, "Wrong ACTIVE_LEDGER_COUNT");
 
         long last = createdLedgers.last();
         removeLedger(last);
         garbageCollector.gc(cleaner);
-        assertNotNull("Should have cleaned something", cleaned.peek());
-        assertEquals("Should have cleaned last ledger" + last, (long) last, (long) cleaned.poll());
+        assertNotNull(cleaned.peek(), "Should have cleaned something");
+        assertEquals((long) last, (long) cleaned.poll(), "Should have cleaned last ledger" + last);
 
         long first = createdLedgers.first();
         removeLedger(first);
         garbageCollector.gc(cleaner);
-        assertNotNull("Should have cleaned something", cleaned.peek());
-        assertEquals("Should have cleaned first ledger" + first, (long) first, (long) cleaned.poll());
+        assertNotNull(cleaned.peek(), "Should have cleaned something");
+        assertEquals((long) first, (long) cleaned.poll(), "Should have cleaned first ledger" + first);
 
         garbageCollector.gc(cleaner);
-        assertTrue(
-                "Wrong ACTIVE_LEDGER_COUNT",
-                garbageCollector.getNumActiveLedgers() == (numLedgers - 2));
+        assertEquals(garbageCollector.getNumActiveLedgers(), (numLedgers - 2), "Wrong ACTIVE_LEDGER_COUNT");
 
     }
 
     @Test
-    public void testGcLedgersNotLast() throws Exception {
+    void gcLedgersNotLast() throws Exception {
         final SortedSet<Long> createdLedgers = Collections.synchronizedSortedSet(new TreeSet<Long>());
         final List<Long> cleaned = new ArrayList<Long>();
 
@@ -333,13 +327,13 @@ public class GcLedgersTest extends LedgerManagerTestCase {
         assertEquals(createdLedgers, scannedLedgers);
 
         garbageCollector.gc(cleaner);
-        assertTrue("Should have cleaned nothing", cleaned.isEmpty());
+        assertTrue(cleaned.isEmpty(), "Should have cleaned nothing");
 
         long first = createdLedgers.first();
         removeLedger(first);
         garbageCollector.gc(cleaner);
-        assertEquals("Should have cleaned something", 1, cleaned.size());
-        assertEquals("Should have cleaned first ledger" + first, (long) first, (long) cleaned.get(0));
+        assertEquals(1, cleaned.size(), "Should have cleaned something");
+        assertEquals((long) first, (long) cleaned.get(0), "Should have cleaned first ledger" + first);
     }
 
     /*
@@ -347,7 +341,7 @@ public class GcLedgersTest extends LedgerManagerTestCase {
      * null. GarbageCollector.gc is expected to behave normally
      */
     @Test
-    public void testGcLedgersWithNoLedgers() throws Exception {
+    void gcLedgersWithNoLedgers() throws Exception {
         final SortedSet<Long> createdLedgers = Collections.synchronizedSortedSet(new TreeSet<Long>());
         final List<Long> cleaned = new ArrayList<Long>();
 
@@ -368,12 +362,12 @@ public class GcLedgersTest extends LedgerManagerTestCase {
         validateLedgerRangeIterator(createdLedgers);
 
         garbageCollector.gc(cleaner);
-        assertFalse("Should have cleaned nothing, since no ledger is created", cleanerCalled.get());
+        assertFalse(cleanerCalled.get(), "Should have cleaned nothing, since no ledger is created");
     }
 
     // in this scenario all the created ledgers are in one single ledger range.
     @Test
-    public void testGcLedgersWithLedgersInSameLedgerRange() throws Exception {
+    void gcLedgersWithLedgersInSameLedgerRange() throws Exception {
         baseConf.setVerifyMetadataOnGc(true);
         final SortedSet<Long> createdLedgers = Collections.synchronizedSortedSet(new TreeSet<Long>());
         final SortedSet<Long> cleaned = Collections.synchronizedSortedSet(new TreeSet<Long>());
@@ -396,14 +390,14 @@ public class GcLedgersTest extends LedgerManagerTestCase {
         validateLedgerRangeIterator(createdLedgers);
 
         garbageCollector.gc(cleaner);
-        assertTrue("Should have cleaned nothing", cleaned.isEmpty());
+        assertTrue(cleaned.isEmpty(), "Should have cleaned nothing");
 
         for (long ledgerId : createdLedgers) {
             removeLedger(ledgerId);
         }
 
         garbageCollector.gc(cleaner);
-        assertEquals("Should have cleaned all the created ledgers", createdLedgers, cleaned);
+        assertEquals(createdLedgers, cleaned, "Should have cleaned all the created ledgers");
     }
 
     /*
@@ -418,7 +412,7 @@ public class GcLedgersTest extends LedgerManagerTestCase {
      *
      */
     @Test
-    public void testGcLedgersIfLedgerManagerIteratorFails() throws Exception {
+    void gcLedgersIfLedgerManagerIteratorFails() throws Exception {
         baseConf.setVerifyMetadataOnGc(true);
         final SortedSet<Long> createdLedgers = Collections.synchronizedSortedSet(new TreeSet<Long>());
         final SortedSet<Long> cleaned = Collections.synchronizedSortedSet(new TreeSet<Long>());
@@ -458,7 +452,7 @@ public class GcLedgersTest extends LedgerManagerTestCase {
         validateLedgerRangeIterator(createdLedgers);
 
         garbageCollector.gc(cleaner);
-        assertTrue("Should have cleaned nothing", cleaned.isEmpty());
+        assertTrue(cleaned.isEmpty(), "Should have cleaned nothing");
     }
 
     /*
@@ -476,7 +470,7 @@ public class GcLedgersTest extends LedgerManagerTestCase {
      *
      */
     @Test
-    public void testGcLedgersIfReadLedgerMetadataSaysNoSuchLedger() throws Exception {
+    void gcLedgersIfReadLedgerMetadataSaysNoSuchLedger() throws Exception {
         final SortedSet<Long> createdLedgers = Collections.synchronizedSortedSet(new TreeSet<Long>());
         final SortedSet<Long> cleaned = Collections.synchronizedSortedSet(new TreeSet<Long>());
 
@@ -507,7 +501,7 @@ public class GcLedgersTest extends LedgerManagerTestCase {
         validateLedgerRangeIterator(createdLedgers);
 
         garbageCollector.gc(cleaner);
-        assertTrue("Should have cleaned nothing", cleaned.isEmpty());
+        assertTrue(cleaned.isEmpty(), "Should have cleaned nothing");
     }
 
     /*
@@ -520,7 +514,7 @@ public class GcLedgersTest extends LedgerManagerTestCase {
      * other error.
      */
     @Test
-    public void testGcLedgersIfReadLedgerMetadataFailsForDeletedLedgers() throws Exception {
+    void gcLedgersIfReadLedgerMetadataFailsForDeletedLedgers() throws Exception {
         baseConf.setVerifyMetadataOnGc(true);
         final SortedSet<Long> createdLedgers = Collections.synchronizedSortedSet(new TreeSet<Long>());
         final SortedSet<Long> cleaned = Collections.synchronizedSortedSet(new TreeSet<Long>());
@@ -556,7 +550,7 @@ public class GcLedgersTest extends LedgerManagerTestCase {
         }
 
         garbageCollector.gc(cleaner);
-        assertTrue("Should have cleaned nothing", cleaned.isEmpty());
+        assertTrue(cleaned.isEmpty(), "Should have cleaned nothing");
     }
 
     public void validateLedgerRangeIterator(SortedSet<Long> createdLedgers) throws IOException {
@@ -742,7 +736,7 @@ public class GcLedgersTest extends LedgerManagerTestCase {
      * @throws Exception
      */
     @Test
-    public void testGcLedgersForOverreplicated() throws Exception {
+    void gcLedgersForOverreplicated() throws Exception {
         baseConf.setVerifyMetadataOnGc(true);
         final SortedSet<Long> createdLedgers = Collections.synchronizedSortedSet(new TreeSet<Long>());
         final SortedSet<Long> cleaned = Collections.synchronizedSortedSet(new TreeSet<Long>());
@@ -783,6 +777,6 @@ public class GcLedgersTest extends LedgerManagerTestCase {
         validateLedgerRangeIterator(createdLedgers);
 
         garbageCollector.gc(cleaner);
-        assertEquals("Should have cleaned all ledgers", cleaned.size(), numLedgers);
+        assertEquals(cleaned.size(), numLedgers, "Should have cleaned all ledgers");
     }
 }

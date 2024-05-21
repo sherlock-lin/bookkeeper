@@ -21,9 +21,9 @@
 
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
@@ -38,7 +38,7 @@ import org.apache.bookkeeper.proto.BookieClientImpl;
 import org.apache.bookkeeper.proto.BookkeeperInternalCallbacks.GenericCallback;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.awaitility.Awaitility;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +58,7 @@ public class SlowBookieTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testSlowBookie() throws Exception {
+    void slowBookie() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setReadTimeout(360)
             .setMetadataServiceUri(zkUtil.getMetadataServiceUri());
@@ -92,11 +92,11 @@ public class SlowBookieTest extends BookKeeperClusterTestCase {
             lh.asyncAddEntry(entry, cb, null);
 
             Awaitility.await().untilAsserted(() ->
-                assertEquals("Successfully added entry!", 0xdeadbeef, i.get()));
+                assertEquals(0xdeadbeef, i.get(), "Successfully added entry!"));
             b0latch.countDown();
             b1latch.countDown();
             addEntrylatch.await(4000, TimeUnit.MILLISECONDS);
-            assertEquals("Failed to add entry!", BKException.Code.OK, i.get());
+            assertEquals(BKException.Code.OK, i.get(), "Failed to add entry!");
         } finally {
             b0latch.countDown();
             b1latch.countDown();
@@ -105,7 +105,7 @@ public class SlowBookieTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testBookieFailureWithSlowBookie() throws Exception {
+    void bookieFailureWithSlowBookie() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setReadTimeout(5)
             .setMetadataServiceUri(zkUtil.getMetadataServiceUri());
@@ -160,11 +160,11 @@ public class SlowBookieTest extends BookKeeperClusterTestCase {
                 }
             });
         checklatch.await();
-        assertEquals("There should be no missing fragments", 0, numFragments.get());
+        assertEquals(0, numFragments.get(), "There should be no missing fragments");
     }
 
     @Test
-    public void testSlowBookieAndBackpressureOn() throws Exception {
+    void slowBookieAndBackpressureOn() throws Exception {
         final ClientConfiguration conf = new ClientConfiguration();
         conf.setReadTimeout(5)
                 .setAddEntryTimeout(1)
@@ -184,7 +184,7 @@ public class SlowBookieTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testSlowBookieAndFastFailOn() throws Exception {
+    void slowBookieAndFastFailOn() throws Exception {
         final ClientConfiguration conf = new ClientConfiguration();
         conf.setReadTimeout(5)
                 .setAddEntryTimeout(1)
@@ -204,7 +204,7 @@ public class SlowBookieTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testSlowBookieAndNoBackpressure() throws Exception {
+    void slowBookieAndNoBackpressure() throws Exception {
         final ClientConfiguration conf = new ClientConfiguration();
         conf.setReadTimeout(5)
                 .setAddEntryTimeout(1)
@@ -277,8 +277,8 @@ public class SlowBookieTest extends BookKeeperClusterTestCase {
 
         t.join();
 
-        assertEquals("write error", expectWriteError, writeError.get());
-        assertEquals("test failure", expectFailedTest, failTest.get());
+        assertEquals(expectWriteError, writeError.get(), "write error");
+        assertEquals(expectFailedTest, failTest.get(), "test failure");
 
         lh.close();
 
@@ -297,7 +297,7 @@ public class SlowBookieTest extends BookKeeperClusterTestCase {
             checkLatch.countDown();
         });
         checkLatch.await();
-        assertEquals("There should be no missing fragments", 0, numFragments.get());
+        assertEquals(0, numFragments.get(), "There should be no missing fragments");
 
         return lh2;
     }
@@ -310,7 +310,7 @@ public class SlowBookieTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testWriteSetWriteableCheck() throws Exception {
+    void writeSetWriteableCheck() throws Exception {
         final ClientConfiguration conf = new ClientConfiguration();
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         BookKeeper bkc = new BookKeeper(conf);
@@ -334,12 +334,12 @@ public class SlowBookieTest extends BookKeeperClusterTestCase {
             setTargetChannelState(bkc, curEns.get(slowBookieIndex), 0, false);
 
             boolean isWriteable = lh.waitForWritable(writeSet, 0, 1000);
-            assertFalse("We should check b2,b3 both are not writeable", isWriteable);
+            assertFalse(isWriteable, "We should check b2,b3 both are not writeable");
         }
     }
 
     @Test
-    public void testManyBookieFailureWithSlowBookies() throws Exception {
+    void manyBookieFailureWithSlowBookies() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setReadTimeout(5)
             .setMetadataServiceUri(zkUtil.getMetadataServiceUri());
@@ -399,11 +399,11 @@ public class SlowBookieTest extends BookKeeperClusterTestCase {
                 }
             });
         checklatch.await();
-        assertEquals("There should be no missing fragments", 0, numFragments.get());
+        assertEquals(0, numFragments.get(), "There should be no missing fragments");
     }
 
     @Test
-    public void testWaitForWritable() throws Exception {
+    void waitForWritable() throws Exception {
         final ClientConfiguration conf = new ClientConfiguration();
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         BookKeeper bkc = new BookKeeper(conf);

@@ -21,9 +21,9 @@
 package org.apache.bookkeeper.meta;
 
 import static org.apache.bookkeeper.meta.MetadataDrivers.runFunctionWithLedgerManagerFactory;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -39,7 +39,7 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +72,7 @@ public class TestLedgerManager extends BookKeeperClusterTestCase {
      */
     @SuppressWarnings("deprecation")
     @Test
-    public void testBadConf() throws Exception {
+    void badConf() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
 
         // success case
@@ -90,8 +90,8 @@ public class TestLedgerManager extends BookKeeperClusterTestCase {
         LedgerManagerFactory m = AbstractZkLedgerManagerFactory.newLedgerManagerFactory(
             conf,
             zkLayoutManager);
-        assertTrue("Ledger manager is unexpected type",
-                   (m instanceof HierarchicalLedgerManagerFactory));
+        assertTrue((m instanceof HierarchicalLedgerManagerFactory),
+                   "Ledger manager is unexpected type");
         m.close();
 
         // mismatching conf
@@ -101,8 +101,8 @@ public class TestLedgerManager extends BookKeeperClusterTestCase {
             fail("Shouldn't reach here");
         } catch (Exception e) {
             LOG.error("Received exception", e);
-            assertTrue("Invalid exception",
-                       e.getMessage().contains("does not match existing layout"));
+            assertTrue(e.getMessage().contains("does not match existing layout"),
+                       "Invalid exception");
         }
 
         // invalid ledger manager
@@ -117,8 +117,8 @@ public class TestLedgerManager extends BookKeeperClusterTestCase {
             fail("Shouldn't reach here");
         } catch (Exception e) {
             LOG.error("Received exception", e);
-            assertTrue("Invalid exception",
-                    e.getMessage().contains("Failed to retrieve metadata service uri from configuration"));
+            assertTrue(e.getMessage().contains("Failed to retrieve metadata service uri from configuration"),
+                    "Invalid exception");
         }
     }
 
@@ -127,7 +127,7 @@ public class TestLedgerManager extends BookKeeperClusterTestCase {
      */
     @SuppressWarnings("deprecation")
     @Test
-    public void testBadConfV1() throws Exception {
+    void badConfV1() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
 
         String root0 = "/goodconf0";
@@ -149,15 +149,15 @@ public class TestLedgerManager extends BookKeeperClusterTestCase {
             conf,
             zkLayoutManager);
 
-        assertTrue("Ledger manager is unexpected type",
-                   (m instanceof HierarchicalLedgerManagerFactory));
+        assertTrue((m instanceof HierarchicalLedgerManagerFactory),
+                   "Ledger manager is unexpected type");
         m.close();
 
         // v2 setting doesn't effect v1
         conf.setLedgerManagerFactoryClass(HierarchicalLedgerManagerFactory.class);
         m = AbstractZkLedgerManagerFactory.newLedgerManagerFactory(conf, zkLayoutManager);
-        assertTrue("Ledger manager is unexpected type",
-                   (m instanceof HierarchicalLedgerManagerFactory));
+        assertTrue((m instanceof HierarchicalLedgerManagerFactory),
+                   "Ledger manager is unexpected type");
         m.close();
 
         // mismatching conf
@@ -167,8 +167,8 @@ public class TestLedgerManager extends BookKeeperClusterTestCase {
             fail("Shouldn't reach here");
         } catch (Exception e) {
             LOG.error("Received exception", e);
-            assertTrue("Invalid exception",
-                       e.getMessage().contains("does not match existing layout"));
+            assertTrue(e.getMessage().contains("does not match existing layout"),
+                       "Invalid exception");
         }
     }
 
@@ -176,7 +176,7 @@ public class TestLedgerManager extends BookKeeperClusterTestCase {
      * Test bad zk configuration.
      */
     @Test
-    public void testBadZkContents() throws Exception {
+    void badZkContents() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
 
         // bad type in zookeeper
@@ -196,9 +196,9 @@ public class TestLedgerManager extends BookKeeperClusterTestCase {
             fail("Shouldn't reach here");
         } catch (Exception e) {
             LOG.error("Received exception", e);
-            assertTrue("Invalid exception", e.getMessage().contains(
+            assertTrue(e.getMessage().contains(
                 "Configured layout org.apache.bookkeeper.meta.HierarchicalLedgerManagerFactory"
-                    + " does not match existing layout DoesNotExist"));
+                    + " does not match existing layout DoesNotExist"), "Invalid exception");
         }
 
         // bad version in zookeeper
@@ -217,8 +217,8 @@ public class TestLedgerManager extends BookKeeperClusterTestCase {
             fail("Shouldn't reach here");
         } catch (Exception e) {
             LOG.error("Received exception", e);
-            assertTrue("Invalid exception",
-                    e.getMessage().contains("Incompatible layout version found"));
+            assertTrue(e.getMessage().contains("Incompatible layout version found"),
+                    "Invalid exception");
         }
     }
 
@@ -265,7 +265,7 @@ public class TestLedgerManager extends BookKeeperClusterTestCase {
 
     // test concurrent
     @Test
-    public void testConcurrent1() throws Exception {
+    void concurrent1() throws Exception {
         /// everyone creates the same
         int numThreads = 50;
 
@@ -291,11 +291,11 @@ public class TestLedgerManager extends BookKeeperClusterTestCase {
             t.close();
             success = t.isSuccessful() && success;
         }
-        assertTrue("Not all ledger managers created", success);
+        assertTrue(success, "Not all ledger managers created");
     }
 
     @Test
-    public void testConcurrent2() throws Exception {
+    void concurrent2() throws Exception {
         /// odd create different
         int numThreadsEach = 25;
 
@@ -343,7 +343,7 @@ public class TestLedgerManager extends BookKeeperClusterTestCase {
                 numFails++;
             }
         }
-        assertEquals("Incorrect number of successes", numThreadsEach, numSuccess);
-        assertEquals("Incorrect number of failures", numThreadsEach, numFails);
+        assertEquals(numThreadsEach, numSuccess, "Incorrect number of successes");
+        assertEquals(numThreadsEach, numFails, "Incorrect number of failures");
     }
 }

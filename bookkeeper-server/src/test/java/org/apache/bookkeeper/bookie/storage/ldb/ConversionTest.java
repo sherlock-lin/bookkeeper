@@ -20,6 +20,10 @@
  */
 package org.apache.bookkeeper.bookie.storage.ldb;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import io.netty.buffer.ByteBuf;
@@ -41,13 +45,12 @@ import org.apache.bookkeeper.conf.TestBKConfiguration;
 import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.util.DiskChecker;
 import org.apache.commons.io.FileUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test for BookieShell convert-to-db-storage command.
  */
-public class ConversionTest {
+class ConversionTest {
 
     CheckpointSource checkpointSource = new CheckpointSource() {
         @Override
@@ -73,7 +76,7 @@ public class ConversionTest {
     };
 
     @Test
-    public void test() throws Exception {
+    void test() throws Exception {
         File tmpDir = File.createTempFile("bkTest", ".dir");
         tmpDir.delete();
         tmpDir.mkdir();
@@ -116,7 +119,7 @@ public class ConversionTest {
         shell.setConf(conf);
         int res = shell.run(new String[] { "convert-to-db-storage" });
 
-        Assert.assertEquals(0, res);
+        assertEquals(0, res);
 
         // Verify that db index has the same entries
         DbLedgerStorage dbStorage = new DbLedgerStorage();
@@ -133,14 +136,14 @@ public class ConversionTest {
         interleavedStorage.setCheckpointer(checkpointer);
 
         Set<Long> ledgers = Sets.newTreeSet(dbStorage.getActiveLedgersInRange(0, Long.MAX_VALUE));
-        Assert.assertEquals(Sets.newTreeSet(Lists.newArrayList(0L, 1L, 2L, 3L, 4L)), ledgers);
+        assertEquals(Sets.newTreeSet(Lists.newArrayList(0L, 1L, 2L, 3L, 4L)), ledgers);
 
         ledgers = Sets.newTreeSet(interleavedStorage.getActiveLedgersInRange(0, Long.MAX_VALUE));
-        Assert.assertEquals(Sets.newTreeSet(), ledgers);
+        assertEquals(Sets.newTreeSet(), ledgers);
 
         for (long ledgerId = 0; ledgerId < 5; ledgerId++) {
-            Assert.assertEquals(true, dbStorage.isFenced(ledgerId));
-            Assert.assertEquals("ledger-" + ledgerId, new String(dbStorage.readMasterKey(ledgerId)));
+            assertTrue(dbStorage.isFenced(ledgerId));
+            assertEquals("ledger-" + ledgerId, new String(dbStorage.readMasterKey(ledgerId)));
 
             for (long entryId = 0; entryId < 10000; entryId++) {
                 ByteBuf entry = Unpooled.buffer(1024);
@@ -149,12 +152,12 @@ public class ConversionTest {
                 entry.writeBytes(("entry-" + entryId).getBytes());
 
                 ByteBuf result = dbStorage.getEntry(ledgerId, entryId);
-                Assert.assertEquals(entry, result);
+                assertEquals(entry, result);
                 result.release();
 
                 try {
                     interleavedStorage.getEntry(ledgerId, entryId);
-                    Assert.fail("entry should not exist");
+                    fail("entry should not exist");
                 } catch (NoLedgerException e) {
                     // Ok
                 }

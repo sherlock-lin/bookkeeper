@@ -22,6 +22,7 @@ package org.apache.bookkeeper.bookie.datainteg;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Lists;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -38,15 +39,14 @@ import org.apache.bookkeeper.meta.LedgerManager;
 import org.apache.bookkeeper.meta.MockLedgerManager;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.versioning.Versioned;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Tests for MetadataAsyncIterator.
  */
-public class MetadataAsyncIteratorTest {
+class MetadataAsyncIteratorTest {
     private static Logger log = LoggerFactory.getLogger(MetadataAsyncIteratorTest.class);
 
     private LedgerMetadata newRandomMetadata(long randBit) throws Exception {
@@ -90,7 +90,7 @@ public class MetadataAsyncIteratorTest {
     }
 
     @Test
-    public void testIteratorOverAll() throws Exception {
+    void iteratorOverAll() throws Exception {
         MockLedgerManager lm = new MockLedgerManager();
         ConcurrentHashMap<Long, LedgerMetadata> added = addLedgers(lm, 10000);
         MetadataAsyncIterator iterator = new MetadataAsyncIterator(Schedulers.io(),
@@ -102,7 +102,7 @@ public class MetadataAsyncIteratorTest {
     }
 
     @Test
-    public void testSingleLedger() throws Exception {
+    void singleLedger() throws Exception {
         MockLedgerManager lm = new MockLedgerManager();
         LedgerMetadata single = newRandomMetadata(0xdeadbeef);
         MetadataAsyncIterator iterator = new MetadataAsyncIterator(Schedulers.io(),
@@ -118,7 +118,7 @@ public class MetadataAsyncIteratorTest {
     }
 
     @Test
-    public void testEmptyRange() throws Exception {
+    void emptyRange() throws Exception {
         MockLedgerManager lm = new MockLedgerManager();
         MetadataAsyncIterator iterator = new MetadataAsyncIterator(Schedulers.io(),
                                                                    lm, 100 /* inflight */,
@@ -128,7 +128,7 @@ public class MetadataAsyncIteratorTest {
     }
 
     @Test
-    public void testOneLedgerErrorsOnRead() throws Exception {
+    void oneLedgerErrorsOnRead() throws Exception {
         MockLedgerManager lm = new MockLedgerManager() {
                 @Override
                 public CompletableFuture<Versioned<LedgerMetadata>> readLedgerMetadata(long ledgerId) {
@@ -152,7 +152,7 @@ public class MetadataAsyncIteratorTest {
     }
 
     @Test
-    public void testOneLedgerErrorsOnProcessing() throws Exception {
+    void oneLedgerErrorsOnProcessing() throws Exception {
         MockLedgerManager lm = new MockLedgerManager();
         ConcurrentHashMap<Long, LedgerMetadata> added = addLedgers(lm, 10000);
         MetadataAsyncIterator iterator = new MetadataAsyncIterator(Schedulers.io(),
@@ -167,14 +167,14 @@ public class MetadataAsyncIteratorTest {
                         return CompletableFuture.completedFuture(null);
                     }
                 }).get(10, TimeUnit.SECONDS);
-            Assert.fail("shouldn't succeed");
+            fail("shouldn't succeed");
         } catch (ExecutionException ee) {
             assertThat(ee.getCause().getMessage(), equalTo("foobar"));
         }
     }
 
     @Test
-    public void testAllLedgersErrorOnRead() throws Exception {
+    void allLedgersErrorOnRead() throws Exception {
         MockLedgerManager lm = new MockLedgerManager() {
                 @Override
                 public CompletableFuture<Versioned<LedgerMetadata>> readLedgerMetadata(long ledgerId) {
@@ -196,7 +196,7 @@ public class MetadataAsyncIteratorTest {
     }
 
     @Test
-    public void testAllLedgersErrorOnProcessing() throws Exception {
+    void allLedgersErrorOnProcessing() throws Exception {
         MockLedgerManager lm = new MockLedgerManager();
         ConcurrentHashMap<Long, LedgerMetadata> added = addLedgers(lm, 10000);
         MetadataAsyncIterator iterator = new MetadataAsyncIterator(Schedulers.io(),
@@ -205,14 +205,14 @@ public class MetadataAsyncIteratorTest {
         try {
             iterator.forEach((ledgerId, metadata) -> FutureUtils.exception(new Exception("foobar")))
                 .get(10, TimeUnit.SECONDS);
-            Assert.fail("shouldn't succeed");
+            fail("shouldn't succeed");
         } catch (ExecutionException ee) {
             assertThat(ee.getCause().getMessage(), equalTo("foobar"));
         }
     }
 
     @Test
-    public void testOneLedgerDisappearsBetweenListAndRead() throws Exception {
+    void oneLedgerDisappearsBetweenListAndRead() throws Exception {
         MockLedgerManager lm = new MockLedgerManager() {
                 @Override
                 public CompletableFuture<Versioned<LedgerMetadata>> readLedgerMetadata(long ledgerId) {
@@ -237,7 +237,7 @@ public class MetadataAsyncIteratorTest {
     }
 
     @Test
-    public void testEverySecondLedgerDisappearsBetweenListAndRead() throws Exception {
+    void everySecondLedgerDisappearsBetweenListAndRead() throws Exception {
         MockLedgerManager lm = new MockLedgerManager() {
                 @Override
                 public CompletableFuture<Versioned<LedgerMetadata>> readLedgerMetadata(long ledgerId) {
@@ -262,7 +262,7 @@ public class MetadataAsyncIteratorTest {
     }
 
     @Test
-    public void testEveryLedgerDisappearsBetweenListAndRead() throws Exception {
+    void everyLedgerDisappearsBetweenListAndRead() throws Exception {
         MockLedgerManager lm = new MockLedgerManager() {
                 @Override
                 public CompletableFuture<Versioned<LedgerMetadata>> readLedgerMetadata(long ledgerId) {
@@ -281,7 +281,7 @@ public class MetadataAsyncIteratorTest {
     }
 
     @Test
-    public void testMaxOutInFlight() throws Exception {
+    void maxOutInFlight() throws Exception {
         MockLedgerManager lm = new MockLedgerManager();
         int numLedgers = 1000;
         ConcurrentHashMap<Long, LedgerMetadata> added = addLedgers(lm, numLedgers);

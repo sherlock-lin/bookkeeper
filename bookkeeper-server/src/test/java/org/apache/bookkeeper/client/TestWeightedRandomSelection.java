@@ -18,7 +18,7 @@
 
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,20 +32,17 @@ import java.util.Set;
 import org.apache.bookkeeper.client.WeightedRandomSelection.WeightedObject;
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.Configuration;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Test weighted random selection methods.
  */
-@RunWith(Parameterized.class)
 public class TestWeightedRandomSelection {
 
     static final Logger LOG = LoggerFactory.getLogger(TestWeightedRandomSelection.class);
@@ -53,7 +50,7 @@ public class TestWeightedRandomSelection {
     static class TestObj implements WeightedObject {
         long val;
 
-        TestObj(long value) {
+        void initTestWeightedRandomSelection(long value) {
             this.val = value;
         }
 
@@ -68,18 +65,17 @@ public class TestWeightedRandomSelection {
     Configuration conf = new CompositeConfiguration();
     int multiplier = 3;
 
-    @Parameters
     public static Collection<Object[]> weightedRandomSelectionClass() {
         return Arrays.asList(
                 new Object[][] { { WeightedRandomSelectionImpl.class }, { DynamicWeightedRandomSelectionImpl.class } });
     }
 
-    public TestWeightedRandomSelection(Class<? extends WeightedRandomSelection> weightedRandomSelectionClass) {
+    public void initTestWeightedRandomSelection(Class<? extends WeightedRandomSelection> weightedRandomSelectionClass) {
         this.weightedRandomSelectionClass = weightedRandomSelectionClass;
     }
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() throws Exception {
         if (weightedRandomSelectionClass.equals(WeightedRandomSelectionImpl.class)) {
             wRS = new WeightedRandomSelectionImpl<String>();
         } else {
@@ -87,12 +83,14 @@ public class TestWeightedRandomSelection {
         }
     }
 
-    @After
-    public void tearDown() throws Exception {
+    @AfterEach
+    void tearDown() throws Exception {
     }
 
-    @Test
-    public void testSelectionWithEqualWeights() throws Exception {
+    @MethodSource("weightedRandomSelectionClass")
+    @ParameterizedTest
+    public void selectionWithEqualWeights(Class<? extends WeightedRandomSelection> weightedRandomSelectionClass) throws Exception {
+        initTestWeightedRandomSelection(weightedRandomSelectionClass);
         Map<String, WeightedObject> map = new HashMap<String, WeightedObject>();
 
         Long val = 100L;
@@ -117,12 +115,14 @@ public class TestWeightedRandomSelection {
             System.out.println("Key:" + e.getKey() + " Value:" + e.getValue() + " Expected: " + expectedPct
                     + " Actual: " + actualPct + " delta: " + delta);
             // should be within 5% of expected
-            assertTrue("Not doing uniform selection when weights are equal", delta < 5);
+            assertTrue(delta < 5, "Not doing uniform selection when weights are equal");
         }
     }
 
-    @Test
-    public void testSelectionWithAllZeroWeights() throws Exception {
+    @MethodSource("weightedRandomSelectionClass")
+    @ParameterizedTest
+    public void selectionWithAllZeroWeights(Class<? extends WeightedRandomSelection> weightedRandomSelectionClass) throws Exception {
+        initTestWeightedRandomSelection(weightedRandomSelectionClass);
         Map<String, WeightedObject> map = new HashMap<String, WeightedObject>();
 
         int numKeys = 50, totalTries = 1000000;
@@ -146,7 +146,7 @@ public class TestWeightedRandomSelection {
             System.out.println("Key:" + e.getKey() + " Value:" + e.getValue() + " Expected: " + expectedPct
                     + " Actual: " + actualPct);
             // should be within 5% of expected
-            assertTrue("Not doing uniform selection when weights are equal", delta < 5);
+            assertTrue(delta < 5, "Not doing uniform selection when weights are equal");
         }
     }
 
@@ -191,12 +191,14 @@ public class TestWeightedRandomSelection {
                     + " actual " + observedMultiple + " delta " + delta + "%");
 
             // the observed should be within 5% of expected
-            assertTrue("Not doing uniform selection when weights are equal", delta < 5);
+            assertTrue(delta < 5, "Not doing uniform selection when weights are equal");
         }
     }
 
-    @Test
-    public void testSelectionWithSomeZeroWeights() throws Exception {
+    @MethodSource("weightedRandomSelectionClass")
+    @ParameterizedTest
+    public void selectionWithSomeZeroWeights(Class<? extends WeightedRandomSelection> weightedRandomSelectionClass) throws Exception {
+        initTestWeightedRandomSelection(weightedRandomSelectionClass);
         Map<String, WeightedObject> map = new HashMap<String, WeightedObject>();
         Map<String, Integer> randomSelection = new HashMap<String, Integer>();
         int numKeys = 50;
@@ -225,8 +227,10 @@ public class TestWeightedRandomSelection {
         verifyResult(map, randomSelection, multiplier, minWeight, medianWeight, total, totalTries);
     }
 
-    @Test
-    public void testSelectionWithUnequalWeights() throws Exception {
+    @MethodSource("weightedRandomSelectionClass")
+    @ParameterizedTest
+    public void selectionWithUnequalWeights(Class<? extends WeightedRandomSelection> weightedRandomSelectionClass) throws Exception {
+        initTestWeightedRandomSelection(weightedRandomSelectionClass);
         Map<String, WeightedObject> map = new HashMap<String, WeightedObject>();
         Map<String, Integer> randomSelection = new HashMap<String, Integer>();
         int numKeys = 50;
@@ -255,8 +259,10 @@ public class TestWeightedRandomSelection {
         verifyResult(map, randomSelection, multiplier, minWeight, medianWeight, total, totalTries);
     }
 
-    @Test
-    public void testSelectionWithHotNode() throws Exception {
+    @MethodSource("weightedRandomSelectionClass")
+    @ParameterizedTest
+    public void selectionWithHotNode(Class<? extends WeightedRandomSelection> weightedRandomSelectionClass) throws Exception {
+        initTestWeightedRandomSelection(weightedRandomSelectionClass);
         Map<String, WeightedObject> map = new HashMap<String, WeightedObject>();
         Map<String, Integer> randomSelection = new HashMap<String, Integer>();
 
@@ -283,8 +289,10 @@ public class TestWeightedRandomSelection {
         verifyResult(map, randomSelection, multiplier, minWeight, medianWeight, total, totalTries);
     }
 
-    @Test
-    public void testSelectionWithHotNodeWithLimit() throws Exception {
+    @MethodSource("weightedRandomSelectionClass")
+    @ParameterizedTest
+    public void selectionWithHotNodeWithLimit(Class<? extends WeightedRandomSelection> weightedRandomSelectionClass) throws Exception {
+        initTestWeightedRandomSelection(weightedRandomSelectionClass);
         Map<String, WeightedObject> map = new HashMap<String, WeightedObject>();
         Map<String, Integer> randomSelection = new HashMap<String, Integer>();
 
@@ -311,12 +319,14 @@ public class TestWeightedRandomSelection {
         verifyResult(map, randomSelection, multiplier, minWeight, medianWeight, total, totalTries);
     }
 
-    @Test
-    public void testSelectionFromSelectedNodesWithEqualWeights() throws Exception {
+    @MethodSource("weightedRandomSelectionClass")
+    @ParameterizedTest
+    public void selectionFromSelectedNodesWithEqualWeights(Class<? extends WeightedRandomSelection> weightedRandomSelectionClass) throws Exception {
+        initTestWeightedRandomSelection(weightedRandomSelectionClass);
         /*
          * this testcase is for only DynamicWeightedRandomSelectionImpl
          */
-        Assume.assumeTrue(weightedRandomSelectionClass.equals(DynamicWeightedRandomSelectionImpl.class));
+        Assumptions.assumeTrue(weightedRandomSelectionClass.equals(DynamicWeightedRandomSelectionImpl.class));
         Map<String, WeightedObject> map = new HashMap<String, WeightedObject>();
 
         Long val = 100L;
@@ -335,7 +345,7 @@ public class TestWeightedRandomSelection {
         wRS.updateMap(map);
         for (int i = 0; i < totalTries; i++) {
             String selectedKey = wRS.getNextRandom(selectFrom);
-            assertTrue("NextRandom key should be from selected list", selectFrom.contains(selectedKey));
+            assertTrue(selectFrom.contains(selectedKey), "NextRandom key should be from selected list");
         }
     }
 }

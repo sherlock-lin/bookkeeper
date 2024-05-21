@@ -20,10 +20,10 @@
 */
 package org.apache.bookkeeper.sasl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -46,11 +46,10 @@ import org.apache.bookkeeper.conf.TestBKConfiguration;
 import org.apache.bookkeeper.proto.BookieServer;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.zookeeper.KeeperException;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,17 +68,17 @@ public class GSSAPIBookKeeperTest extends BookKeeperClusterTestCase {
 
     private static final String non_default_sasl_service_name = "non_default_servicename";
 
-    @ClassRule
-    public static TemporaryFolder kdcDir = new TemporaryFolder();
+    @TempDir
+    public static File kdcDir;
 
-    @ClassRule
-    public static TemporaryFolder kerberosWorkDir = new TemporaryFolder();
+    @TempDir
+    public static File kerberosWorkDir;
 
-    @BeforeClass
-    public static void startMiniKdc() throws Exception {
+    @BeforeAll
+    static void startMiniKdc() throws Exception {
 
         conf = MiniKdc.createConf();
-        kdc = new MiniKdc(conf, kdcDir.getRoot());
+        kdc = new MiniKdc(conf, kdcDir);
         kdc.start();
 
         // this is just to calculate "localhostName" the same way the bookie does
@@ -94,13 +93,13 @@ public class GSSAPIBookKeeperTest extends BookKeeperClusterTestCase {
         String principalClient = principalClientNoRealm + "@" + kdc.getRealm();
         LOG.info("principalClient: " + principalClient);
 
-        File keytabClient = new File(kerberosWorkDir.getRoot(), "bookkeeperclient.keytab");
+        File keytabClient = new File(kerberosWorkDir, "bookkeeperclient.keytab");
         kdc.createPrincipal(keytabClient, principalClientNoRealm);
 
-        File keytabServer = new File(kerberosWorkDir.getRoot(), "bookkeeperserver.keytab");
+        File keytabServer = new File(kerberosWorkDir, "bookkeeperserver.keytab");
         kdc.createPrincipal(keytabServer, principalServerNoRealm);
 
-        File jaasFile = new File(kerberosWorkDir.getRoot(), "jaas.conf");
+        File jaasFile = new File(kerberosWorkDir, "jaas.conf");
         try (FileWriter writer = new FileWriter(jaasFile)) {
             writer.write("\n"
                 + "Bookie {\n"
@@ -126,7 +125,7 @@ public class GSSAPIBookKeeperTest extends BookKeeperClusterTestCase {
 
         }
 
-        File krb5file = new File(kerberosWorkDir.getRoot(), "krb5.conf");
+        File krb5file = new File(kerberosWorkDir, "krb5.conf");
         try (FileWriter writer = new FileWriter(krb5file)) {
             String conf = "[libdefaults]\n"
                 + " default_realm = " + kdc.getRealm() + "\n"
@@ -147,8 +146,8 @@ public class GSSAPIBookKeeperTest extends BookKeeperClusterTestCase {
 
     }
 
-    @AfterClass
-    public static void stopMiniKdc() {
+    @AfterAll
+    static void stopMiniKdc() {
         System.clearProperty("java.security.auth.login.config");
         System.clearProperty("java.security.krb5.conf");
         if (kdc != null) {
@@ -199,8 +198,8 @@ public class GSSAPIBookKeeperTest extends BookKeeperClusterTestCase {
             int count = 0;
             while (e.hasMoreElements()) {
                 count++;
-                assertTrue("Should match what we wrote",
-                    Arrays.equals(e.nextElement().getEntry(), ENTRY));
+                assertTrue(Arrays.equals(e.nextElement().getEntry(), ENTRY),
+                    "Should match what we wrote");
             }
             return count;
         }
@@ -210,7 +209,7 @@ public class GSSAPIBookKeeperTest extends BookKeeperClusterTestCase {
      * Test an connection will authorize with a single message to the server and a single response.
      */
     @Test
-    public void testSingleMessageAuth() throws Exception {
+    void singleMessageAuth() throws Exception {
         ServerConfiguration bookieConf = newServerConfiguration();
         bookieConf.setUseHostNameAsBookieID(true);
         bookieConf.setBookieAuthProviderFactoryClass(
@@ -226,11 +225,11 @@ public class GSSAPIBookKeeperTest extends BookKeeperClusterTestCase {
         connectAndWriteToBookie(clientConf, ledgerId); // should succeed
 
         assertFalse(ledgerId.get() == -1);
-        assertEquals("Should have entry", 1, entryCount(ledgerId.get(), clientConf));
+        assertEquals(1, entryCount(ledgerId.get(), clientConf), "Should have entry");
     }
 
     @Test
-    public void testNotAllowedClientId() throws Exception {
+    void notAllowedClientId() throws Exception {
         ServerConfiguration bookieConf = newServerConfiguration();
         bookieConf.setUseHostNameAsBookieID(true);
         bookieConf.setBookieAuthProviderFactoryClass(
@@ -257,8 +256,8 @@ public class GSSAPIBookKeeperTest extends BookKeeperClusterTestCase {
         return startAndAddBookie(conf).getServer();
     }
 
-    @AfterClass
-    public static void resetJAAS() {
+    @AfterAll
+    static void resetJAAS() {
         System.clearProperty("java.security.auth.login.config");
         Configuration.getConfiguration().refresh();
     }

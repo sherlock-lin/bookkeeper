@@ -19,8 +19,8 @@
 package org.apache.bookkeeper.proto;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -44,13 +44,13 @@ import org.apache.bookkeeper.bookie.BookieException;
 import org.apache.bookkeeper.proto.BookieProtocol.ParsedAddRequest;
 import org.apache.bookkeeper.proto.BookieProtocol.Response;
 import org.apache.bookkeeper.stats.NullStatsLogger;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test {@link WriteEntryProcessor}.
  */
-public class WriteEntryProcessorTest {
+class WriteEntryProcessorTest {
 
     private ParsedAddRequest request;
     private WriteEntryProcessor processor;
@@ -60,8 +60,8 @@ public class WriteEntryProcessorTest {
     private BookieRequestProcessor requestProcessor;
     private Bookie bookie;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         request = ParsedAddRequest.create(
             BookieProtocol.CURRENT_PROTOCOL_VERSION,
             System.currentTimeMillis(),
@@ -108,7 +108,7 @@ public class WriteEntryProcessorTest {
     }
 
     @Test
-    public void testNoneHighPriorityWritesOnReadOnlyBookie() throws Exception {
+    void noneHighPriorityWritesOnReadOnlyBookie() throws Exception {
         when(bookie.isReadOnly()).thenReturn(true);
         ChannelPromise mockPromise = mock(ChannelPromise.class);
         when(channel.newPromise()).thenReturn(mockPromise);
@@ -137,7 +137,7 @@ public class WriteEntryProcessorTest {
     }
 
     @Test
-    public void testHighPriorityWritesOnReadOnlyBookieWhenHighPriorityWritesDisallowed() throws Exception {
+    void highPriorityWritesOnReadOnlyBookieWhenHighPriorityWritesDisallowed() throws Exception {
         reinitRequest(BookieProtocol.FLAG_HIGH_PRIORITY);
 
         when(bookie.isReadOnly()).thenReturn(true);
@@ -169,7 +169,7 @@ public class WriteEntryProcessorTest {
     }
 
     @Test
-    public void testHighPriorityWritesOnReadOnlyBookieWhenHighPriorityWritesAllowed() throws Exception {
+    void highPriorityWritesOnReadOnlyBookieWhenHighPriorityWritesAllowed() throws Exception {
         reinitRequest(BookieProtocol.FLAG_HIGH_PRIORITY);
 
         when(bookie.isReadOnly()).thenReturn(true);
@@ -204,7 +204,7 @@ public class WriteEntryProcessorTest {
     }
 
     @Test
-    public void testNormalWritesOnWritableBookie() throws Exception {
+    void normalWritesOnWritableBookie() throws Exception {
         when(bookie.isReadOnly()).thenReturn(false);
         ChannelPromise mockPromise = mock(ChannelPromise.class);
         when(channel.newPromise()).thenReturn(mockPromise);
@@ -234,7 +234,7 @@ public class WriteEntryProcessorTest {
     }
 
     @Test
-    public void testWritesCacheFlushTimeout() throws Exception {
+    void writesCacheFlushTimeout() throws Exception {
         when(bookie.isReadOnly()).thenReturn(false);
         ChannelPromise mockPromise = mock(ChannelPromise.class);
         when(channel.newPromise()).thenReturn(mockPromise);

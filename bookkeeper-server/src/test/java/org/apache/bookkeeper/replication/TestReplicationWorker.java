@@ -22,13 +22,13 @@ package org.apache.bookkeeper.replication;
 import static org.apache.bookkeeper.replication.ReplicationStats.AUDITOR_SCOPE;
 import static org.apache.bookkeeper.replication.ReplicationStats.NUM_ENTRIES_UNABLE_TO_READ_FOR_REPLICATION;
 import static org.apache.bookkeeper.replication.ReplicationStats.REPLICATION_SCOPE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import io.netty.util.HashedWheelTimer;
 import java.io.IOException;
@@ -103,7 +103,9 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooKeeper.States;
 import org.apache.zookeeper.data.Stat;
 import org.awaitility.Awaitility;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,6 +145,7 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
         baseConf.setZkRetryBackoffStartMs(10);
     }
 
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -171,6 +174,7 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
         underReplicationManager = mFactory.newLedgerUnderreplicationManager();
     }
 
+    @AfterEach
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
@@ -188,7 +192,7 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
      * fragments to target bookie given to the worker.
      */
     @Test
-    public void testRWShouldReplicateFragmentsToTargetBookie() throws Exception {
+    void rWShouldReplicateFragmentsToTargetBookie() throws Exception {
         LedgerHandle lh = bkc.createLedger(3, 3, BookKeeper.DigestType.CRC32,
                 TESTPASSWD);
 
@@ -234,7 +238,7 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
      * bookies available for replication.
      */
     @Test
-    public void testRWShouldRetryUntilThereAreEnoughBksAvailableForReplication()
+    void rWShouldRetryUntilThereAreEnoughBksAvailableForReplication()
             throws Exception {
         LedgerHandle lh = bkc.createLedger(1, 1, BookKeeper.DigestType.CRC32,
                 TESTPASSWD);
@@ -259,9 +263,9 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
                     replicaToKill.toString());
             int counter = 30;
             while (counter-- > 0) {
-                assertTrue("Expecting that replication should not complete",
-                        ReplicationTestUtil.isLedgerInUnderReplication(zkc, lh
-                                .getId(), basePath));
+                assertTrue(ReplicationTestUtil.isLedgerInUnderReplication(zkc, lh
+                                .getId(), basePath),
+                        "Expecting that replication should not complete");
                 Thread.sleep(100);
             }
             // restart killed bookie
@@ -282,7 +286,7 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
      * other replication worker also should compete for the replication.
      */
     @Test
-    public void test2RWsShouldCompeteForReplicationOf2FragmentsAndCompleteReplication()
+    void test2RWsShouldCompeteForReplicationOf2FragmentsAndCompleteReplication()
             throws Exception {
         LedgerHandle lh = bkc.createLedger(2, 2, BookKeeper.DigestType.CRC32,
                 TESTPASSWD);
@@ -313,9 +317,9 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
                     replicaToKill.toString());
             int counter = 10;
             while (counter-- > 0) {
-                assertTrue("Expecting that replication should not complete",
-                        ReplicationTestUtil.isLedgerInUnderReplication(zkc, lh
-                                .getId(), basePath));
+                assertTrue(ReplicationTestUtil.isLedgerInUnderReplication(zkc, lh
+                                .getId(), basePath),
+                        "Expecting that replication should not complete");
                 Thread.sleep(100);
             }
             // restart killed bookie
@@ -337,7 +341,7 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
      * node of the ledger already deleted.
      */
     @Test
-    public void testRWShouldCleanTheLedgerFromUnderReplicationIfLedgerAlreadyDeleted()
+    void rWShouldCleanTheLedgerFromUnderReplicationIfLedgerAlreadyDeleted()
             throws Exception {
         LedgerHandle lh = bkc.createLedger(2, 2, BookKeeper.DigestType.CRC32,
                 TESTPASSWD);
@@ -371,7 +375,7 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testMultipleLedgerReplicationWithReplicationWorker()
+    void multipleLedgerReplicationWithReplicationWorker()
             throws Exception {
         // Ledger1
         LedgerHandle lh1 = bkc.createLedger(3, 3, BookKeeper.DigestType.CRC32,
@@ -438,7 +442,7 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testMultipleLedgerReplicationWithReplicationWorkerBatchRead() throws Exception {
+    void multipleLedgerReplicationWithReplicationWorkerBatchRead() throws Exception {
         LedgerHandle lh1 = bkc.createLedger(3, 3, BookKeeper.DigestType.CRC32, TESTPASSWD);
         for (int i = 0; i < 200; ++i) {
             lh1.addEntry(data);
@@ -505,7 +509,7 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
      * lock after timeout. Then replication should happen normally.
      */
     @Test
-    public void testRWShouldReplicateTheLedgersAfterTimeoutIfLastFragmentIsUR()
+    void rWShouldReplicateTheLedgersAfterTimeoutIfLastFragmentIsUR()
             throws Exception {
         LedgerHandle lh = bkc.createLedger(3, 3, BookKeeper.DigestType.CRC32,
                 TESTPASSWD);
@@ -547,8 +551,8 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
             verifyRecoveredLedgers(lh, 0, 9);
             lh = bkc.openLedgerNoRecovery(lh.getId(),
                     BookKeeper.DigestType.CRC32, TESTPASSWD);
-            assertFalse("Ledger must have been closed by RW", ClientUtil
-                    .isLedgerOpen(lh));
+            assertFalse(ClientUtil
+                    .isLedgerOpen(lh), "Ledger must have been closed by RW");
         } finally {
             rw.shutdown();
             underReplicationManager.close();
@@ -557,7 +561,7 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testBookiesNotAvailableScenarioForReplicationWorker() throws Exception {
+    void bookiesNotAvailableScenarioForReplicationWorker() throws Exception {
         int ensembleSize = 3;
         LedgerHandle lh = bkc.createLedger(ensembleSize, ensembleSize, BookKeeper.DigestType.CRC32, TESTPASSWD);
 
@@ -634,22 +638,22 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
                  * since all the bookies containing the ledger entries are down
                  * replication wouldnt have succeeded.
                  */
-                assertTrue("Ledger: " + lh.getId() + " should be underreplicated",
-                        ReplicationTestUtil.isLedgerInUnderReplication(zkc, lh.getId(), basePath));
+                assertTrue(ReplicationTestUtil.isLedgerInUnderReplication(zkc, lh.getId(), basePath),
+                        "Ledger: " + lh.getId() + " should be underreplicated");
 
                 // the number of failed attempts should have increased.
                 int rw1CurFailedAttemptsCount = rw1.replicationFailedLedgers.get(lh.getId()).get();
                 assertTrue(
+                        rw1CurFailedAttemptsCount >= rw1PrevFailedAttemptsCount,
                         "The current number of failed attempts: " + rw1CurFailedAttemptsCount
-                                + " should be greater than or equal to previous value: " + rw1PrevFailedAttemptsCount,
-                        rw1CurFailedAttemptsCount >= rw1PrevFailedAttemptsCount);
+                                + " should be greater than or equal to previous value: " + rw1PrevFailedAttemptsCount);
                 rw1PrevFailedAttemptsCount = rw1CurFailedAttemptsCount;
 
                 int rw2CurFailedAttemptsCount = rw2.replicationFailedLedgers.get(lh.getId()).get();
                 assertTrue(
+                        rw2CurFailedAttemptsCount >= rw2PrevFailedAttemptsCount,
                         "The current number of failed attempts: " + rw2CurFailedAttemptsCount
-                                + " should be greater than or equal to previous value: " + rw2PrevFailedAttemptsCount,
-                        rw2CurFailedAttemptsCount >= rw2PrevFailedAttemptsCount);
+                                + " should be greater than or equal to previous value: " + rw2PrevFailedAttemptsCount);
                 rw2PrevFailedAttemptsCount = rw2CurFailedAttemptsCount;
 
                 Thread.sleep(50);
@@ -675,10 +679,12 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
             Thread.sleep(2000);
             // now since the ledger is replicated, number of failed attempts
             // counter shouldn't be increased even after sleeping for sometime.
-            assertEquals("rw1 failedattempts", rw1PrevFailedAttemptsCount,
-                    rw1.replicationFailedLedgers.get(lh.getId()).get());
-            assertEquals("rw2 failed attempts ", rw2PrevFailedAttemptsCount,
-                    rw2.replicationFailedLedgers.get(lh.getId()).get());
+            assertEquals(rw1PrevFailedAttemptsCount,
+                    rw1.replicationFailedLedgers.get(lh.getId()).get(),
+                    "rw1 failedattempts");
+            assertEquals(rw2PrevFailedAttemptsCount,
+                    rw2.replicationFailedLedgers.get(lh.getId()).get(),
+                    "rw2 failed attempts ");
 
             /*
              * Since these entries are eventually available, and replication has
@@ -688,11 +694,11 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
             int rw1UnableToReadEntriesForReplication = rw1.unableToReadEntriesForReplication.get(lh.getId()).size();
             int rw2UnableToReadEntriesForReplication = rw2.unableToReadEntriesForReplication.get(lh.getId()).size();
             assertTrue(
+                    (rw1UnableToReadEntriesForReplication == 0)
+                            || (rw2UnableToReadEntriesForReplication == 0),
                     "unableToReadEntriesForReplication in RW1: " + rw1UnableToReadEntriesForReplication
                             + " in RW2: "
-                            + rw2UnableToReadEntriesForReplication,
-                    (rw1UnableToReadEntriesForReplication == 0)
-                            || (rw2UnableToReadEntriesForReplication == 0));
+                            + rw2UnableToReadEntriesForReplication);
         } finally {
             rw1.shutdown();
             rw2.shutdown();
@@ -719,7 +725,7 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testDeferLedgerLockReleaseForReplicationWorker() throws Exception {
+    void deferLedgerLockReleaseForReplicationWorker() throws Exception {
         int ensembleSize = 3;
         LedgerHandle lh = bkc.createLedger(ensembleSize, ensembleSize, BookKeeper.DigestType.CRC32, TESTPASSWD);
         int numOfEntries = 7;
@@ -793,8 +799,8 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
              * since all the bookies containing the ledger entries are down
              * replication wouldn't have succeeded.
              */
-            assertTrue("Ledger: " + lh.getId() + " should be underreplicated",
-                    ReplicationTestUtil.isLedgerInUnderReplication(zkc, lh.getId(), basePath));
+            assertTrue(ReplicationTestUtil.isLedgerInUnderReplication(zkc, lh.getId(), basePath),
+                    "Ledger: " + lh.getId() + " should be underreplicated");
 
             /*
              * since RW failed 'numOfAttemptsToWaitFor' number of times, we
@@ -806,8 +812,8 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
             for (int i = 0; i < ((numOfAttemptsToWaitFor - 1)); i++) {
                 long expectedDelayValue = Math.min(lockReleaseOfFailedLedgerGracePeriod,
                         baseBackoffForLockReleaseOfFailedLedger * (1 << i));
-                assertEquals("RW1 delayperiod", (Long) expectedDelayValue, rw1DelayReplicationPeriods.get(i));
-                assertEquals("RW2 delayperiod", (Long) expectedDelayValue, rw2DelayReplicationPeriods.get(i));
+                assertEquals((Long) expectedDelayValue, rw1DelayReplicationPeriods.get(i), "RW1 delayperiod");
+                assertEquals((Long) expectedDelayValue, rw2DelayReplicationPeriods.get(i), "RW2 delayperiod");
             }
 
             /*
@@ -817,19 +823,23 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
              * should be just 'numOfEntries', though RW failed to replicate
              * multiple times.
              */
-            assertEquals("numEntriesUnableToReadForReplication for RW1", Long.valueOf((long) numOfEntries),
-                    numEntriesUnableToReadForReplication1.get());
-            assertEquals("numEntriesUnableToReadForReplication for RW2", Long.valueOf((long) numOfEntries),
-                    numEntriesUnableToReadForReplication2.get());
+            assertEquals(Long.valueOf((long) numOfEntries),
+                    numEntriesUnableToReadForReplication1.get(),
+                    "numEntriesUnableToReadForReplication for RW1");
+            assertEquals(Long.valueOf((long) numOfEntries),
+                    numEntriesUnableToReadForReplication2.get(),
+                    "numEntriesUnableToReadForReplication for RW2");
 
             /*
              * Since these entries are unavailable,
              * unableToReadEntriesForReplication should be of size numOfEntries.
              */
-            assertEquals("RW1 unabletoreadentries", numOfEntries,
-                    rw1.unableToReadEntriesForReplication.get(lh.getId()).size());
-            assertEquals("RW2 unabletoreadentries", numOfEntries,
-                    rw2.unableToReadEntriesForReplication.get(lh.getId()).size());
+            assertEquals(numOfEntries,
+                    rw1.unableToReadEntriesForReplication.get(lh.getId()).size(),
+                    "RW1 unabletoreadentries");
+            assertEquals(numOfEntries,
+                    rw2.unableToReadEntriesForReplication.get(lh.getId()).size(),
+                    "RW2 unabletoreadentries");
         } finally {
             rw1.shutdown();
             rw2.shutdown();
@@ -843,7 +853,7 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
      * underReplication state. Note that RW should not fence such ledgers.
      */
     @Test
-    public void testRWShouldReplicateTheLedgersAfterTimeoutIfLastFragmentIsNotUR()
+    void rWShouldReplicateTheLedgersAfterTimeoutIfLastFragmentIsNotUR()
             throws Exception {
         LedgerHandle lh = bkc.createLedger(3, 3, BookKeeper.DigestType.CRC32,
                 TESTPASSWD);
@@ -896,8 +906,8 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
                     BookKeeper.DigestType.CRC32, TESTPASSWD);
 
             // Ledger should be still in open state
-            assertTrue("Ledger must have been closed by RW", ClientUtil
-                    .isLedgerOpen(lh));
+            assertTrue(ClientUtil
+                    .isLedgerOpen(lh), "Ledger must have been closed by RW");
         } finally {
             rw.shutdown();
             underReplicationManager.close();
@@ -909,7 +919,7 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
      * Test that the replication worker will not shutdown on a simple ZK disconnection.
      */
     @Test
-    public void testRWZKConnectionLost() throws Exception {
+    void rwzkConnectionLost() throws Exception {
         try (ZooKeeperClient zk = ZooKeeperClient.newBuilder()
                 .connectString(zkUtil.getZooKeeperConnectString())
                 .sessionTimeoutMs(10000)
@@ -923,14 +933,14 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
                 }
                 Thread.sleep(1000);
             }
-            assertTrue("Replication worker should be running", rw.isRunning());
+            assertTrue(rw.isRunning(), "Replication worker should be running");
 
             stopZKCluster();
             // ZK is down for shorter period than reconnect timeout
             Thread.sleep(1000);
             startZKCluster();
 
-            assertTrue("Replication worker should not shutdown", rw.isRunning());
+            assertTrue(rw.isRunning(), "Replication worker should not shutdown");
         }
     }
 
@@ -938,7 +948,7 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
      * Test that the replication worker shuts down on non-recoverable ZK connection loss.
      */
     @Test
-    public void testRWZKConnectionLostOnNonRecoverableZkError() throws Exception {
+    void rwzkConnectionLostOnNonRecoverableZkError() throws Exception {
         for (int j = 0; j < 3; j++) {
             LedgerHandle lh = bkc.createLedger(1, 1, 1,
                     BookKeeper.DigestType.CRC32, TESTPASSWD,
@@ -981,8 +991,8 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
             }
             Thread.sleep(1000);
         }
-        assertFalse("Replication worker should NOT be running", rw.isRunning());
-        assertFalse("Auditor should NOT be running", auditor.isRunning());
+        assertFalse(rw.isRunning(), "Replication worker should NOT be running");
+        assertFalse(auditor.isRunning(), "Auditor should NOT be running");
     }
 
     private void killAllBookies(LedgerHandle lh, BookieId excludeBK)
@@ -1006,7 +1016,7 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
                 BookKeeper.DigestType.CRC32, TESTPASSWD);
         Enumeration<LedgerEntry> entries = lhs.readEntries(startEntryId,
                 endEntryId);
-        assertTrue("Should have the elements", entries.hasMoreElements());
+        assertTrue(entries.hasMoreElements(), "Should have the elements");
         while (entries.hasMoreElements()) {
             LedgerEntry entry = entries.nextElement();
             assertEquals("TestReplicationWorker", new String(entry.getEntry()));
@@ -1098,7 +1108,7 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testRWShutDownInTheCaseOfZKOperationFailures() throws Exception {
+    void rWShutDownInTheCaseOfZKOperationFailures() throws Exception {
         /*
          * create MockZooKeeperClient instance and wait for it to be connected.
          */
@@ -1108,8 +1118,9 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
         MockZooKeeperClient zkFaultInjectionWrapper = new MockZooKeeperClient(zkUtil.getZooKeeperConnectString(),
                 zkSessionTimeOut, zooKeeperWatcherBase);
         zkFaultInjectionWrapper.waitForConnection();
-        assertEquals("zkFaultInjectionWrapper should be in connected state", States.CONNECTED,
-                zkFaultInjectionWrapper.getState());
+        assertEquals(States.CONNECTED,
+                zkFaultInjectionWrapper.getState(),
+                "zkFaultInjectionWrapper should be in connected state");
         long oldZkInstanceSessionId = zkFaultInjectionWrapper.getSessionId();
 
         /*
@@ -1138,10 +1149,12 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
             }
             Thread.sleep(200);
         }
-        assertEquals("zkFaultInjectionWrapper should be in connected state", States.CONNECTED,
-                zkFaultInjectionWrapper.getState());
-        assertNotEquals("Session Id of old and new ZK instance should be different", oldZkInstanceSessionId,
-                zkFaultInjectionWrapper.getSessionId());
+        assertEquals(States.CONNECTED,
+                zkFaultInjectionWrapper.getState(),
+                "zkFaultInjectionWrapper should be in connected state");
+        assertNotEquals(oldZkInstanceSessionId,
+                zkFaultInjectionWrapper.getSessionId(),
+                "Session Id of old and new ZK instance should be different");
 
         /*
          * Kill a Bookie, so that ledger becomes underreplicated. Since totally
@@ -1165,7 +1178,7 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
                 LOG.info("Waiting for the RW to start...");
                 Thread.sleep(500);
             }
-            assertTrue("RW should be running", rw.isRunning());
+            assertTrue(rw.isRunning(), "RW should be running");
 
             /*
              * Since Auditor is not running, ledger needs to be marked
@@ -1209,11 +1222,13 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
              * as described earlier, numOfTimes setDataFailed should be 1 and
              * numOfTimes deleteFailed should be 2
              */
-            assertEquals("NumOfTimesSetDataFailed", 1,
-                    zkFaultInjectionWrapper.getNumOfTimesSetDataFailed());
-            assertEquals("NumOfTimesDeleteFailed", 2,
-                    zkFaultInjectionWrapper.getNumOfTimesDeleteFailed());
-            assertFalse("RW should be shutdown", rw.isRunning());
+            assertEquals(1,
+                    zkFaultInjectionWrapper.getNumOfTimesSetDataFailed(),
+                    "NumOfTimesSetDataFailed");
+            assertEquals(2,
+                    zkFaultInjectionWrapper.getNumOfTimesDeleteFailed(),
+                    "NumOfTimesDeleteFailed");
+            assertFalse(rw.isRunning(), "RW should be shutdown");
         } finally {
             rw.shutdown();
             zkFaultInjectionWrapper.close();
@@ -1222,7 +1237,7 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testReplicateEmptyOpenStateLedger() throws Exception {
+    void replicateEmptyOpenStateLedger() throws Exception {
         LedgerHandle lh = bkc.createLedger(3, 3, 2, BookKeeper.DigestType.CRC32, TESTPASSWD);
         assertFalse(lh.getLedgerMetadata().isClosed());
 
@@ -1249,12 +1264,12 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testRepairedNotAdheringPlacementPolicyLedgerFragmentsOnRack() throws Exception {
+    void repairedNotAdheringPlacementPolicyLedgerFragmentsOnRack() throws Exception {
         testRepairedNotAdheringPlacementPolicyLedgerFragments(RackawareEnsemblePlacementPolicy.class, null);
     }
 
     @Test
-    public void testReplicationStats() throws Exception {
+    void replicationStats() throws Exception {
         BiConsumer<Boolean, ReplicationWorker> checkReplicationStats = (first, rw) -> {
             try {
                 final Method rereplicate = rw.getClass().getDeclaredMethod("rereplicate");
@@ -1271,22 +1286,17 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
                 final Counter numNotAdheringPlacementLedgersCounter = statsLogger
                         .getCounter(ReplicationStats.NUM_NOT_ADHERING_PLACEMENT_LEDGERS_REPLICATED);
 
-                assertEquals("NUM_DEFER_LEDGER_LOCK_RELEASE_OF_FAILED_LEDGER",
-                        1, numDeferLedgerLockReleaseOfFailedLedgerCounter.get().longValue());
+                assertEquals(1, numDeferLedgerLockReleaseOfFailedLedgerCounter.get().longValue(), "NUM_DEFER_LEDGER_LOCK_RELEASE_OF_FAILED_LEDGER");
 
                 if (first) {
                     assertFalse((boolean) result);
-                    assertEquals("NUM_FULL_OR_PARTIAL_LEDGERS_REPLICATED",
-                            0, numLedgersReplicatedCounter.get().longValue());
-                    assertEquals("NUM_NOT_ADHERING_PLACEMENT_LEDGERS_REPLICATED",
-                            0, numNotAdheringPlacementLedgersCounter.get().longValue());
+                    assertEquals(0, numLedgersReplicatedCounter.get().longValue(), "NUM_FULL_OR_PARTIAL_LEDGERS_REPLICATED");
+                    assertEquals(0, numNotAdheringPlacementLedgersCounter.get().longValue(), "NUM_NOT_ADHERING_PLACEMENT_LEDGERS_REPLICATED");
 
                 } else {
                     assertTrue((boolean) result);
-                    assertEquals("NUM_FULL_OR_PARTIAL_LEDGERS_REPLICATED",
-                            1, numLedgersReplicatedCounter.get().longValue());
-                    assertEquals("NUM_NOT_ADHERING_PLACEMENT_LEDGERS_REPLICATED",
-                            1, numNotAdheringPlacementLedgersCounter.get().longValue());
+                    assertEquals(1, numLedgersReplicatedCounter.get().longValue(), "NUM_FULL_OR_PARTIAL_LEDGERS_REPLICATED");
+                    assertEquals(1, numNotAdheringPlacementLedgersCounter.get().longValue(), "NUM_NOT_ADHERING_PLACEMENT_LEDGERS_REPLICATED");
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -1349,12 +1359,10 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
             TestStatsLogger statsLogger = startAuditorAndWaitForPlacementPolicyCheck(servConf, auditorRef);
             Gauge<? extends Number> ledgersNotAdheringToPlacementPolicyGuage = statsLogger
                     .getGauge(ReplicationStats.NUM_LEDGERS_NOT_ADHERING_TO_PLACEMENT_POLICY);
-            assertEquals("NUM_LEDGERS_NOT_ADHERING_TO_PLACEMENT_POLICY guage value",
-                    1, ledgersNotAdheringToPlacementPolicyGuage.getSample());
+            assertEquals(1, ledgersNotAdheringToPlacementPolicyGuage.getSample(), "NUM_LEDGERS_NOT_ADHERING_TO_PLACEMENT_POLICY guage value");
             Gauge<? extends Number> ledgersSoftlyAdheringToPlacementPolicyGuage = statsLogger
                     .getGauge(ReplicationStats.NUM_LEDGERS_SOFTLY_ADHERING_TO_PLACEMENT_POLICY);
-            assertEquals("NUM_LEDGERS_SOFTLY_ADHERING_TO_PLACEMENT_POLICY guage value",
-                    0, ledgersSoftlyAdheringToPlacementPolicyGuage.getSample());
+            assertEquals(0, ledgersSoftlyAdheringToPlacementPolicyGuage.getSample(), "NUM_LEDGERS_SOFTLY_ADHERING_TO_PLACEMENT_POLICY guage value");
         } finally {
             Auditor auditor = auditorRef.getValue();
             if (auditor != null) {
@@ -1470,23 +1478,25 @@ public class TestReplicationWorker extends BookKeeperClusterTestCase {
                 BookieImpl.getBookieId(servConf).toString(), servConf, bkc, false, statsLogger, null);
         auditorRef.setValue(auditor);
         CountDownLatch latch = auditor.getLatch();
-        assertEquals("PLACEMENT_POLICY_CHECK_TIME SuccessCount", 0,
-                placementPolicyCheckStatsLogger.getSuccessCount());
+        assertEquals(0,
+                placementPolicyCheckStatsLogger.getSuccessCount(),
+                "PLACEMENT_POLICY_CHECK_TIME SuccessCount");
         urm.setPlacementPolicyCheckCTime(-1);
         auditor.start();
         /*
          * since placementPolicyCheckCTime is set to -1, placementPolicyCheck should be
          * scheduled to run with no initialdelay
          */
-        assertTrue("placementPolicyCheck should have executed", latch.await(20, TimeUnit.SECONDS));
+        assertTrue(latch.await(20, TimeUnit.SECONDS), "placementPolicyCheck should have executed");
         for (int i = 0; i < 20; i++) {
             Thread.sleep(100);
             if (placementPolicyCheckStatsLogger.getSuccessCount() >= 1) {
                 break;
             }
         }
-        assertEquals("PLACEMENT_POLICY_CHECK_TIME SuccessCount", 1,
-                placementPolicyCheckStatsLogger.getSuccessCount());
+        assertEquals(1,
+                placementPolicyCheckStatsLogger.getSuccessCount(),
+                "PLACEMENT_POLICY_CHECK_TIME SuccessCount");
         return statsLogger;
     }
 }

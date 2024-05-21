@@ -18,7 +18,7 @@
  */
 package org.apache.bookkeeper.meta.zk;
 
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.doReturn;
@@ -32,37 +32,37 @@ import org.apache.bookkeeper.discover.RegistrationManager;
 import org.apache.bookkeeper.discover.ZKRegistrationManager;
 import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.zookeeper.ZooKeeper;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Unit test {@link ZKMetadataBookieDriver}.
  */
-@RunWith(MockitoJUnitRunner.class)
-public class ZKMetadataBookieDriverTest extends ZKMetadataDriverTestBase {
+@ExtendWith(MockitoExtension.class)
+class ZKMetadataBookieDriverTest extends ZKMetadataDriverTestBase {
 
     private ZKMetadataBookieDriver driver;
     private ServerConfiguration conf;
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    void setup() throws Exception {
         this.conf = new ServerConfiguration();
         super.setup(conf);
 
         driver = spy(new ZKMetadataBookieDriver());
     }
 
-    @After
+    @AfterEach
     public void teardown() {
         super.teardown();
         driver.close();
     }
 
     @Test
-    public void testGetRegManager() throws Exception {
+    void getRegManager() throws Exception {
         driver.initialize(conf, NullStatsLogger.INSTANCE);
 
         assertSame(conf, driver.serverConf);

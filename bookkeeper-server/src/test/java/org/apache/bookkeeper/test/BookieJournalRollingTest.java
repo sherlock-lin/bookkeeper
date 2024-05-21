@@ -20,9 +20,9 @@
  */
 package org.apache.bookkeeper.test;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.util.Enumeration;
@@ -34,9 +34,9 @@ import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.client.LedgerEntry;
 import org.apache.bookkeeper.client.LedgerHandle;
 import org.awaitility.Awaitility;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +54,7 @@ public class BookieJournalRollingTest extends BookKeeperClusterTestCase {
         this.baseConf.setAllowEphemeralPorts(false);
     }
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         // Set up the configuration properties needed.
@@ -63,7 +63,7 @@ public class BookieJournalRollingTest extends BookKeeperClusterTestCase {
         super.setUp();
     }
 
-    @After
+    @AfterEach
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
@@ -141,7 +141,7 @@ public class BookieJournalRollingTest extends BookKeeperClusterTestCase {
             }
             while (start < numMsgs) {
                 Enumeration<LedgerEntry> seq = lhs[j].readEntries(start, end);
-                assertTrue("Enumeration of ledger entries has no element", seq.hasMoreElements());
+                assertTrue(seq.hasMoreElements(), "Enumeration of ledger entries has no element");
                 while (seq.hasMoreElements()) {
                     LedgerEntry e = seq.nextElement();
                     assertEquals(entryId, e.getEntryId());
@@ -172,7 +172,7 @@ public class BookieJournalRollingTest extends BookKeeperClusterTestCase {
      * @throws Exception
      */
     @Test
-    public void testJournalRolling() throws Exception {
+    void journalRolling() throws Exception {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Testing Journal Rolling");
         }
@@ -213,7 +213,7 @@ public class BookieJournalRollingTest extends BookKeeperClusterTestCase {
      * @throws Exception
      */
     @Test
-    public void testJournalRollingWithoutSyncup() throws Exception {
+    void journalRollingWithoutSyncup() throws Exception {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Testing Journal Rolling without sync up");
         }
@@ -248,7 +248,7 @@ public class BookieJournalRollingTest extends BookKeeperClusterTestCase {
      * @throws Exception
      */
     @Test
-    public void testReplayDeletedLedgerJournalEntries() throws Exception {
+    void replayDeletedLedgerJournalEntries() throws Exception {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Testing replaying journal entries whose ledger has been removed.");
         }

@@ -31,13 +31,13 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import org.apache.bookkeeper.bookie.Bookie;
 import org.apache.bookkeeper.stats.OpStatsLogger;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test {@link GetBookieInfoProcessorV3}.
  */
-public class GetBookieInfoProcessorV3Test {
+class GetBookieInfoProcessorV3Test {
 
     private BookieRequestHandler requestHandler;
     private Channel channel;
@@ -48,8 +48,8 @@ public class GetBookieInfoProcessorV3Test {
     private OpStatsLogger channelWriteStats;
     private OpStatsLogger getBookieInfoRequestStats;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         getBookieInfoStats = mock(OpStatsLogger.class);
         channelWriteStats = mock(OpStatsLogger.class);
         getBookieInfoRequestStats = mock(OpStatsLogger.class);
@@ -78,7 +78,7 @@ public class GetBookieInfoProcessorV3Test {
     }
 
     @Test
-    public void testGetBookieInfoProcessorStats() throws IOException {
+    void getBookieInfoProcessorStats() throws IOException {
         final BookkeeperProtocol.BKPacketHeader.Builder headerBuilder =
                 BookkeeperProtocol.BKPacketHeader.newBuilder()
                 .setVersion(BookkeeperProtocol.ProtocolVersion.VERSION_THREE)

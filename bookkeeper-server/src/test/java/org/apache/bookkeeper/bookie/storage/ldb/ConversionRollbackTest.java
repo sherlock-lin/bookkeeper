@@ -20,6 +20,9 @@
  */
 package org.apache.bookkeeper.bookie.storage.ldb;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import io.netty.buffer.ByteBuf;
@@ -41,15 +44,14 @@ import org.apache.bookkeeper.conf.TestBKConfiguration;
 import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.util.DiskChecker;
 import org.apache.commons.io.FileUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 
 /**
  * Test for BookieShell convert-to-interleaved-storage command.
  */
 @Slf4j
-public class ConversionRollbackTest {
+class ConversionRollbackTest {
 
     CheckpointSource checkpointSource = new CheckpointSource() {
         @Override
@@ -75,7 +77,7 @@ public class ConversionRollbackTest {
     };
 
     @Test
-    public void convertFromDbStorageToInterleaved() throws Exception {
+    void convertFromDbStorageToInterleaved() throws Exception {
         File tmpDir = File.createTempFile("bkTest", ".dir");
         tmpDir.delete();
         tmpDir.mkdir();
@@ -118,7 +120,7 @@ public class ConversionRollbackTest {
         shell.setConf(conf);
         int res = shell.run(new String[] { "convert-to-interleaved-storage" });
 
-        Assert.assertEquals(0, res);
+        assertEquals(0, res);
 
         // Verify that interleaved storage index has the same entries
         InterleavedLedgerStorage interleavedStorage = new InterleavedLedgerStorage();
@@ -128,11 +130,11 @@ public class ConversionRollbackTest {
         interleavedStorage.setCheckpointer(checkpointer);
 
         Set<Long> ledgers = Sets.newTreeSet(interleavedStorage.getActiveLedgersInRange(0, Long.MAX_VALUE));
-        Assert.assertEquals(Sets.newTreeSet(Lists.newArrayList(0L, 1L, 2L, 3L, 4L)), ledgers);
+        assertEquals(Sets.newTreeSet(Lists.newArrayList(0L, 1L, 2L, 3L, 4L)), ledgers);
 
         for (long ledgerId = 0; ledgerId < 5; ledgerId++) {
-            Assert.assertEquals(true, interleavedStorage.isFenced(ledgerId));
-            Assert.assertEquals("ledger-" + ledgerId, new String(interleavedStorage.readMasterKey(ledgerId)));
+            assertTrue(interleavedStorage.isFenced(ledgerId));
+            assertEquals("ledger-" + ledgerId, new String(interleavedStorage.readMasterKey(ledgerId)));
 
             for (long entryId = 0; entryId < 10000; entryId++) {
                 ByteBuf entry = Unpooled.buffer(1024);
@@ -141,7 +143,7 @@ public class ConversionRollbackTest {
                 entry.writeBytes(("entry-" + entryId).getBytes());
 
                 ByteBuf result = interleavedStorage.getEntry(ledgerId, entryId);
-                Assert.assertEquals(entry, result);
+                assertEquals(entry, result);
             }
         }
 

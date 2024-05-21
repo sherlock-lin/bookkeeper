@@ -30,32 +30,32 @@ import org.apache.bookkeeper.net.BookieSocketAddress;
 import org.apache.bookkeeper.proto.DataFormats.LedgerMetadataFormat.DigestType;
 import org.apache.bookkeeper.proto.MockBookieClient;
 import org.apache.bookkeeper.proto.checksum.DigestManager;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Tests about ReadLastConfirmedOp.
  */
-public class ReadLastConfirmedOpTest {
+class ReadLastConfirmedOpTest {
     private static final Logger log = LoggerFactory.getLogger(ReadLastConfirmedOpTest.class);
     private final BookieId bookie1 = new BookieSocketAddress("bookie1", 3181).toBookieId();
     private final BookieId bookie2 = new BookieSocketAddress("bookie2", 3181).toBookieId();
 
     OrderedExecutor executor = null;
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    void setup() throws Exception {
         executor = OrderedExecutor.newBuilder()
                 .name("BookKeeperClientWorker")
                 .numThreads(1)
                 .build();
     }
 
-    @After
-    public void teardown() throws Exception {
+    @AfterEach
+    void teardown() throws Exception {
         if (executor != null) {
             executor.shutdown();
         }
@@ -65,7 +65,7 @@ public class ReadLastConfirmedOpTest {
      * Test for specific bug that was introduced with dcdd1e88.
      */
     @Test
-    public void testBookieFailsAfterLedgerMissingOnFirst() throws Exception {
+    void bookieFailsAfterLedgerMissingOnFirst() throws Exception {
         long ledgerId = 0xf00b;
         List<BookieId> ensemble = Lists.newArrayList(bookie1, bookie2);
         byte[] ledgerKey = new byte[0];

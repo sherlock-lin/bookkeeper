@@ -20,7 +20,8 @@
  */
 package org.apache.bookkeeper.bookie.storage.ldb;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -43,13 +44,12 @@ import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.test.TmpDirs;
 import org.apache.bookkeeper.util.DiskChecker;
 import org.apache.commons.io.FileUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test for class {@link LocationsIndexRebuildOp}.
  */
-public class LocationsIndexRebuildTest {
+class LocationsIndexRebuildTest {
 
     CheckpointSource checkpointSource = new CheckpointSource() {
         @Override
@@ -85,7 +85,7 @@ public class LocationsIndexRebuildTest {
     }
 
     @Test
-    public void test() throws Exception {
+    void test() throws Exception {
         File tmpDir = File.createTempFile("bkTest", ".dir");
         tmpDir.delete();
         tmpDir.mkdir();
@@ -129,7 +129,7 @@ public class LocationsIndexRebuildTest {
         shell.setConf(conf);
         int res = shell.run(new String[] { "rebuild-db-ledger-locations-index" });
 
-        Assert.assertEquals(0, res);
+        assertEquals(0, res);
 
         // Verify that db index has the same entries
         ledgerStorage = new DbLedgerStorage();
@@ -139,11 +139,11 @@ public class LocationsIndexRebuildTest {
         ledgerStorage.setCheckpointer(checkpointer);
 
         Set<Long> ledgers = Sets.newTreeSet(ledgerStorage.getActiveLedgersInRange(0, Long.MAX_VALUE));
-        Assert.assertEquals(Sets.newTreeSet(Lists.newArrayList(0L, 1L, 2L, 3L, 4L)), ledgers);
+        assertEquals(Sets.newTreeSet(Lists.newArrayList(0L, 1L, 2L, 3L, 4L)), ledgers);
 
         for (long ledgerId = 0; ledgerId < 5; ledgerId++) {
-            Assert.assertEquals(true, ledgerStorage.isFenced(ledgerId));
-            Assert.assertEquals("ledger-" + ledgerId, new String(ledgerStorage.readMasterKey(ledgerId)));
+            assertTrue(ledgerStorage.isFenced(ledgerId));
+            assertEquals("ledger-" + ledgerId, new String(ledgerStorage.readMasterKey(ledgerId)));
 
             ByteBuf lastEntry = ledgerStorage.getLastEntry(ledgerId);
             assertEquals(ledgerId, lastEntry.readLong());
@@ -157,7 +157,7 @@ public class LocationsIndexRebuildTest {
                 entry.writeBytes(("entry-" + entryId).getBytes());
 
                 ByteBuf result = ledgerStorage.getEntry(ledgerId, entryId);
-                Assert.assertEquals(entry, result);
+                assertEquals(entry, result);
             }
         }
 
@@ -166,7 +166,7 @@ public class LocationsIndexRebuildTest {
     }
 
     @Test
-    public void testMultiLedgerIndexDiffDirs() throws Exception {
+    void multiLedgerIndexDiffDirs() throws Exception {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         conf.setLedgerDirNames(new String[] { newDirectory(), newDirectory() });
         conf.setIndexDirName(new String[] { newDirectory(), newDirectory() });
@@ -210,11 +210,11 @@ public class LocationsIndexRebuildTest {
         ledgerStorage.setCheckpointer(checkpointer);
 
         Set<Long> ledgers = Sets.newTreeSet(ledgerStorage.getActiveLedgersInRange(0, Long.MAX_VALUE));
-        Assert.assertEquals(Sets.newTreeSet(Lists.newArrayList(0L, 1L, 2L, 3L, 4L)), ledgers);
+        assertEquals(Sets.newTreeSet(Lists.newArrayList(0L, 1L, 2L, 3L, 4L)), ledgers);
 
         for (long ledgerId = 0; ledgerId < 5; ledgerId++) {
-            Assert.assertEquals(true, ledgerStorage.isFenced(ledgerId));
-            Assert.assertEquals("ledger-" + ledgerId, new String(ledgerStorage.readMasterKey(ledgerId)));
+            assertTrue(ledgerStorage.isFenced(ledgerId));
+            assertEquals("ledger-" + ledgerId, new String(ledgerStorage.readMasterKey(ledgerId)));
 
             ByteBuf lastEntry = ledgerStorage.getLastEntry(ledgerId);
             assertEquals(ledgerId, lastEntry.readLong());
@@ -228,7 +228,7 @@ public class LocationsIndexRebuildTest {
                 entry.writeBytes(("entry-" + entryId).getBytes());
 
                 ByteBuf result = ledgerStorage.getEntry(ledgerId, entryId);
-                Assert.assertEquals(entry, result);
+                assertEquals(entry, result);
             }
         }
 

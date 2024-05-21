@@ -21,23 +21,23 @@
 package org.apache.bookkeeper.bookie.storage.ldb;
 
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test for {@link ReadCache}.
  */
-public class ReadCacheTest {
+class ReadCacheTest {
 
     @Test
-    public void simple() {
+    void simple() {
         ReadCache cache = new ReadCache(UnpooledByteBufAllocator.DEFAULT, 10 * 1024);
 
         assertEquals(0, cache.count());
@@ -74,18 +74,18 @@ public class ReadCacheTest {
     }
 
     @Test
-    public void emptyCache() {
+    void emptyCache() {
         ReadCache cache = new ReadCache(UnpooledByteBufAllocator.DEFAULT, 10 * 1024);
 
         assertEquals(0, cache.count());
         assertEquals(0, cache.size());
-        assertEquals(null, cache.get(0, 0));
+        assertNull(cache.get(0, 0));
 
         cache.close();
     }
 
     @Test
-    public void multipleSegments() {
+    void multipleSegments() {
         // Test with multiple smaller segments
         ReadCache cache = new ReadCache(UnpooledByteBufAllocator.DEFAULT, 10 * 1024, 2 * 1024);
 
@@ -120,7 +120,7 @@ public class ReadCacheTest {
     }
 
     @Test
-    public void testHasEntry() {
+    void hasEntry() {
         ReadCache cache = new ReadCache(UnpooledByteBufAllocator.DEFAULT, 10 * 1024, 2 * 1024);
 
         long ledgerId = 0xfefe;

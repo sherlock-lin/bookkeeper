@@ -1,34 +1,13 @@
 package org.apache.bookkeeper.test;
 
-/*
- *
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- *
- */
-
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import org.apache.bookkeeper.client.BKException;
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.client.LedgerHandle;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test Create/Delete ledgers.
@@ -40,14 +19,14 @@ public class LedgerCreateDeleteTest extends BookKeeperClusterTestCase {
     }
 
     @Override
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         baseConf.setOpenFileLimit(1);
         super.setUp();
     }
 
     @Test
-    public void testCreateDeleteLedgers() throws Exception {
+    void createDeleteLedgers() throws Exception {
         int numLedgers = 3;
         ArrayList<Long> ledgers = new ArrayList<Long>();
         for (int i = 0; i < numLedgers; i++) {
@@ -74,7 +53,7 @@ public class LedgerCreateDeleteTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testCreateLedgerWithBKNotEnoughBookiesException() throws Exception {
+    void createLedgerWithBKNotEnoughBookiesException() throws Exception {
         try {
             bkc.createLedger(2, 2, DigestType.CRC32, "bk is cool".getBytes());
             fail("Should be able to throw BKNotEnoughBookiesException");
@@ -84,7 +63,7 @@ public class LedgerCreateDeleteTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testCreateLedgerWithZKException() throws Exception {
+    void createLedgerWithZKException() throws Exception {
         stopZKCluster();
         try {
             bkc.createLedger(1, 1, DigestType.CRC32, "bk is cool".getBytes());

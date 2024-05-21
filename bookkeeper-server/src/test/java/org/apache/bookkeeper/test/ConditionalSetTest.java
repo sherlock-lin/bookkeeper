@@ -27,8 +27,8 @@ import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.client.BookKeeperTestClient;
 import org.apache.bookkeeper.client.LedgerHandle;
 import org.apache.zookeeper.KeeperException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +48,7 @@ public class ConditionalSetTest extends BookKeeperClusterTestCase {
     }
 
     @Override
-    @Before
+    @BeforeEach
     public void setUp() throws IOException, Exception {
         super.setUp();
         entry = new byte[10]; // initialize the entries list
@@ -68,8 +68,8 @@ public class ConditionalSetTest extends BookKeeperClusterTestCase {
      */
 
     @Test
-    public void testConditionalSet() throws IOException, InterruptedException,
-                                    BKException, KeeperException {
+    void conditionalSet() throws IOException, InterruptedException,
+            BKException, KeeperException {
         LedgerHandle lhWrite = bkc.createLedger(digestType, new byte[] { 'a',
                 'b' });
         long ledgerId = lhWrite.getId();

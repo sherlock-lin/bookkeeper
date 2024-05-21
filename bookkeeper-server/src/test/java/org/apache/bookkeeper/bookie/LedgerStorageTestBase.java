@@ -20,15 +20,16 @@
 package org.apache.bookkeeper.bookie;
 
 import java.io.File;
+import java.lang.reflect.Method;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.conf.TestBKConfiguration;
 import org.apache.bookkeeper.util.DiskChecker;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.rules.TestName;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Test the checkpoint logic in bookies.
@@ -36,15 +37,15 @@ import org.junit.rules.TestName;
 @Slf4j
 public abstract class LedgerStorageTestBase {
 
-    @Rule
-    public TestName testName = new TestName();
+    
+    public String testName;
 
     protected ServerConfiguration conf;
     protected File journalDir, ledgerDir;
     protected LedgerDirsManager ledgerDirsManager;
 
     private File createTempDir(String suffix) throws Exception {
-        File dir = File.createTempFile(testName.getMethodName(), suffix);
+        File dir = File.createTempFile( testName, suffix);
         dir.delete();
         dir.mkdirs();
         return dir;
@@ -54,8 +55,12 @@ public abstract class LedgerStorageTestBase {
         conf = TestBKConfiguration.newServerConfiguration();
     }
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    public void setUp(TestInfo testInfo) throws Exception {
+        Optional<Method> testMethod = testInfo.getTestMethod();
+        if (testMethod.isPresent()) {
+            this.testName = testMethod.get().getName();
+        }
         journalDir = createTempDir("journal");
         ledgerDir = createTempDir("ledger");
 
@@ -66,19 +71,19 @@ public abstract class LedgerStorageTestBase {
         // build the configuration
         conf.setMetadataServiceUri(null);
         conf.setJournalDirName(journalDir.getPath());
-        conf.setLedgerDirNames(new String[] { ledgerDir.getPath() });
+        conf.setLedgerDirNames(new String[]{ledgerDir.getPath()});
 
         // build the ledger monitor
         DiskChecker checker = new DiskChecker(
-            conf.getDiskUsageThreshold(),
-            conf.getDiskUsageWarnThreshold());
+                conf.getDiskUsageThreshold(),
+                conf.getDiskUsageWarnThreshold());
         ledgerDirsManager = new LedgerDirsManager(
-            conf,
-            conf.getLedgerDirs(),
-            checker);
+                conf,
+                conf.getLedgerDirs(),
+                checker);
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         FileUtils.deleteDirectory(journalDir);
         FileUtils.deleteDirectory(ledgerDir);

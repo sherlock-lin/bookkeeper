@@ -47,7 +47,7 @@ public class BookieNetworkAddressChangeTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testFollowBookieAddressChange() throws Exception {
+    void followBookieAddressChange() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         try (BookKeeper bkc = BookKeeper.newBuilder(conf)
@@ -86,7 +86,7 @@ public class BookieNetworkAddressChangeTest extends BookKeeperClusterTestCase {
 
     @Test
     @Disabled("PLSR-1850 Seems like restart of the bookie always comes up on same port hence failing this test")
-    public void testFollowBookieAddressChangeTrckingDisabled() throws Exception {
+    void followBookieAddressChangeTrckingDisabled() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         conf.setEnableBookieAddressTracking(false);
@@ -124,7 +124,7 @@ public class BookieNetworkAddressChangeTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testFollowBookieAddressChangeZkSessionExpire() throws Exception {
+    void followBookieAddressChangeZkSessionExpire() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         try (BookKeeper bkc = BookKeeper.newBuilder(conf)

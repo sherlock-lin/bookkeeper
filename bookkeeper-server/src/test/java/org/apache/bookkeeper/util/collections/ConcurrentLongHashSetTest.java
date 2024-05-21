@@ -43,10 +43,10 @@ import org.junit.jupiter.api.Test;
  * Test the ConcurrentLongHashSet class.
  */
 @SuppressWarnings("deprecation")
-public class ConcurrentLongHashSetTest {
+class ConcurrentLongHashSetTest {
 
     @Test
-    public void testConstructor() {
+    void constructor() {
         try {
             ConcurrentLongHashSet.newBuilder().concurrencyLevel(0).build();
             fail("should have thrown exception");
@@ -70,7 +70,7 @@ public class ConcurrentLongHashSetTest {
     }
 
     @Test
-    public void simpleInsertions() {
+    void simpleInsertions() {
         ConcurrentLongHashSet set = ConcurrentLongHashSet.newBuilder()
                 .expectedItems(16)
                 .build();
@@ -82,25 +82,25 @@ public class ConcurrentLongHashSetTest {
         assertTrue(set.add(2));
         assertTrue(set.add(3));
 
-        assertEquals(set.size(), 3);
+        assertEquals(3, set.size());
 
         assertTrue(set.contains(1));
-        assertEquals(set.size(), 3);
+        assertEquals(3, set.size());
 
         assertTrue(set.remove(1));
-        assertEquals(set.size(), 2);
+        assertEquals(2, set.size());
         assertFalse(set.contains(1));
         assertFalse(set.contains(5));
-        assertEquals(set.size(), 2);
+        assertEquals(2, set.size());
 
         assertTrue(set.add(1));
-        assertEquals(set.size(), 3);
+        assertEquals(3, set.size());
         assertFalse(set.add(1));
-        assertEquals(set.size(), 3);
+        assertEquals(3, set.size());
     }
 
     @Test
-    public void testReduceUnnecessaryExpansions() {
+    void reduceUnnecessaryExpansions() {
         ConcurrentLongHashSet set = ConcurrentLongHashSet.newBuilder()
                 .expectedItems(2)
                 .concurrencyLevel(1)
@@ -119,7 +119,7 @@ public class ConcurrentLongHashSetTest {
     }
 
     @Test
-    public void testRemove() {
+    void remove() {
         ConcurrentLongHashSet set = ConcurrentLongHashSet.newBuilder().build();
 
         assertTrue(set.isEmpty());
@@ -133,14 +133,14 @@ public class ConcurrentLongHashSetTest {
     }
 
     @Test
-    public void testRehashing() {
+    void rehashing() {
         int n = 16;
         ConcurrentLongHashSet set = ConcurrentLongHashSet.newBuilder()
                 .expectedItems(n / 2)
                 .concurrencyLevel(1)
                 .build();
         assertEquals(set.capacity(), n);
-        assertEquals(set.size(), 0);
+        assertEquals(0, set.size());
 
         for (int i = 0; i < n; i++) {
             set.add(i);
@@ -151,14 +151,14 @@ public class ConcurrentLongHashSetTest {
     }
 
     @Test
-    public void testRehashingWithDeletes() {
+    void rehashingWithDeletes() {
         int n = 16;
         ConcurrentLongHashSet set = ConcurrentLongHashSet.newBuilder()
                 .expectedItems(n / 2)
                 .concurrencyLevel(1)
                 .build();
         assertEquals(set.capacity(), n);
-        assertEquals(set.size(), 0);
+        assertEquals(0, set.size());
 
         for (int i = 0; i < n / 2; i++) {
             set.add(i);
@@ -177,7 +177,7 @@ public class ConcurrentLongHashSetTest {
     }
 
     @Test
-    public void concurrentInsertions() throws Throwable {
+    void concurrentInsertions() throws Throwable {
         ConcurrentLongHashSet set = ConcurrentLongHashSet.newBuilder().build();
         ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -209,7 +209,7 @@ public class ConcurrentLongHashSetTest {
     }
 
     @Test
-    public void concurrentInsertionsAndReads() throws Throwable {
+    void concurrentInsertionsAndReads() throws Throwable {
         ConcurrentLongHashSet map = ConcurrentLongHashSet.newBuilder().build();
         ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -241,7 +241,7 @@ public class ConcurrentLongHashSetTest {
     }
 
     @Test
-    public void testClear() {
+    void clear() {
         ConcurrentLongHashSet map = ConcurrentLongHashSet.newBuilder()
                 .expectedItems(2)
                 .concurrencyLevel(1)
@@ -260,7 +260,7 @@ public class ConcurrentLongHashSetTest {
     }
 
     @Test
-    public void testExpandAndShrink() {
+    void expandAndShrink() {
         ConcurrentLongHashSet map = ConcurrentLongHashSet.newBuilder()
                 .expectedItems(2)
                 .concurrencyLevel(1)
@@ -295,14 +295,14 @@ public class ConcurrentLongHashSetTest {
     }
 
     @Test
-    public void testConcurrentExpandAndShrinkAndGet()  throws Throwable {
+    void concurrentExpandAndShrinkAndGet()  throws Throwable {
         ConcurrentLongHashSet set = ConcurrentLongHashSet.newBuilder()
                 .expectedItems(2)
                 .concurrencyLevel(1)
                 .autoShrink(true)
                 .mapIdleFactor(0.25f)
                 .build();
-        assertEquals(set.capacity(), 4);
+        assertEquals(4, set.capacity());
 
         ExecutorService executor = Executors.newCachedThreadPool();
         final int readThreads = 16;
@@ -341,12 +341,12 @@ public class ConcurrentLongHashSetTest {
                 // expand hashmap
                 assertTrue(set.add(2));
                 assertTrue(set.add(3));
-                assertEquals(set.capacity(), 8);
+                assertEquals(8, set.capacity());
 
                 // shrink hashmap
                 assertTrue(set.remove(2));
                 assertTrue(set.remove(3));
-                assertEquals(set.capacity(), 4);
+                assertEquals(4, set.capacity());
             }
         });
 
@@ -357,7 +357,7 @@ public class ConcurrentLongHashSetTest {
     }
 
     @Test
-    public void testExpandShrinkAndClear() {
+    void expandShrinkAndClear() {
         ConcurrentLongHashSet map = ConcurrentLongHashSet.newBuilder()
                 .expectedItems(2)
                 .concurrencyLevel(1)
@@ -391,7 +391,7 @@ public class ConcurrentLongHashSetTest {
     }
 
     @Test
-    public void testIteration() {
+    void iteration() {
         ConcurrentLongHashSet set = ConcurrentLongHashSet.newBuilder().build();
 
         assertEquals(set.items(), Collections.emptySet());
@@ -417,7 +417,7 @@ public class ConcurrentLongHashSetTest {
     }
 
     @Test
-    public void testHashConflictWithDeletion() {
+    void hashConflictWithDeletion() {
         final int buckets = 16;
         ConcurrentLongHashSet set = ConcurrentLongHashSet.newBuilder()
                 .expectedItems(buckets)
@@ -434,27 +434,27 @@ public class ConcurrentLongHashSetTest {
 
         assertTrue(set.add(key1));
         assertTrue(set.add(key2));
-        assertEquals(set.size(), 2);
+        assertEquals(2, set.size());
 
         assertTrue(set.remove(key1));
-        assertEquals(set.size(), 1);
+        assertEquals(1, set.size());
 
         assertTrue(set.add(key1));
-        assertEquals(set.size(), 2);
+        assertEquals(2, set.size());
 
         assertTrue(set.remove(key1));
-        assertEquals(set.size(), 1);
+        assertEquals(1, set.size());
 
         assertFalse(set.add(key2));
         assertTrue(set.contains(key2));
 
-        assertEquals(set.size(), 1);
+        assertEquals(1, set.size());
         assertTrue(set.remove(key2));
         assertTrue(set.isEmpty());
     }
 
     @Test
-    public void testSizeInBytes() {
+    void sizeInBytes() {
         ConcurrentLongHashSet set = new ConcurrentLongHashSet(4, 2);
         assertEquals(64, set.sizeInBytes());
         set.add(1);

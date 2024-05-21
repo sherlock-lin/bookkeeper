@@ -20,7 +20,7 @@
  */
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.ByteBuffer;
 import java.util.Random;
@@ -32,7 +32,7 @@ import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.client.LedgerHandle;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +63,7 @@ public class BookieShutdownTest extends BookKeeperClusterTestCase {
      * resources are releasing properly. BOOKKEEPER-678
      */
     @Test
-    public void testBookieRestartContinuously() throws Exception {
+    void bookieRestartContinuously() throws Exception {
         for (int index = 0; index < 10; index++) {
             SyncObj sync = new SyncObj();
             try {
@@ -114,7 +114,7 @@ public class BookieShutdownTest extends BookKeeperClusterTestCase {
      * @throws Exception
      */
     @Test
-    public void testBookieShutdownFromBookieThread() throws Exception {
+    void bookieShutdownFromBookieThread() throws Exception {
         ServerConfiguration conf = confByIndex(0);
         killBookie(0);
         final CountDownLatch latch = new CountDownLatch(1);

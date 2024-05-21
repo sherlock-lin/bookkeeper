@@ -20,16 +20,16 @@
  */
 package org.apache.bookkeeper.zookeeper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test the retry policy.
  */
-public class TestRetryPolicy {
+class TestRetryPolicy {
 
     private static void assertTimeRange(long waitTime, long minTime, long maxTime) {
         assertTrue(waitTime >= minTime);
@@ -37,7 +37,7 @@ public class TestRetryPolicy {
     }
 
     @Test
-    public void testExponentialBackoffRetryPolicy() throws Exception {
+    void exponentialBackoffRetryPolicy() throws Exception {
         RetryPolicy policy = new ExponentialBackoffRetryPolicy(1000, Integer.MAX_VALUE);
         assertTimeRange(policy.nextRetryWaitTime(30, 2000), 1000L, (long) (1000 * Math.pow(2, 31)));
         assertTimeRange(policy.nextRetryWaitTime(31, 2000), 1000L, (long) (1000 * Math.pow(2, 32)));
@@ -48,7 +48,7 @@ public class TestRetryPolicy {
     }
 
     @Test
-    public void testBoundExponentialBackoffRetryPolicy() throws Exception {
+    void boundExponentialBackoffRetryPolicy() throws Exception {
         RetryPolicy policy = new BoundExponentialBackoffRetryPolicy(1000, 2000, Integer.MAX_VALUE);
         assertTimeRange(policy.nextRetryWaitTime(30, 2000), 1000L, 2000L);
         assertTimeRange(policy.nextRetryWaitTime(31, 2000), 1000L, 2000L);
@@ -59,7 +59,7 @@ public class TestRetryPolicy {
     }
 
     @Test
-    public void testExponentialBackoffWithDeadlineRetryPolicy() throws Exception {
+    void exponentialBackoffWithDeadlineRetryPolicy() throws Exception {
         RetryPolicy policy = new ExponentialBackOffWithDeadlinePolicy(100, 55 * 1000, 20);
 
         // Retries are allowed as long as we don't exceed the limits of retry count and deadline

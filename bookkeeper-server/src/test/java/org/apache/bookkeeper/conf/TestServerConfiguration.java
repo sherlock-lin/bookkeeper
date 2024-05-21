@@ -21,16 +21,16 @@
 
 package org.apache.bookkeeper.conf;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.apache.commons.configuration.ConfigurationException;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test for {@link ServerConfiguration}.
@@ -43,14 +43,14 @@ public class TestServerConfiguration {
         serverConf = new ServerConfiguration();
     }
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    void setup() throws Exception {
         serverConf.loadConf(
             getClass().getClassLoader().getResource("bk_server.conf"));
     }
 
     @Test
-    public void testEphemeralPortsAllowed() throws ConfigurationException {
+    void ephemeralPortsAllowed() throws ConfigurationException {
         ServerConfiguration conf = new ServerConfiguration();
         conf.setAllowEphemeralPorts(true);
         conf.setBookiePort(0);
@@ -59,16 +59,18 @@ public class TestServerConfiguration {
         assertTrue(true);
     }
 
-    @Test(expected = ConfigurationException.class)
-    public void testEphemeralPortsDisallowed() throws ConfigurationException {
-        ServerConfiguration conf = new ServerConfiguration();
-        conf.setAllowEphemeralPorts(false);
-        conf.setBookiePort(0);
-        conf.validate();
+    @Test
+    void ephemeralPortsDisallowed() throws ConfigurationException {
+        assertThrows(ConfigurationException.class, () -> {
+            ServerConfiguration conf = new ServerConfiguration();
+            conf.setAllowEphemeralPorts(false);
+            conf.setBookiePort(0);
+            conf.validate();
+        });
     }
 
     @Test
-    public void testSetExtraServerComponents() {
+    void setExtraServerComponents() {
         ServerConfiguration conf = new ServerConfiguration();
         assertNull(conf.getExtraServerComponents());
         String[] components = new String[] {
@@ -79,31 +81,35 @@ public class TestServerConfiguration {
     }
 
     @Test
-    public void testGetExtraServerComponents() {
+    void getExtraServerComponents() {
         String[] components = new String[] {
             "test1", "test2", "test3"
         };
         assertArrayEquals(components, serverConf.getExtraServerComponents());
     }
 
-    @Test(expected = ConfigurationException.class)
-    public void testMismatchofJournalAndFileInfoVersionsOlderJournalVersion() throws ConfigurationException {
-        ServerConfiguration conf = new ServerConfiguration();
-        conf.setJournalFormatVersionToWrite(5);
-        conf.setFileInfoFormatVersionToWrite(1);
-        conf.validate();
-    }
-
-    @Test(expected = ConfigurationException.class)
-    public void testMismatchofJournalAndFileInfoVersionsOlderFileInfoVersion() throws ConfigurationException {
-        ServerConfiguration conf = new ServerConfiguration();
-        conf.setJournalFormatVersionToWrite(6);
-        conf.setFileInfoFormatVersionToWrite(0);
-        conf.validate();
+    @Test
+    void mismatchofJournalAndFileInfoVersionsOlderJournalVersion() throws ConfigurationException {
+        assertThrows(ConfigurationException.class, () -> {
+            ServerConfiguration conf = new ServerConfiguration();
+            conf.setJournalFormatVersionToWrite(5);
+            conf.setFileInfoFormatVersionToWrite(1);
+            conf.validate();
+        });
     }
 
     @Test
-    public void testValidityOfJournalAndFileInfoVersions() throws ConfigurationException {
+    void mismatchofJournalAndFileInfoVersionsOlderFileInfoVersion() throws ConfigurationException {
+        assertThrows(ConfigurationException.class, () -> {
+            ServerConfiguration conf = new ServerConfiguration();
+            conf.setJournalFormatVersionToWrite(6);
+            conf.setFileInfoFormatVersionToWrite(0);
+            conf.validate();
+        });
+    }
+
+    @Test
+    void validityOfJournalAndFileInfoVersions() throws ConfigurationException {
         ServerConfiguration conf = new ServerConfiguration();
         conf.setJournalFormatVersionToWrite(5);
         conf.setFileInfoFormatVersionToWrite(0);
@@ -116,7 +122,7 @@ public class TestServerConfiguration {
     }
 
     @Test
-    public void testEntryLogSizeLimit() throws ConfigurationException {
+    void entryLogSizeLimit() throws ConfigurationException {
         ServerConfiguration conf = new ServerConfiguration();
         try {
             conf.setEntryLogSizeLimit(-1);
@@ -155,49 +161,49 @@ public class TestServerConfiguration {
     }
 
     @Test
-    public void testCompactionSettings() throws ConfigurationException {
+    void compactionSettings() throws ConfigurationException {
         ServerConfiguration conf = new ServerConfiguration();
         long major, minor;
 
         // Default Values
         major = conf.getMajorCompactionMaxTimeMillis();
         minor = conf.getMinorCompactionMaxTimeMillis();
-        Assert.assertEquals(-1, major);
-        Assert.assertEquals(-1, minor);
+        assertEquals(-1, major);
+        assertEquals(-1, minor);
 
         // Set values major then minor
         conf.setMajorCompactionMaxTimeMillis(500).setMinorCompactionMaxTimeMillis(250);
         major = conf.getMajorCompactionMaxTimeMillis();
         minor = conf.getMinorCompactionMaxTimeMillis();
-        Assert.assertEquals(500, major);
-        Assert.assertEquals(250, minor);
+        assertEquals(500, major);
+        assertEquals(250, minor);
 
         // Set values minor then major
         conf.setMinorCompactionMaxTimeMillis(150).setMajorCompactionMaxTimeMillis(1500);
         major = conf.getMajorCompactionMaxTimeMillis();
         minor = conf.getMinorCompactionMaxTimeMillis();
-        Assert.assertEquals(1500, major);
-        Assert.assertEquals(150, minor);
+        assertEquals(1500, major);
+        assertEquals(150, minor);
 
         // Default Values
         major = conf.getMajorCompactionInterval();
         minor = conf.getMinorCompactionInterval();
-        Assert.assertEquals(3600, minor);
-        Assert.assertEquals(86400, major);
+        assertEquals(3600, minor);
+        assertEquals(86400, major);
 
         // Set values major then minor
         conf.setMajorCompactionInterval(43200).setMinorCompactionInterval(1800);
         major = conf.getMajorCompactionInterval();
         minor = conf.getMinorCompactionInterval();
-        Assert.assertEquals(1800, minor);
-        Assert.assertEquals(43200, major);
+        assertEquals(1800, minor);
+        assertEquals(43200, major);
 
         // Set values minor then major
         conf.setMinorCompactionInterval(900).setMajorCompactionInterval(21700);
         major = conf.getMajorCompactionInterval();
         minor = conf.getMinorCompactionInterval();
-        Assert.assertEquals(900, minor);
-        Assert.assertEquals(21700, major);
+        assertEquals(900, minor);
+        assertEquals(21700, major);
 
         conf.setMinorCompactionInterval(500);
         try {
@@ -223,21 +229,21 @@ public class TestServerConfiguration {
         double majorThreshold, minorThreshold;
         majorThreshold = conf.getMajorCompactionThreshold();
         minorThreshold = conf.getMinorCompactionThreshold();
-        Assert.assertEquals(0.8, majorThreshold, 0.00001);
-        Assert.assertEquals(0.2, minorThreshold, 0.00001);
+        assertEquals(0.8, majorThreshold, 0.00001);
+        assertEquals(0.2, minorThreshold, 0.00001);
 
         // Set values major then minor
         conf.setMajorCompactionThreshold(0.7).setMinorCompactionThreshold(0.1);
         majorThreshold = conf.getMajorCompactionThreshold();
         minorThreshold = conf.getMinorCompactionThreshold();
-        Assert.assertEquals(0.7, majorThreshold, 0.00001);
-        Assert.assertEquals(0.1, minorThreshold, 0.00001);
+        assertEquals(0.7, majorThreshold, 0.00001);
+        assertEquals(0.1, minorThreshold, 0.00001);
 
         // Set values minor then major
         conf.setMinorCompactionThreshold(0.3).setMajorCompactionThreshold(0.6);
         majorThreshold = conf.getMajorCompactionThreshold();
         minorThreshold = conf.getMinorCompactionThreshold();
-        Assert.assertEquals(0.6, majorThreshold, 0.00001);
-        Assert.assertEquals(0.3, minorThreshold, 0.00001);
+        assertEquals(0.6, majorThreshold, 0.00001);
+        assertEquals(0.3, minorThreshold, 0.00001);
     }
 }

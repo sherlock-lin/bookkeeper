@@ -21,8 +21,8 @@
 package org.apache.bookkeeper.replication;
 
 import static org.apache.bookkeeper.replication.ReplicationStats.AUDITOR_SCOPE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
 import java.net.UnknownHostException;
@@ -69,9 +69,9 @@ import org.apache.bookkeeper.util.StaticDNSResolver;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.zookeeper.KeeperException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the logic of Auditor's ReplicasCheck.
@@ -85,7 +85,7 @@ public class AuditorReplicasCheckTest extends BookKeeperClusterTestCase {
         baseConf.setPageLimit(1); // to make it easy to push ledger out of cache
     }
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -95,7 +95,7 @@ public class AuditorReplicasCheckTest extends BookKeeperClusterTestCase {
         regManager = driver.createRegistrationManager();
     }
 
-    @After
+    @AfterEach
     @Override
     public void tearDown() throws Exception {
         if (null != regManager) {
@@ -158,21 +158,21 @@ public class AuditorReplicasCheckTest extends BookKeeperClusterTestCase {
                 true, statsLogger, null);
         auditorRef.setValue(auditor);
         CountDownLatch latch = auditor.getLatch();
-        assertEquals("REPLICAS_CHECK_TIME SuccessCount", 0, replicasCheckStatsLogger.getSuccessCount());
+        assertEquals(0, replicasCheckStatsLogger.getSuccessCount(), "REPLICAS_CHECK_TIME SuccessCount");
         urm.setReplicasCheckCTime(-1);
         auditor.start();
         /*
          * since replicasCheckCTime is set to -1, replicasCheck should be
          * scheduled to run with no initialdelay
          */
-        assertTrue("replicasCheck should have executed", latch.await(20, TimeUnit.SECONDS));
+        assertTrue(latch.await(20, TimeUnit.SECONDS), "replicasCheck should have executed");
         for (int i = 0; i < 200; i++) {
             Thread.sleep(100);
             if (replicasCheckStatsLogger.getSuccessCount() >= 1) {
                 break;
             }
         }
-        assertEquals("REPLICAS_CHECK_TIME SuccessCount", 1, replicasCheckStatsLogger.getSuccessCount());
+        assertEquals(1, replicasCheckStatsLogger.getSuccessCount(), "REPLICAS_CHECK_TIME SuccessCount");
         return statsLogger;
     }
 
@@ -255,15 +255,15 @@ public class AuditorReplicasCheckTest extends BookKeeperClusterTestCase {
         Gauge<? extends Number> numLedgersHavingLessThanWQReplicasOfAnEntryGuage = statsLogger
                 .getGauge(ReplicationStats.NUM_LEDGERS_HAVING_LESS_THAN_WQ_REPLICAS_OF_AN_ENTRY);
 
-        assertEquals("NUM_LEDGERS_HAVING_NO_REPLICA_OF_AN_ENTRY guage value",
-                expectedNumLedgersFoundHavingNoReplicaOfAnEntry,
-                numLedgersFoundHavingNoReplicaOfAnEntryGuage.getSample());
-        assertEquals("NUM_LEDGERS_HAVING_LESS_THAN_AQ_REPLICAS_OF_AN_ENTRY guage value",
-                expectedNumLedgersHavingLessThanAQReplicasOfAnEntry,
-                numLedgersHavingLessThanAQReplicasOfAnEntryGuage.getSample());
-        assertEquals("NUM_LEDGERS_HAVING_LESS_THAN_WQ_REPLICAS_OF_AN_ENTRY guage value",
-                expectedNumLedgersHavingLessThanWQReplicasOfAnEntry,
-                numLedgersHavingLessThanWQReplicasOfAnEntryGuage.getSample());
+        assertEquals(expectedNumLedgersFoundHavingNoReplicaOfAnEntry,
+                numLedgersFoundHavingNoReplicaOfAnEntryGuage.getSample(),
+                "NUM_LEDGERS_HAVING_NO_REPLICA_OF_AN_ENTRY guage value");
+        assertEquals(expectedNumLedgersHavingLessThanAQReplicasOfAnEntry,
+                numLedgersHavingLessThanAQReplicasOfAnEntryGuage.getSample(),
+                "NUM_LEDGERS_HAVING_LESS_THAN_AQ_REPLICAS_OF_AN_ENTRY guage value");
+        assertEquals(expectedNumLedgersHavingLessThanWQReplicasOfAnEntry,
+                numLedgersHavingLessThanWQReplicasOfAnEntryGuage.getSample(),
+                "NUM_LEDGERS_HAVING_LESS_THAN_WQ_REPLICAS_OF_AN_ENTRY guage value");
     }
 
     /*
@@ -274,7 +274,7 @@ public class AuditorReplicasCheckTest extends BookKeeperClusterTestCase {
      * LessThanAQReplicasOfAnEntry / LessThanWQReplicasOfAnEntry.
      */
     @Test
-    public void testReplicasCheckForBookieHandleNotAvailable() throws Exception {
+    void replicasCheckForBookieHandleNotAvailable() throws Exception {
         int numOfBookies = 5;
         MultiKeyMap<String, AvailabilityOfEntriesOfLedger> returnAvailabilityOfEntriesOfLedger =
                 new MultiKeyMap<String, AvailabilityOfEntriesOfLedger>();
@@ -371,7 +371,7 @@ public class AuditorReplicasCheckTest extends BookKeeperClusterTestCase {
      * numLedgersFoundHavingNoReplicaOfAnEntry.
      */
     @Test
-    public void testReplicasCheckForLedgersFoundHavingNoReplica() throws Exception {
+    void replicasCheckForLedgersFoundHavingNoReplica() throws Exception {
         int numOfBookies = 5;
         MultiKeyMap<String, AvailabilityOfEntriesOfLedger> returnAvailabilityOfEntriesOfLedger =
                 new MultiKeyMap<String, AvailabilityOfEntriesOfLedger>();
@@ -506,7 +506,7 @@ public class AuditorReplicasCheckTest extends BookKeeperClusterTestCase {
      * numLedgersFoundHavingLessThanAQReplicasOfAnEntry.
      */
     @Test
-    public void testReplicasCheckForLedgersFoundHavingLessThanAQReplicasOfAnEntry() throws Exception {
+    void replicasCheckForLedgersFoundHavingLessThanAQReplicasOfAnEntry() throws Exception {
         int numOfBookies = 5;
         MultiKeyMap<String, AvailabilityOfEntriesOfLedger> returnAvailabilityOfEntriesOfLedger =
                 new MultiKeyMap<String, AvailabilityOfEntriesOfLedger>();
@@ -660,7 +660,7 @@ public class AuditorReplicasCheckTest extends BookKeeperClusterTestCase {
      * counted towards numLedgersFoundHavingLessThanWQReplicasOfAnEntry.
      */
     @Test
-    public void testReplicasCheckForLedgersFoundHavingLessThanWQReplicasOfAnEntry() throws Exception {
+    void replicasCheckForLedgersFoundHavingLessThanWQReplicasOfAnEntry() throws Exception {
         int numOfBookies = 5;
         MultiKeyMap<String, AvailabilityOfEntriesOfLedger> returnAvailabilityOfEntriesOfLedger =
                 new MultiKeyMap<String, AvailabilityOfEntriesOfLedger>();
@@ -812,7 +812,7 @@ public class AuditorReplicasCheckTest extends BookKeeperClusterTestCase {
      * In this testscenario all the ledgers have empty segments.
      */
     @Test
-    public void testReplicasCheckForLedgersWithEmptySegments() throws Exception {
+    void replicasCheckForLedgersWithEmptySegments() throws Exception {
         int numOfBookies = 5;
         MultiKeyMap<String, AvailabilityOfEntriesOfLedger> returnAvailabilityOfEntriesOfLedger =
                 new MultiKeyMap<String, AvailabilityOfEntriesOfLedger>();

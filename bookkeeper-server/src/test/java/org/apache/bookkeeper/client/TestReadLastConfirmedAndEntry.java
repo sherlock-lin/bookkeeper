@@ -21,8 +21,8 @@
 package org.apache.bookkeeper.client;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.netty.buffer.ByteBuf;
 import java.io.IOException;
@@ -43,31 +43,27 @@ import org.apache.bookkeeper.bookie.storage.ldb.DbLedgerStorage;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Test reading the last confirmed and entry.
  */
-@RunWith(Parameterized.class)
 public class TestReadLastConfirmedAndEntry extends BookKeeperClusterTestCase {
 
     private static final Logger logger = LoggerFactory.getLogger(TestReadLastConfirmedAndEntry.class);
 
-    final BookKeeper.DigestType digestType;
+    BookKeeper.DigestType digestType;
 
-    public TestReadLastConfirmedAndEntry(Class<? extends LedgerStorage> storageClass) {
+    public void initTestReadLastConfirmedAndEntry(Class<? extends LedgerStorage> storageClass) {
         super(3);
         this.digestType = BookKeeper.DigestType.CRC32;
         this.baseConf.setAllowEphemeralPorts(false);
         this.baseConf.setLedgerStorageClass(storageClass.getName());
     }
 
-    @Parameters
     public static Collection<Object[]> configs() {
         return Arrays.asList(new Object[][] {
             { InterleavedLedgerStorage.class },
@@ -81,7 +77,7 @@ public class TestReadLastConfirmedAndEntry extends BookKeeperClusterTestCase {
         final long expectedEntryToFail;
         final boolean stallOrRespondNull;
 
-        public FakeBookie(ServerConfiguration conf, long expectedEntryToFail, boolean stallOrRespondNull)
+        public void initTestReadLastConfirmedAndEntry(ServerConfiguration conf, long expectedEntryToFail, boolean stallOrRespondNull)
                 throws Exception {
             super(conf);
             this.expectedEntryToFail = expectedEntryToFail;
@@ -107,8 +103,10 @@ public class TestReadLastConfirmedAndEntry extends BookKeeperClusterTestCase {
         }
     }
 
-    @Test
-    public void testAdvancedLacWithEmptyResponse() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void advancedLacWithEmptyResponse(Class<? extends LedgerStorage> storageClass) throws Exception {
+        initTestReadLastConfirmedAndEntry(storageClass);
         byte[] passwd = "advanced-lac-with-empty-response".getBytes(UTF_8);
 
         ClientConfiguration newConf = new ClientConfiguration();
@@ -178,7 +176,7 @@ public class TestReadLastConfirmedAndEntry extends BookKeeperClusterTestCase {
         private final long lacToSlowRead;
         private final CountDownLatch readLatch;
 
-        public SlowReadLacBookie(ServerConfiguration conf,
+        public void initTestReadLastConfirmedAndEntry(ServerConfiguration conf,
                                  long lacToSlowRead, CountDownLatch readLatch)
                 throws Exception {
             super(conf);
@@ -223,8 +221,10 @@ public class TestReadLastConfirmedAndEntry extends BookKeeperClusterTestCase {
         }
     }
 
-    @Test
-    public void testRaceOnLastAddConfirmed() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void raceOnLastAddConfirmed(Class<? extends LedgerStorage> storageClass) throws Exception {
+        initTestReadLastConfirmedAndEntry(storageClass);
         byte[] passwd = "race-on-last-add-confirmed".getBytes(UTF_8);
 
         ClientConfiguration newConf = new ClientConfiguration();

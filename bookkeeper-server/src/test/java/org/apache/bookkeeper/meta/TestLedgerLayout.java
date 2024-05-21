@@ -18,15 +18,15 @@
  */
 package org.apache.bookkeeper.meta;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test of {@link LedgerLayout} class itself.
  */
-public class TestLedgerLayout {
+class TestLedgerLayout {
 
     private static final LedgerLayout hierarchical1 =
         new LedgerLayout(
@@ -44,14 +44,14 @@ public class TestLedgerLayout {
             1);
 
     @Test
-    public void testEquals() {
+    void equals() {
         assertEquals(hierarchical1, hierarchical1);
         assertNotEquals(hierarchical1, hierarchical2);
         assertNotEquals(hierarchical1, longHierarchical);
     }
 
     @Test
-    public void testGetters() {
+    void getters() {
         assertEquals(
             HierarchicalLedgerManagerFactory.class.getName(),
             hierarchical1.getManagerFactoryClass());

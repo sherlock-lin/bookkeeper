@@ -20,8 +20,8 @@
  */
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.nullable;
@@ -35,6 +35,7 @@ import static org.mockito.Mockito.verify;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -45,25 +46,24 @@ import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.conf.TestBKConfiguration;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.proto.BookkeeperInternalCallbacks.WriteCallback;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
 /**
  * Test the bookie journal PageCache flush interval.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 @Slf4j
 public class BookieJournalPageCacheFlushTest {
 
     private static final ByteBuf DATA = Unpooled.wrappedBuffer(new byte[]{});
 
-    @Rule
-    public TemporaryFolder tempDir = new TemporaryFolder();
+    @TempDir
+    public File tempDir;
 
     @SuppressWarnings("unchecked")
     private BatchedArrayBlockingQueue<ForceWriteRequest> enableForceWriteThreadSuspension(
@@ -85,8 +85,8 @@ public class BookieJournalPageCacheFlushTest {
     }
 
     @Test
-    public void testAckAfterSyncPageCacheFlush() throws Exception {
-        File journalDir = tempDir.newFolder();
+    void ackAfterSyncPageCacheFlush() throws Exception {
+        File journalDir = newFolder(tempDir, "junit");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration()
@@ -153,8 +153,8 @@ public class BookieJournalPageCacheFlushTest {
     }
 
     @Test
-    public void testAckBeforeSyncPageCacheFlush() throws Exception {
-        File journalDir = tempDir.newFolder();
+    void ackBeforeSyncPageCacheFlush() throws Exception {
+        File journalDir = newFolder(tempDir, "junit");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration()
@@ -218,8 +218,8 @@ public class BookieJournalPageCacheFlushTest {
     }
 
     @Test
-    public void testAckBeforeUnSyncPageCacheFlush() throws Exception {
-        File journalDir = tempDir.newFolder();
+    void ackBeforeUnSyncPageCacheFlush() throws Exception {
+        File journalDir = newFolder(tempDir, "junit");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration()
@@ -293,5 +293,14 @@ public class BookieJournalPageCacheFlushTest {
         forceWriteThreadSuspendedLatch.countDown();
 
         journal.shutdown();
+    }
+
+    private static File newFolder(File root, String... subDirs) throws IOException {
+        String subFolder = String.join("/", subDirs);
+        File result = new File(root, subFolder);
+        if (!result.mkdirs()) {
+            throw new IOException("Couldn't create folders " + root);
+        }
+        return result;
     }
 }

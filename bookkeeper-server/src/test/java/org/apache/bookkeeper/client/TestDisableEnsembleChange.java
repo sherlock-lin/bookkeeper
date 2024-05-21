@@ -23,10 +23,10 @@ package org.apache.bookkeeper.client;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.bookkeeper.util.BookKeeperConstants.FEATURE_DISABLE_ENSEMBLE_CHANGE;
 import static org.apache.bookkeeper.util.TestUtils.assertEventuallyTrue;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.util.concurrent.RateLimiter;
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ import org.apache.bookkeeper.feature.SettableFeature;
 import org.apache.bookkeeper.feature.SettableFeatureProvider;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,12 +57,12 @@ public class TestDisableEnsembleChange extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testDisableEnsembleChange() throws Exception {
+    void disableEnsembleChange() throws Exception {
         disableEnsembleChangeTest(true);
     }
 
     @Test
-    public void testDisableEnsembleChangeNotEnoughBookies() throws Exception {
+    void disableEnsembleChangeNotEnoughBookies() throws Exception {
         disableEnsembleChangeTest(false);
     }
 
@@ -113,12 +113,11 @@ public class TestDisableEnsembleChange extends BookKeeperClusterTestCase {
         finished.set(true);
         addThread.join();
 
-        assertFalse("Should not fail adding entries facing one bookie failure when disable ensemble change",
-                failTest.get());
+        assertFalse(failTest.get(),
+                "Should not fail adding entries facing one bookie failure when disable ensemble change");
 
         // check the ensemble after failure
-        assertEquals("No new ensemble should be added when disable ensemble change.",
-                1, lh.getLedgerMetadata().getAllEnsembles().size());
+        assertEquals(1, lh.getLedgerMetadata().getAllEnsembles().size(), "No new ensemble should be added when disable ensemble change.");
         ArrayList<BookieId> ensembleAfterFailure =
                 new ArrayList<>(lh.getLedgerMetadata().getAllEnsembles().entrySet().iterator().next().getValue());
         assertArrayEquals(ensembleBeforeFailure.toArray(new BookieId[ensembleBeforeFailure.size()]),
@@ -154,15 +153,14 @@ public class TestDisableEnsembleChange extends BookKeeperClusterTestCase {
         addThread.join();
 
         if (startNewBookie) {
-            assertFalse("Should not fail adding entries when enable ensemble change again.",
-                    failTest.get());
-            assertFalse("Ledger should be closed when enable ensemble change again.",
-                    lh.getLedgerMetadata().isClosed());
-            assertEquals("New ensemble should be added when enable ensemble change again.",
-                    2, lh.getLedgerMetadata().getAllEnsembles().size());
+            assertFalse(failTest.get(),
+                    "Should not fail adding entries when enable ensemble change again.");
+            assertFalse(lh.getLedgerMetadata().isClosed(),
+                    "Ledger should be closed when enable ensemble change again.");
+            assertEquals(2, lh.getLedgerMetadata().getAllEnsembles().size(), "New ensemble should be added when enable ensemble change again.");
         } else {
-            assertTrue("Should fail adding entries when enable ensemble change again.",
-                    failTest.get());
+            assertTrue(failTest.get(),
+                    "Should fail adding entries when enable ensemble change again.");
             // The ledger close occurs in the background, so assert that it happens eventually
             assertEventuallyTrue("Ledger should be closed when enable ensemble change again.",
                                  () -> lh.getLedgerMetadata().isClosed());
@@ -170,7 +168,7 @@ public class TestDisableEnsembleChange extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testRetryFailureBookie() throws Exception {
+    void retryFailureBookie() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setMetadataServiceUri(metadataServiceUri)
             .setDelayEnsembleChange(false)
@@ -203,18 +201,18 @@ public class TestDisableEnsembleChange extends BookKeeperClusterTestCase {
                 }
         };
         lh.asyncAddEntry(entry, cb, null);
-        assertFalse("Add entry operation should not complete.",
-                addLatch.await(1000, TimeUnit.MILLISECONDS));
-        assertEquals(res.get(), 0xdeadbeef);
+        assertFalse(addLatch.await(1000, TimeUnit.MILLISECONDS),
+                "Add entry operation should not complete.");
+        assertEquals(0xdeadbeef, res.get());
         // start the original bookie
         startAndAddBookie(killedConf);
-        assertTrue("Add entry operation should complete at this point.",
-                addLatch.await(10000, TimeUnit.MILLISECONDS));
-        assertEquals(res.get(), BKException.Code.OK);
+        assertTrue(addLatch.await(10000, TimeUnit.MILLISECONDS),
+                "Add entry operation should complete at this point.");
+        assertEquals(BKException.Code.OK, res.get());
     }
 
     @Test
-    public void testRetrySlowBookie() throws Exception {
+    void retrySlowBookie() throws Exception {
         final int readTimeout = 2;
 
         ClientConfiguration conf = new ClientConfiguration();
@@ -257,23 +255,23 @@ public class TestDisableEnsembleChange extends BookKeeperClusterTestCase {
                 }
         };
         lh.asyncAddEntry(entry, cb, null);
-        assertFalse("Add entry operation should not complete.",
-                addLatch.await(1000, TimeUnit.MILLISECONDS));
-        assertEquals(res.get(), 0xdeadbeef);
+        assertFalse(addLatch.await(1000, TimeUnit.MILLISECONDS),
+                "Add entry operation should not complete.");
+        assertEquals(0xdeadbeef, res.get());
         // wait until read timeout
-        assertFalse("Add entry operation should not complete even timeout.",
-                addLatch.await(readTimeout, TimeUnit.SECONDS));
-        assertEquals(res.get(), 0xdeadbeef);
+        assertFalse(addLatch.await(readTimeout, TimeUnit.SECONDS),
+                "Add entry operation should not complete even timeout.");
+        assertEquals(0xdeadbeef, res.get());
         // wait one more read timeout, to ensure we resend multiple retries
         // to ensure it works correctly
-        assertFalse("Add entry operation should not complete even timeout.",
-                addLatch.await(readTimeout, TimeUnit.SECONDS));
-        assertEquals(res.get(), 0xdeadbeef);
+        assertFalse(addLatch.await(readTimeout, TimeUnit.SECONDS),
+                "Add entry operation should not complete even timeout.");
+        assertEquals(0xdeadbeef, res.get());
         // wakeup the sleep bookie
         wakeupLatch.countDown();
-        assertTrue("Add entry operation should complete at this point.",
-                addLatch.await(10000, TimeUnit.MILLISECONDS));
-        assertEquals(res.get(), BKException.Code.OK);
+        assertTrue(addLatch.await(10000, TimeUnit.MILLISECONDS),
+                "Add entry operation should complete at this point.");
+        assertEquals(BKException.Code.OK, res.get());
     }
 
 }

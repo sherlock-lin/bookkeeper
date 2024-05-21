@@ -16,7 +16,7 @@
 package org.apache.bookkeeper.bookie;
 
 import static org.apache.bookkeeper.util.BookKeeperConstants.READONLY;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,9 +34,9 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test basic functions using secured ZooKeeper.
@@ -49,8 +49,8 @@ public class EnableZkSecurityBasicTest extends BookKeeperClusterTestCase {
         this.baseConf.setZkEnableSecurity(true);
     }
 
-    @BeforeClass
-    public static void setupJAAS() throws IOException {
+    @BeforeAll
+    static void setupJAAS() throws IOException {
         System.setProperty("zookeeper.authProvider.1", "org.apache.zookeeper.server.auth.SASLAuthenticationProvider");
         File tmpJaasDir = Files.createTempDirectory("jassTmpDir").toFile();
         File tmpJaasFile = new File(tmpJaasDir, "jaas.conf");
@@ -69,15 +69,15 @@ public class EnableZkSecurityBasicTest extends BookKeeperClusterTestCase {
         Configuration.getConfiguration().refresh();
     }
 
-    @AfterClass
-    public static void cleanUpJAAS() {
+    @AfterAll
+    static void cleanUpJAAS() {
         System.clearProperty("java.security.auth.login.config");
         Configuration.getConfiguration().refresh();
         System.clearProperty("zookeeper.authProvider.1");
     }
 
     @Test
-    public void testCreateLedgerAddEntryOnSecureZooKeepeer() throws Exception {
+    void createLedgerAddEntryOnSecureZooKeepeer() throws Exception {
         startNewBookie();
 
         ClientConfiguration conf = new ClientConfiguration();
@@ -123,9 +123,10 @@ public class EnableZkSecurityBasicTest extends BookKeeperClusterTestCase {
                 assertEquals(1, acls.size());
                 assertEquals(31, acls.get(0).getPerms());
                 assertEquals(31, acls.get(0).getPerms());
-                assertEquals("unexpected ACLS on " + fullPath + ": " + acls.get(0), "foo", acls.get(0).getId().getId());
-                assertEquals("unexpected ACLS on " + fullPath + ": " + acls.get(0), "sasl",
-                        acls.get(0).getId().getScheme());
+                assertEquals("foo", acls.get(0).getId().getId(), "unexpected ACLS on " + fullPath + ": " + acls.get(0));
+                assertEquals("sasl",
+                        acls.get(0).getId().getScheme(),
+                        "unexpected ACLS on " + fullPath + ": " + acls.get(0));
             }
         }
     }

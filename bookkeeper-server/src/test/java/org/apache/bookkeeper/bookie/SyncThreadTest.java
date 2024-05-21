@@ -20,10 +20,10 @@
  */
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -46,27 +46,27 @@ import org.apache.bookkeeper.conf.TestBKConfiguration;
 import org.apache.bookkeeper.meta.LedgerManager;
 import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.stats.StatsLogger;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Test a synchronization thread.
  */
-public class SyncThreadTest {
+class SyncThreadTest {
     private static final Logger LOG = LoggerFactory.getLogger(SyncThreadTest.class);
 
     ExecutorService executor = null;
 
-    @Before
-    public void setupExecutor() {
+    @BeforeEach
+    void setupExecutor() {
         executor = Executors.newSingleThreadExecutor();
     }
 
-    @After
-    public void teardownExecutor() {
+    @AfterEach
+    void teardownExecutor() {
         if (executor != null) {
             executor.shutdownNow();
             executor = null;
@@ -79,7 +79,7 @@ public class SyncThreadTest {
      * has finished.
      */
     @Test
-    public void testSyncThreadLongShutdown() throws Exception {
+    void syncThreadLongShutdown() throws Exception {
         int flushInterval = 100;
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         conf.setFlushInterval(flushInterval);
@@ -121,8 +121,8 @@ public class SyncThreadTest {
 
         final SyncThread t = new SyncThread(conf, listener, storage, checkpointSource, NullStatsLogger.INSTANCE);
         t.startCheckpoint(Checkpoint.MAX);
-        assertTrue("Checkpoint should have been called",
-                   checkpointCalledLatch.await(10, TimeUnit.SECONDS));
+        assertTrue(checkpointCalledLatch.await(10, TimeUnit.SECONDS),
+                   "Checkpoint should have been called");
         Future<Boolean> done = executor.submit(() -> {
             try {
                 t.shutdown();
@@ -135,15 +135,15 @@ public class SyncThreadTest {
             return true;
         });
         checkpointLatch.countDown();
-        assertFalse("Shutdown shouldn't have finished", done.isDone());
-        assertTrue("Flush should have been called",
-                   flushCalledLatch.await(10, TimeUnit.SECONDS));
+        assertFalse(done.isDone(), "Shutdown shouldn't have finished");
+        assertTrue(flushCalledLatch.await(10, TimeUnit.SECONDS),
+                   "Flush should have been called");
 
-        assertFalse("Shutdown shouldn't have finished", done.isDone());
+        assertFalse(done.isDone(), "Shutdown shouldn't have finished");
         flushLatch.countDown();
 
-        assertTrue("Shutdown should have finished successfully", done.get(10, TimeUnit.SECONDS));
-        assertFalse("Shouldn't have failed anywhere", failedSomewhere.get());
+        assertTrue(done.get(10, TimeUnit.SECONDS), "Shutdown should have finished successfully");
+        assertFalse(failedSomewhere.get(), "Shouldn't have failed anywhere");
     }
 
     /**
@@ -152,7 +152,7 @@ public class SyncThreadTest {
      * will be synced.
      */
     @Test
-    public void testSyncThreadSuspension() throws Exception {
+    void syncThreadSuspension() throws Exception {
         int flushInterval = 100;
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         conf.setFlushInterval(flushInterval);
@@ -177,7 +177,7 @@ public class SyncThreadTest {
         int count = checkpointCount.get();
         for (int i = 0; i < 10; i++) {
             t.startCheckpoint(Checkpoint.MAX);
-            assertEquals("Checkpoint count shouldn't change", count, checkpointCount.get());
+            assertEquals(count, checkpointCount.get(), "Checkpoint count shouldn't change");
         }
         t.resumeSync();
         int i = 0;
@@ -197,7 +197,7 @@ public class SyncThreadTest {
      * to shutdown.
      */
     @Test
-    public void testSyncThreadShutdownOnError() throws Exception {
+    void syncThreadShutdownOnError() throws Exception {
         int flushInterval = 100;
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         conf.setFlushInterval(flushInterval);
@@ -219,7 +219,7 @@ public class SyncThreadTest {
             };
         final SyncThread t = new SyncThread(conf, listener, storage, checkpointSource, NullStatsLogger.INSTANCE);
         t.startCheckpoint(Checkpoint.MAX);
-        assertTrue("Should have called fatal error", fatalLatch.await(10, TimeUnit.SECONDS));
+        assertTrue(fatalLatch.await(10, TimeUnit.SECONDS), "Should have called fatal error");
         t.shutdown();
     }
 
@@ -229,7 +229,7 @@ public class SyncThreadTest {
      * thread will be notified.
      */
     @Test
-    public void testSyncThreadDisksFull() throws Exception {
+    void syncThreadDisksFull() throws Exception {
         int flushInterval = 100;
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         conf.setFlushInterval(flushInterval);
@@ -251,7 +251,7 @@ public class SyncThreadTest {
             };
         final SyncThread t = new SyncThread(conf, listener, storage, checkpointSource, NullStatsLogger.INSTANCE);
         t.startCheckpoint(Checkpoint.MAX);
-        assertTrue("Should have disk full error", diskFullLatch.await(10, TimeUnit.SECONDS));
+        assertTrue(diskFullLatch.await(10, TimeUnit.SECONDS), "Should have disk full error");
         t.shutdown();
     }
 

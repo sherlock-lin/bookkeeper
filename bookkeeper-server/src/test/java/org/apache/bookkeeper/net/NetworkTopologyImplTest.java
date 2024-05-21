@@ -17,27 +17,27 @@
  */
 package org.apache.bookkeeper.net;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link NetworkTopologyImpl}.
  */
-public class NetworkTopologyImplTest {
+class NetworkTopologyImplTest {
 
-  @Test
-  public void getLeavesShouldReturnEmptySetForNonExistingScope() {
+    @Test
+    void getLeavesShouldReturnEmptySetForNonExistingScope() {
       NetworkTopologyImpl networkTopology = new NetworkTopologyImpl();
       final Set<Node> leaves = networkTopology.getLeaves("/non-existing-scope");
       assertTrue(leaves.isEmpty());
   }
 
-  @Test
-  public void getLeavesShouldReturnNodesInScope() {
+    @Test
+    void getLeavesShouldReturnNodesInScope() {
       // GIVEN
       // Topology with two racks and 1 bookie in each rack.
       NetworkTopologyImpl networkTopology = new NetworkTopologyImpl();
@@ -58,15 +58,15 @@ public class NetworkTopologyImplTest {
       Set<Node> leavesScopeRack1 = networkTopology.getLeaves(rack1Scope);
 
       // THEN
-      assertTrue(leavesScopeRack0.size() == 1);
+      assertEquals(1, leavesScopeRack0.size());
       assertTrue(leavesScopeRack0.contains(bookieRack0ScopeNode));
 
-      assertTrue(leavesScopeRack1.size() == 1);
+      assertEquals(1, leavesScopeRack1.size());
       assertTrue(leavesScopeRack1.contains(bookieRack1ScopeNode));
   }
 
-  @Test
-  public void testRestartBKWithNewRackDepth() {
+    @Test
+    void restartBKWithNewRackDepth() {
       NetworkTopologyImpl networkTopology = new NetworkTopologyImpl();
       String dp1Rack = "/rack-1";
       String dp2Rack = "/dp/rack-1";
@@ -90,7 +90,7 @@ public class NetworkTopologyImplTest {
           // Expected ex.
       }
       Set<Node> leaves = networkTopology.getLeaves(dp1Rack);
-      assertEquals(leaves.size(), 1);
+      assertEquals(1, leaves.size());
       assertTrue(leaves.contains(dp1BkNode2));
 
       // Update all Bks with depth 2 rack.
@@ -100,13 +100,13 @@ public class NetworkTopologyImplTest {
       networkTopology.add(dp2BkNode1);
       networkTopology.add(dp2BkNode2);
       leaves = networkTopology.getLeaves(dp2Rack);
-      assertEquals(leaves.size(), 2);
+      assertEquals(2, leaves.size());
       assertTrue(leaves.contains(dp2BkNode1));
       assertTrue(leaves.contains(dp2BkNode2));
   }
 
-  @Test
-  public void getLeavesShouldReturnLeavesThatAreNotInExcludedScope() {
+    @Test
+    void getLeavesShouldReturnLeavesThatAreNotInExcludedScope() {
       // GIVEN
       // Topology with three racks and 1 bookie in each rack.
       NetworkTopologyImpl networkTopology = new NetworkTopologyImpl();
@@ -135,13 +135,13 @@ public class NetworkTopologyImplTest {
       Set<Node> leavesExcludingRack2Scope = networkTopology.getLeaves(scopeExcludingRack1);
 
       // THEN
-      assertTrue(leavesExcludingRack2Scope.size() == 2);
+      assertEquals(2, leavesExcludingRack2Scope.size());
       assertTrue(leavesExcludingRack2Scope.contains(bookieRack0ScopeNode));
       assertTrue(leavesExcludingRack2Scope.contains(bookieRack2ScopeNode));
   }
 
-  @Test
-  public void testInvalidRackName() {
+    @Test
+    void invalidRackName() {
       NetworkTopologyImpl networkTopology = new NetworkTopologyImpl();
       String rack0Scope = "";
       BookieId bookieIdScopeRack0 = BookieId.parse("bookieIdScopeRack0");

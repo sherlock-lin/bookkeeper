@@ -25,13 +25,13 @@ import static org.apache.bookkeeper.discover.ZKRegistrationClient.ZK_CONNECT_BAC
 import static org.apache.bookkeeper.util.BookKeeperConstants.AVAILABLE_NODE;
 import static org.apache.bookkeeper.util.BookKeeperConstants.COOKIE_NODE;
 import static org.apache.bookkeeper.util.BookKeeperConstants.READONLY;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -41,9 +41,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
+import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -64,25 +66,26 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.data.Stat;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestName;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * Unit test of {@link RegistrationClient}.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
 @Slf4j
 public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTestCase {
 
 
-
-    @Rule
-    public final TestName runtime = new TestName();
+    
+    public final String runtime;
 
     private String ledgersPath;
     private String regPath;
@@ -100,31 +103,35 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
 
 
     @Override
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    public void setup(TestInfo testInfo) throws Exception {
+        Optional<Method> testMethod = testInfo.getTestMethod();
+        if (testMethod.isPresent()) {
+            this.runtime = testMethod.get().getName();
+        }
         super.setup();
 
-        this.ledgersPath = "/" + runtime.getMethodName();
+        this.ledgersPath = "/" + runtime;
         this.regPath = ledgersPath + "/" + AVAILABLE_NODE;
         this.regAllPath = ledgersPath + "/" + COOKIE_NODE;
         this.regReadonlyPath = regPath + "/" + READONLY;
         this.mockExecutor = mock(ScheduledExecutorService.class);
         this.controller = new MockExecutorController()
-            .controlExecute(mockExecutor)
-            .controlSubmit(mockExecutor)
-            .controlSchedule(mockExecutor)
-            .controlScheduleAtFixedRate(mockExecutor, 10);
+                .controlExecute(mockExecutor)
+                .controlSubmit(mockExecutor)
+                .controlSchedule(mockExecutor)
+                .controlScheduleAtFixedRate(mockExecutor, 10);
         this.zkRegistrationClient = new ZKRegistrationClient(
-            mockZk,
-            ledgersPath,
-            mockExecutor,
-            bookieAddressChangeTracking
+                mockZk,
+                ledgersPath,
+                mockExecutor,
+                bookieAddressChangeTracking
         );
         assertEquals(bookieAddressChangeTracking, zkRegistrationClient.isBookieAddressTracking());
     }
 
-    @After
-    public void teardown() throws Exception{
+    @AfterEach
+    public void teardown() throws Exception {
         super.teardown();
 
         if (null != zkRegistrationClient) {
@@ -143,31 +150,31 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
     private void prepareReadBookieServiceInfo(BookieId address, boolean readonly) throws Exception {
         if (readonly) {
             mockZkGetData(regPath + "/" + address.toString(),
-                        zkRegistrationClient.isBookieAddressTracking(),
-                        Code.NONODE.intValue(),
-                        new byte[] {},
-                        new Stat());
+                    zkRegistrationClient.isBookieAddressTracking(),
+                    Code.NONODE.intValue(),
+                    new byte[]{},
+                    new Stat());
             mockZkGetData(regReadonlyPath + "/" + address,
-                        zkRegistrationClient.isBookieAddressTracking(),
-                        Code.OK.intValue(),
-                        new byte[] {},
-                        new Stat());
+                    zkRegistrationClient.isBookieAddressTracking(),
+                    Code.OK.intValue(),
+                    new byte[]{},
+                    new Stat());
         } else {
             mockZkGetData(regPath + "/" + address.toString(),
-                        zkRegistrationClient.isBookieAddressTracking(),
-                        Code.OK.intValue(),
-                        new byte[] {},
-                        new Stat());
+                    zkRegistrationClient.isBookieAddressTracking(),
+                    Code.OK.intValue(),
+                    new byte[]{},
+                    new Stat());
             mockZkGetData(regReadonlyPath + "/" + address,
-                        zkRegistrationClient.isBookieAddressTracking(),
-                        Code.NONODE.intValue(),
-                        new byte[] {},
-                        new Stat());
+                    zkRegistrationClient.isBookieAddressTracking(),
+                    Code.NONODE.intValue(),
+                    new byte[]{},
+                    new Stat());
         }
     }
 
     @Test
-    public void testGetWritableBookies() throws Exception {
+    public void getWritableBookies() throws Exception {
         Set<BookieId> addresses = prepareNBookies(10);
         List<String> children = Lists.newArrayList();
         for (BookieId address : addresses) {
@@ -178,19 +185,19 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
         Stat stat = mock(Stat.class);
         when(stat.getCversion()).thenReturn(1234);
         mockGetChildren(
-            regPath, false,
-            Code.OK.intValue(), children, stat);
+                regPath, false,
+                Code.OK.intValue(), children, stat);
 
         Versioned<Set<BookieId>> result =
-            result(zkRegistrationClient.getWritableBookies());
+                result(zkRegistrationClient.getWritableBookies());
 
         assertEquals(new LongVersion(1234), result.getVersion());
         assertSetEquals(
-            addresses, result.getValue());
+                addresses, result.getValue());
     }
 
     @Test
-    public void testGetAllBookies() throws Exception {
+    public void getAllBookies() throws Exception {
         Set<BookieId> addresses = prepareNBookies(10);
         List<String> children = Lists.newArrayList();
 
@@ -203,19 +210,19 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
         Stat stat = mock(Stat.class);
         when(stat.getCversion()).thenReturn(1234);
         mockGetChildren(
-            regAllPath, false,
-            Code.OK.intValue(), children, stat);
+                regAllPath, false,
+                Code.OK.intValue(), children, stat);
 
         Versioned<Set<BookieId>> result =
-            result(zkRegistrationClient.getAllBookies());
+                result(zkRegistrationClient.getAllBookies());
 
         assertEquals(new LongVersion(1234), result.getVersion());
         assertSetEquals(
-            addresses, result.getValue());
+                addresses, result.getValue());
     }
 
     @Test
-    public void testGetReadOnlyBookies() throws Exception {
+    public void getReadOnlyBookies() throws Exception {
         Set<BookieId> addresses = prepareNBookies(10);
         List<String> children = Lists.newArrayList();
         for (BookieId address : addresses) {
@@ -225,22 +232,22 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
         Stat stat = mock(Stat.class);
         when(stat.getCversion()).thenReturn(1234);
         mockGetChildren(
-            regReadonlyPath, false,
-            Code.OK.intValue(), children, stat);
+                regReadonlyPath, false,
+                Code.OK.intValue(), children, stat);
 
         Versioned<Set<BookieId>> result =
-            result(zkRegistrationClient.getReadOnlyBookies());
+                result(zkRegistrationClient.getReadOnlyBookies());
 
         assertEquals(new LongVersion(1234), result.getVersion());
         assertSetEquals(
-            addresses, result.getValue());
+                addresses, result.getValue());
     }
 
     @Test
-    public void testGetWritableBookiesFailure() throws Exception {
+    public void getWritableBookiesFailure() throws Exception {
         mockGetChildren(
-            regPath, false,
-            Code.NONODE.intValue(), null, null);
+                regPath, false,
+                Code.NONODE.intValue(), null, null);
 
         try {
             result(zkRegistrationClient.getWritableBookies());
@@ -251,10 +258,10 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
     }
 
     @Test
-    public void testGetAllBookiesFailure() throws Exception {
+    public void getAllBookiesFailure() throws Exception {
         mockGetChildren(
-            regAllPath, false,
-            Code.NONODE.intValue(), null, null);
+                regAllPath, false,
+                Code.NONODE.intValue(), null, null);
 
         try {
             result(zkRegistrationClient.getAllBookies());
@@ -265,10 +272,10 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
     }
 
     @Test
-    public void testGetReadOnlyBookiesFailure() throws Exception {
+    public void getReadOnlyBookiesFailure() throws Exception {
         mockGetChildren(
-            regReadonlyPath, false,
-            Code.NONODE.intValue(), null, null);
+                regReadonlyPath, false,
+                Code.NONODE.intValue(), null, null);
 
         try {
             result(zkRegistrationClient.getReadOnlyBookies());
@@ -279,12 +286,12 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
     }
 
     @Test
-    public void testWatchWritableBookiesSuccess() throws Exception {
+    public void watchWritableBookiesSuccess() throws Exception {
         testWatchBookiesSuccess(true);
     }
 
     @Test
-    public void testWatchReadonlyBookiesSuccess() throws Exception {
+    public void watchReadonlyBookiesSuccess() throws Exception {
         testWatchBookiesSuccess(false);
     }
 
@@ -296,7 +303,7 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
         //
 
         LinkedBlockingQueue<Versioned<Set<BookieId>>> updates =
-            spy(new LinkedBlockingQueue<>());
+                spy(new LinkedBlockingQueue<>());
         RegistrationListener listener = bookies -> {
             try {
                 updates.put(bookies);
@@ -315,13 +322,13 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
         when(stat.getCversion()).thenReturn(1234);
 
         mockGetChildren(
-            isWritable ? regPath : regReadonlyPath,
-            true,
-            Code.OK.intValue(), children, stat);
+                isWritable ? regPath : regReadonlyPath,
+                true,
+                Code.OK.intValue(), children, stat);
 
         if (isWritable) {
             result(zkRegistrationClient.watchWritableBookies(listener));
-        }  else {
+        } else {
             result(zkRegistrationClient.watchReadOnlyBookies(listener));
         }
 
@@ -329,10 +336,10 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
         verify(updates, times(1)).put(any(Versioned.class));
         assertEquals(new LongVersion(1234), update.getVersion());
         assertSetEquals(
-            addresses, update.getValue());
+                addresses, update.getValue());
 
         verify(mockZk, times(1))
-            .getChildren(anyString(), any(Watcher.class), any(Children2Callback.class), any());
+                .getChildren(anyString(), any(Watcher.class), any(Children2Callback.class), any());
 
         //
         // 2. test watch bookies with a second listener. the second listener returns cached bookies
@@ -341,7 +348,7 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
 
         // register another listener
         LinkedBlockingQueue<Versioned<Set<BookieId>>> secondUpdates =
-            spy(new LinkedBlockingQueue<>());
+                spy(new LinkedBlockingQueue<>());
         RegistrationListener secondListener = bookies -> {
             try {
                 secondUpdates.put(bookies);
@@ -364,7 +371,7 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
 
         // the second listener will return the cached value without issuing another getChildren call
         verify(mockZk, times(1))
-            .getChildren(anyString(), any(Watcher.class), any(Children2Callback.class), any());
+                .getChildren(anyString(), any(Watcher.class), any(Children2Callback.class), any());
 
         //
         // 3. simulate session expire, it will trigger watcher to refetch bookies again.
@@ -372,9 +379,9 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
         //
 
         notifyWatchedEvent(
-            EventType.None,
-            KeeperState.Expired,
-            isWritable ? regPath : regReadonlyPath);
+                EventType.None,
+                KeeperState.Expired,
+                isWritable ? regPath : regReadonlyPath);
 
         // if session expires, the watcher task will get into backoff state
         controller.advance(Duration.ofMillis(ZK_CONNECT_BACKOFF_MS));
@@ -382,7 +389,7 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
         // the same updates returns, the getChildren calls increase to 2
         // but since there is no updates, so no notification is sent.
         verify(mockZk, times(2))
-            .getChildren(anyString(), any(Watcher.class), any(Children2Callback.class), any());
+                .getChildren(anyString(), any(Watcher.class), any(Children2Callback.class), any());
         assertNull(updates.poll());
         // both listener and secondListener will not receive any old update
         verify(updates, times(1)).put(any(Versioned.class));
@@ -402,26 +409,26 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
         when(newStat.getCversion()).thenReturn(1235);
 
         mockGetChildren(
-            isWritable ? regPath : regReadonlyPath,
-            true,
-            Code.OK.intValue(), newChildren, newStat);
+                isWritable ? regPath : regReadonlyPath,
+                true,
+                Code.OK.intValue(), newChildren, newStat);
 
         // trigger watcher
         notifyWatchedEvent(
-            EventType.NodeChildrenChanged,
-            KeeperState.SyncConnected,
-            isWritable ? regPath : regReadonlyPath);
+                EventType.NodeChildrenChanged,
+                KeeperState.SyncConnected,
+                isWritable ? regPath : regReadonlyPath);
 
         update = updates.take();
         assertEquals(new LongVersion(1235), update.getVersion());
         assertSetEquals(
-            newAddresses, update.getValue());
+                newAddresses, update.getValue());
         secondListenerUpdate = secondUpdates.take();
         assertSame(update.getVersion(), secondListenerUpdate.getVersion());
         assertSame(update.getValue(), secondListenerUpdate.getValue());
 
         verify(mockZk, times(3))
-            .getChildren(anyString(), any(Watcher.class), any(Children2Callback.class), any());
+                .getChildren(anyString(), any(Watcher.class), any(Children2Callback.class), any());
         verify(updates, times(2)).put(any(Versioned.class));
         verify(secondUpdates, times(2)).put(any(Versioned.class));
 
@@ -441,9 +448,9 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
         when(newStat.getCversion()).thenReturn(1236);
 
         mockGetChildren(
-            isWritable ? regPath : regReadonlyPath,
-            true,
-            Code.OK.intValue(), newChildren, newStat);
+                isWritable ? regPath : regReadonlyPath,
+                true,
+                Code.OK.intValue(), newChildren, newStat);
 
         if (isWritable) {
             assertEquals(2, zkRegistrationClient.getWatchWritableBookiesTask().getNumListeners());
@@ -457,19 +464,19 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
 
         // trigger watcher
         notifyWatchedEvent(
-            EventType.NodeChildrenChanged,
-            KeeperState.SyncConnected,
-            isWritable ? regPath : regReadonlyPath);
+                EventType.NodeChildrenChanged,
+                KeeperState.SyncConnected,
+                isWritable ? regPath : regReadonlyPath);
 
         update = updates.take();
         assertEquals(new LongVersion(1236), update.getVersion());
         assertSetEquals(
-            newAddresses, update.getValue());
+                newAddresses, update.getValue());
         secondListenerUpdate = secondUpdates.poll();
         assertNull(secondListenerUpdate);
 
         verify(mockZk, times(4))
-            .getChildren(anyString(), any(Watcher.class), any(Children2Callback.class), any());
+                .getChildren(anyString(), any(Watcher.class), any(Children2Callback.class), any());
         verify(updates, times(3)).put(any(Versioned.class));
         verify(secondUpdates, times(2)).put(any(Versioned.class));
 
@@ -495,12 +502,12 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
     }
 
     @Test
-    public void testWatchWritableBookiesTwice() throws Exception {
+    public void watchWritableBookiesTwice() throws Exception {
         testWatchBookiesTwice(true);
     }
 
     @Test
-    public void testWatchReadonlyBookiesTwice() throws Exception {
+    public void watchReadonlyBookiesTwice() throws Exception {
         testWatchBookiesTwice(false);
     }
 
@@ -518,9 +525,9 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
         when(stat.getCversion()).thenReturn(1234);
 
         mockGetChildren(
-            isWritable ? regPath : regReadonlyPath,
-            true,
-            Code.OK.intValue(), children, stat, zkCallbackDelayMs);
+                isWritable ? regPath : regReadonlyPath,
+                true,
+                Code.OK.intValue(), children, stat, zkCallbackDelayMs);
 
         CompletableFuture<Versioned<Set<BookieId>>> firstResult = new CompletableFuture<>();
         RegistrationListener firstListener = bookies -> firstResult.complete(bookies);
@@ -532,7 +539,7 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
         if (isWritable) {
             watchFutures.add(zkRegistrationClient.watchWritableBookies(firstListener));
             watchFutures.add(zkRegistrationClient.watchWritableBookies(secondListener));
-        }  else {
+        } else {
             watchFutures.add(zkRegistrationClient.watchReadOnlyBookies(firstListener));
             watchFutures.add(zkRegistrationClient.watchReadOnlyBookies(secondListener));
         }
@@ -546,12 +553,12 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
     }
 
     @Test
-    public void testWatchWritableBookiesFailure() throws Exception {
+    public void watchWritableBookiesFailure() throws Exception {
         testWatchBookiesFailure(true);
     }
 
     @Test
-    public void testWatchReadonlyBookiesFailure() throws Exception {
+    public void watchReadonlyBookiesFailure() throws Exception {
         testWatchBookiesFailure(false);
     }
 
@@ -560,9 +567,9 @@ public abstract class AbstractTestZkRegistrationClient extends MockZooKeeperTest
         int zkCallbackDelayMs = 100;
 
         mockGetChildren(
-            isWritable ? regPath : regReadonlyPath,
-            true,
-            Code.NONODE.intValue(), null, null, zkCallbackDelayMs);
+                isWritable ? regPath : regReadonlyPath,
+                true,
+                Code.NONODE.intValue(), null, null, zkCallbackDelayMs);
 
         CompletableFuture<Versioned<Set<BookieId>>> listenerResult = new CompletableFuture<>();
         RegistrationListener listener = bookies -> listenerResult.complete(bookies);

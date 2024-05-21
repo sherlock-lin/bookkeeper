@@ -20,8 +20,8 @@
  */
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
@@ -46,7 +46,7 @@ import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.util.ByteBufList;
 import org.apache.bookkeeper.util.PortManager;
 import org.awaitility.Awaitility;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +63,7 @@ public class BookieImplTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testWriteLac() throws Exception {
+    void writeLac() throws Exception {
         final String metadataServiceUri = zkUtil.getMetadataServiceUri();
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         conf.setMetadataServiceUri(metadataServiceUri);
@@ -119,12 +119,12 @@ public class BookieImplTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testAddEntry() throws Exception {
+    void addEntry() throws Exception {
         mockAddEntryReleased(ADD);
     }
 
     @Test
-    public void testRecoveryAddEntry() throws Exception {
+    void recoveryAddEntry() throws Exception {
         mockAddEntryReleased(RECOVERY_ADD);
     }
 

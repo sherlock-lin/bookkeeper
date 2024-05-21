@@ -20,11 +20,11 @@
  */
 package org.apache.bookkeeper.auth;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -44,17 +44,14 @@ import org.apache.bookkeeper.proto.BookieConnectionPeer;
 import org.apache.bookkeeper.proto.BookieServer;
 import org.apache.bookkeeper.proto.ClientConnectionPeer;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Test authentication.
  */
-@RunWith(Parameterized.class)
 public class TestAuth extends BookKeeperClusterTestCase {
     static final Logger LOG = LoggerFactory.getLogger(TestAuth.class);
     public static final String TEST_AUTH_PROVIDER_PLUGIN_NAME = "TestAuthProviderPlugin";
@@ -69,7 +66,6 @@ public class TestAuth extends BookKeeperClusterTestCase {
         ProtocolV2, ProtocolV3
     }
 
-    @Parameters
     public static Collection<Object[]> configs() {
         return Arrays.asList(new Object[][] {
                 { ProtocolVersion.ProtocolV2 },
@@ -77,9 +73,9 @@ public class TestAuth extends BookKeeperClusterTestCase {
         });
     }
 
-    private final ProtocolVersion protocolVersion;
+    private ProtocolVersion protocolVersion;
 
-    public TestAuth(ProtocolVersion protocolVersion) {
+    public void initTestAuth(ProtocolVersion protocolVersion) {
         super(0); // start them later when auth providers are configured
         this.protocolVersion = protocolVersion;
     }
@@ -128,8 +124,8 @@ public class TestAuth extends BookKeeperClusterTestCase {
             Enumeration<LedgerEntry> e = lh.readEntries(0, lh.getLastAddConfirmed());
             while (e.hasMoreElements()) {
                 count++;
-                assertTrue("Should match what we wrote",
-                        Arrays.equals(e.nextElement().getEntry(), ENTRY));
+                assertTrue(Arrays.equals(e.nextElement().getEntry(), ENTRY),
+                        "Should match what we wrote");
             }
         }
         return count;
@@ -139,8 +135,10 @@ public class TestAuth extends BookKeeperClusterTestCase {
      * Test an connection will authorize with a single message
      * to the server and a single response.
      */
-    @Test
-    public void testSingleMessageAuth() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void singleMessageAuth(ProtocolVersion protocolVersion) throws Exception {
+        initTestAuth(protocolVersion);
         ServerConfiguration bookieConf = newServerConfiguration();
         bookieConf.setBookieAuthProviderFactoryClass(
             AlwaysSucceedBookieAuthProviderFactory.class.getName());
@@ -155,11 +153,13 @@ public class TestAuth extends BookKeeperClusterTestCase {
         connectAndWriteToBookie(clientConf, ledgerId); // should succeed
 
         assertFalse(ledgerId.get() == -1);
-        assertEquals("Should have entry", 1, entryCount(ledgerId.get(), bookieConf, clientConf));
+        assertEquals(1, entryCount(ledgerId.get(), bookieConf, clientConf), "Should have entry");
     }
 
-    @Test
-    public void testCloseMethodCalledOnAuthProvider() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void closeMethodCalledOnAuthProvider(ProtocolVersion protocolVersion) throws Exception {
+        initTestAuth(protocolVersion);
         LogCloseCallsBookieAuthProviderFactory.closeCountersOnFactory.set(0);
         LogCloseCallsBookieAuthProviderFactory.closeCountersOnConnections.set(0);
         LogCloseCallsBookieAuthProviderFactory.initCountersOnFactory.set(0);
@@ -181,7 +181,7 @@ public class TestAuth extends BookKeeperClusterTestCase {
         connectAndWriteToBookie(clientConf, ledgerId); // should succeed
 
         assertFalse(ledgerId.get() == -1);
-        assertEquals("Should have entry", 1, entryCount(ledgerId.get(), bookieConf, clientConf));
+        assertEquals(1, entryCount(ledgerId.get(), bookieConf, clientConf), "Should have entry");
 
         stopAllBookies();
 
@@ -205,8 +205,10 @@ public class TestAuth extends BookKeeperClusterTestCase {
      * Test that when the bookie provider sends a failure message
      * the client will not be able to write.
      */
-    @Test
-    public void testSingleMessageAuthFailure() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void singleMessageAuthFailure(ProtocolVersion protocolVersion) throws Exception {
+        initTestAuth(protocolVersion);
         ServerConfiguration bookieConf = newServerConfiguration();
         bookieConf.setBookieAuthProviderFactoryClass(
                 AlwaysFailBookieAuthProviderFactory.class.getName());
@@ -226,15 +228,17 @@ public class TestAuth extends BookKeeperClusterTestCase {
             // write
         }
         assertFalse(ledgerId.get() == -1);
-        assertEquals("Shouldn't have entry", 0, entryCount(ledgerId.get(), bookieConf, clientConf));
+        assertEquals(0, entryCount(ledgerId.get(), bookieConf, clientConf), "Shouldn't have entry");
     }
 
     /**
      * Test that authentication works when the providers
      * exchange multiple messages.
      */
-    @Test
-    public void testMultiMessageAuth() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void multiMessageAuth(ProtocolVersion protocolVersion) throws Exception {
+        initTestAuth(protocolVersion);
         ServerConfiguration bookieConf = newServerConfiguration();
         bookieConf.setBookieAuthProviderFactoryClass(
                 SucceedAfter3BookieAuthProviderFactory.class.getName());
@@ -248,15 +252,17 @@ public class TestAuth extends BookKeeperClusterTestCase {
         connectAndWriteToBookie(clientConf, ledgerId); // should succeed
 
         assertFalse(ledgerId.get() == -1);
-        assertEquals("Should have entry", 1, entryCount(ledgerId.get(), bookieConf, clientConf));
+        assertEquals(1, entryCount(ledgerId.get(), bookieConf, clientConf), "Should have entry");
     }
 
     /**
      * Test that when the bookie provider sends a failure message
      * the client will not be able to write.
      */
-    @Test
-    public void testMultiMessageAuthFailure() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void multiMessageAuthFailure(ProtocolVersion protocolVersion) throws Exception {
+        initTestAuth(protocolVersion);
         ServerConfiguration bookieConf = newServerConfiguration();
         bookieConf.setBookieAuthProviderFactoryClass(
                 FailAfter3BookieAuthProviderFactory.class.getName());
@@ -276,15 +282,17 @@ public class TestAuth extends BookKeeperClusterTestCase {
             // breaking the conneciton
         }
         assertFalse(ledgerId.get() == -1);
-        assertEquals("Shouldn't have entry", 0, entryCount(ledgerId.get(), bookieConf, clientConf));
+        assertEquals(0, entryCount(ledgerId.get(), bookieConf, clientConf), "Shouldn't have entry");
     }
 
     /**
      * Test that when the bookie and the client have a different
      * plugin configured, no messages will get through.
      */
-    @Test
-    public void testDifferentPluginFailure() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void differentPluginFailure(ProtocolVersion protocolVersion) throws Exception {
+        initTestAuth(protocolVersion);
         ServerConfiguration bookieConf = newServerConfiguration();
         bookieConf.setBookieAuthProviderFactoryClass(
                 DifferentPluginBookieAuthProviderFactory.class.getName());
@@ -308,15 +316,17 @@ public class TestAuth extends BookKeeperClusterTestCase {
             assertEquals(ProtocolVersion.ProtocolV2, protocolVersion);
         }
         assertFalse(ledgerId.get() == -1);
-        assertEquals("Shouldn't have entry", 0, entryCount(ledgerId.get(), bookieConf, clientConf));
+        assertEquals(0, entryCount(ledgerId.get(), bookieConf, clientConf), "Shouldn't have entry");
     }
 
     /**
      * Test that when the plugin class does exist, but
      * doesn't implement the interface, we fail predictably.
      */
-    @Test
-    public void testExistantButNotValidPlugin() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void existantButNotValidPlugin(ProtocolVersion protocolVersion) throws Exception {
+        initTestAuth(protocolVersion);
         ServerConfiguration bookieConf = newServerConfiguration();
         bookieConf.setBookieAuthProviderFactoryClass(
                 "java.lang.String");
@@ -329,9 +339,9 @@ public class TestAuth extends BookKeeperClusterTestCase {
             fail("Shouldn't get this far");
         } catch (RuntimeException e) {
             // received correct exception
-            assertTrue("Wrong exception thrown",
-                    e.getMessage().contains("not "
-                            + BookieAuthProvider.Factory.class.getName()));
+            assertTrue(e.getMessage().contains("not "
+                            + BookieAuthProvider.Factory.class.getName()),
+                    "Wrong exception thrown");
         }
 
         try {
@@ -339,9 +349,9 @@ public class TestAuth extends BookKeeperClusterTestCase {
             fail("Shouldn't get this far");
         } catch (RuntimeException e) {
             // received correct exception
-            assertTrue("Wrong exception thrown",
-                    e.getMessage().contains("not "
-                            + ClientAuthProvider.Factory.class.getName()));
+            assertTrue(e.getMessage().contains("not "
+                            + ClientAuthProvider.Factory.class.getName()),
+                    "Wrong exception thrown");
         }
     }
 
@@ -350,8 +360,10 @@ public class TestAuth extends BookKeeperClusterTestCase {
      * the bookie will not start and the client will
      * break.
      */
-    @Test
-    public void testNonExistantPlugin() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void nonExistantPlugin(ProtocolVersion protocolVersion) throws Exception {
+        initTestAuth(protocolVersion);
         ServerConfiguration bookieConf = newServerConfiguration();
         bookieConf.setBookieAuthProviderFactoryClass(
                 "NonExistantClassNameForTestingAuthPlugins");
@@ -364,8 +376,7 @@ public class TestAuth extends BookKeeperClusterTestCase {
             fail("Shouldn't get this far");
         } catch (RuntimeException e) {
             // received correct exception
-            assertEquals("Wrong exception thrown",
-                    e.getCause().getClass(), ClassNotFoundException.class);
+            assertEquals(ClassNotFoundException.class, e.getCause().getClass(), "Wrong exception thrown");
         }
 
         try {
@@ -373,8 +384,7 @@ public class TestAuth extends BookKeeperClusterTestCase {
             fail("Shouldn't get this far");
         } catch (RuntimeException e) {
             // received correct exception
-            assertEquals("Wrong exception thrown",
-                    e.getCause().getClass(), ClassNotFoundException.class);
+            assertEquals(ClassNotFoundException.class, e.getCause().getClass(), "Wrong exception thrown");
         }
     }
 
@@ -382,8 +392,10 @@ public class TestAuth extends BookKeeperClusterTestCase {
      * Test that when the plugin on the bookie crashes, the client doesn't
      * hang also, but it cannot write in any case.
      */
-    @Test
-    public void testCrashDuringAuth() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void crashDuringAuth(ProtocolVersion protocolVersion) throws Exception {
+        initTestAuth(protocolVersion);
         ServerConfiguration bookieConf = newServerConfiguration();
         bookieConf.setBookieAuthProviderFactoryClass(
                 CrashAfter3BookieAuthProviderFactory.class.getName());
@@ -403,15 +415,17 @@ public class TestAuth extends BookKeeperClusterTestCase {
             // we wont be able to find a replacement
         }
         assertFalse(ledgerId.get() == -1);
-        assertEquals("Shouldn't have entry", 0, entryCount(ledgerId.get(), bookieConf, clientConf));
+        assertEquals(0, entryCount(ledgerId.get(), bookieConf, clientConf), "Shouldn't have entry");
     }
 
     /**
      * Test that when a bookie simply stops replying during auth, the client doesn't
      * hang also, but it cannot write in any case.
      */
-    @Test
-    public void testCrashType2DuringAuth() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void crashType2DuringAuth(ProtocolVersion protocolVersion) throws Exception {
+        initTestAuth(protocolVersion);
         ServerConfiguration bookieConf = newServerConfiguration();
         bookieConf.setBookieAuthProviderFactoryClass(
                 CrashType2After3BookieAuthProviderFactory.class.getName());
@@ -430,14 +444,16 @@ public class TestAuth extends BookKeeperClusterTestCase {
             // we wont be able to find a replacement
         }
         assertFalse(ledgerId.get() == -1);
-        assertEquals("Shouldn't have entry", 0, entryCount(ledgerId.get(), bookieConf, clientConf));
+        assertEquals(0, entryCount(ledgerId.get(), bookieConf, clientConf), "Shouldn't have entry");
     }
 
     /**
      * Client will try to perform authentication but bookies are not configured.
      */
-    @Test
-    public void testClientWithAuthAndBookieWithDisabledAuth() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void clientWithAuthAndBookieWithDisabledAuth(ProtocolVersion protocolVersion) throws Exception {
+        initTestAuth(protocolVersion);
         ServerConfiguration bookieConf = newServerConfiguration();
         assertNull(bookieConf.getBookieAuthProviderFactoryClass());
 
@@ -451,14 +467,16 @@ public class TestAuth extends BookKeeperClusterTestCase {
         connectAndWriteToBookie(clientConf, ledgerId); // should succeed
 
         assertFalse(ledgerId.get() == -1);
-        assertEquals("Should have entry", 1, entryCount(ledgerId.get(), bookieConf, clientConf));
+        assertEquals(1, entryCount(ledgerId.get(), bookieConf, clientConf), "Should have entry");
     }
 
     /**
      * The plugin will drop the connection from the bookie side.
      */
-    @Test
-    public void testDropConnectionFromBookieAuthPlugin() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void dropConnectionFromBookieAuthPlugin(ProtocolVersion protocolVersion) throws Exception {
+        initTestAuth(protocolVersion);
         ServerConfiguration bookieConf = newServerConfiguration();
         bookieConf.setBookieAuthProviderFactoryClass(
                 DropConnectionBookieAuthProviderFactory.class.getName());

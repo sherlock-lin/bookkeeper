@@ -46,10 +46,10 @@ import org.junit.jupiter.api.Test;
  * Test the ConcurrentLongLongHashMap class.
  */
 @SuppressWarnings("deprecation")
-public class ConcurrentLongLongHashMapTest {
+class ConcurrentLongLongHashMapTest {
 
     @Test
-    public void testConstructor() {
+    void constructor() {
         try {
             ConcurrentLongLongHashMap.newBuilder()
                     .expectedItems(0)
@@ -81,37 +81,37 @@ public class ConcurrentLongLongHashMapTest {
     }
 
     @Test
-    public void simpleInsertions() {
+    void simpleInsertions() {
         ConcurrentLongLongHashMap map = ConcurrentLongLongHashMap.newBuilder()
                 .expectedItems(16)
                 .build();
 
         assertTrue(map.isEmpty());
-        assertEquals(map.put(1, 11), -1);
+        assertEquals(-1, map.put(1, 11));
         assertFalse(map.isEmpty());
 
-        assertEquals(map.put(2, 22), -1);
-        assertEquals(map.put(3, 33), -1);
+        assertEquals(-1, map.put(2, 22));
+        assertEquals(-1, map.put(3, 33));
 
-        assertEquals(map.size(), 3);
+        assertEquals(3, map.size());
 
-        assertEquals(map.get(1), 11);
-        assertEquals(map.size(), 3);
+        assertEquals(11, map.get(1));
+        assertEquals(3, map.size());
 
-        assertEquals(map.remove(1), 11);
-        assertEquals(map.size(), 2);
-        assertEquals(map.get(1), -1);
-        assertEquals(map.get(5), -1);
-        assertEquals(map.size(), 2);
+        assertEquals(11, map.remove(1));
+        assertEquals(2, map.size());
+        assertEquals(-1, map.get(1));
+        assertEquals(-1, map.get(5));
+        assertEquals(2, map.size());
 
-        assertEquals(map.put(1, 11), -1);
-        assertEquals(map.size(), 3);
-        assertEquals(map.put(1, 111), 11);
-        assertEquals(map.size(), 3);
+        assertEquals(-1, map.put(1, 11));
+        assertEquals(3, map.size());
+        assertEquals(11, map.put(1, 111));
+        assertEquals(3, map.size());
     }
 
     @Test
-    public void testClear() {
+    void clear() {
         ConcurrentLongLongHashMap map = ConcurrentLongLongHashMap.newBuilder()
                 .expectedItems(2)
                 .concurrencyLevel(1)
@@ -130,7 +130,7 @@ public class ConcurrentLongLongHashMapTest {
     }
 
     @Test
-    public void testExpandAndShrink() {
+    void expandAndShrink() {
         ConcurrentLongLongHashMap map = ConcurrentLongLongHashMap.newBuilder()
                 .expectedItems(2)
                 .concurrencyLevel(1)
@@ -163,14 +163,14 @@ public class ConcurrentLongLongHashMapTest {
     }
 
     @Test
-    public void testConcurrentExpandAndShrinkAndGet()  throws Throwable {
+    void concurrentExpandAndShrinkAndGet()  throws Throwable {
         ConcurrentLongLongHashMap map = ConcurrentLongLongHashMap.newBuilder()
                 .expectedItems(2)
                 .concurrencyLevel(1)
                 .autoShrink(true)
                 .mapIdleFactor(0.25f)
                 .build();
-        assertEquals(map.capacity(), 4);
+        assertEquals(4, map.capacity());
 
         ExecutorService executor = Executors.newCachedThreadPool();
         final int readThreads = 16;
@@ -208,12 +208,12 @@ public class ConcurrentLongLongHashMapTest {
                 // expand hashmap
                 map.put(2, 22);
                 map.put(3, 33);
-                assertEquals(map.capacity(), 8);
+                assertEquals(8, map.capacity());
 
                 // shrink hashmap
                 map.remove(2, 22);
                 map.remove(3, 33);
-                assertEquals(map.capacity(), 4);
+                assertEquals(4, map.capacity());
             }
         });
 
@@ -224,7 +224,7 @@ public class ConcurrentLongLongHashMapTest {
     }
 
     @Test
-    public void testExpandShrinkAndClear() {
+    void expandShrinkAndClear() {
         ConcurrentLongLongHashMap map = ConcurrentLongLongHashMap.newBuilder()
                 .expectedItems(2)
                 .concurrencyLevel(1)
@@ -257,11 +257,11 @@ public class ConcurrentLongLongHashMapTest {
     }
 
     @Test
-    public void testRemove() {
+    void remove() {
         ConcurrentLongLongHashMap map = ConcurrentLongLongHashMap.newBuilder().build();
 
         assertTrue(map.isEmpty());
-        assertEquals(map.put(1, 11), -1);
+        assertEquals(-1, map.put(1, 11));
         assertFalse(map.isEmpty());
 
         assertFalse(map.remove(0, 0));
@@ -273,7 +273,7 @@ public class ConcurrentLongLongHashMapTest {
     }
 
     @Test
-    public void testNegativeUsedBucketCount() {
+    void negativeUsedBucketCount() {
         ConcurrentLongLongHashMap map = ConcurrentLongLongHashMap.newBuilder()
                 .expectedItems(16)
                 .concurrencyLevel(1)
@@ -290,14 +290,14 @@ public class ConcurrentLongLongHashMapTest {
     }
 
     @Test
-    public void testRehashing() {
+    void rehashing() {
         int n = 16;
         ConcurrentLongLongHashMap map = ConcurrentLongLongHashMap.newBuilder()
                 .expectedItems(n / 2)
                 .concurrencyLevel(1)
                 .build();
         assertEquals(map.capacity(), n);
-        assertEquals(map.size(), 0);
+        assertEquals(0, map.size());
 
         for (int i = 0; i < n; i++) {
             map.put(i, i);
@@ -308,14 +308,14 @@ public class ConcurrentLongLongHashMapTest {
     }
 
     @Test
-    public void testRehashingWithDeletes() {
+    void rehashingWithDeletes() {
         int n = 16;
         ConcurrentLongLongHashMap map = ConcurrentLongLongHashMap.newBuilder()
                 .expectedItems(n / 2)
                 .concurrencyLevel(1)
                 .build();
         assertEquals(map.capacity(), n);
-        assertEquals(map.size(), 0);
+        assertEquals(0, map.size());
 
         for (int i = 0; i < n / 2; i++) {
             map.put(i, i);
@@ -334,7 +334,7 @@ public class ConcurrentLongLongHashMapTest {
     }
 
     @Test
-    public void concurrentInsertions() throws Throwable {
+    void concurrentInsertions() throws Throwable {
         ConcurrentLongLongHashMap map = ConcurrentLongLongHashMap.newBuilder().build();
         ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -367,7 +367,7 @@ public class ConcurrentLongLongHashMapTest {
     }
 
     @Test
-    public void concurrentInsertionsAndReads() throws Throwable {
+    void concurrentInsertionsAndReads() throws Throwable {
         ConcurrentLongLongHashMap map = ConcurrentLongLongHashMap.newBuilder().build();
         ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -400,7 +400,7 @@ public class ConcurrentLongLongHashMapTest {
     }
 
     @Test
-    public void testIteration() {
+    void iteration() {
         ConcurrentLongLongHashMap map = ConcurrentLongLongHashMap.newBuilder().build();
 
         assertEquals(map.keys(), Collections.emptyList());
@@ -443,7 +443,7 @@ public class ConcurrentLongLongHashMapTest {
     }
 
     @Test
-    public void testHashConflictWithDeletion() {
+    void hashConflictWithDeletion() {
         final int buckets = 16;
         ConcurrentLongLongHashMap map = ConcurrentLongLongHashMap.newBuilder()
                 .expectedItems(buckets)
@@ -463,39 +463,39 @@ public class ConcurrentLongLongHashMapTest {
         final long value1Overwrite = 3;
         final long value2Overwrite = 3;
 
-        assertEquals(map.put(key1, value1), -1);
-        assertEquals(map.put(key2, value2), -1);
-        assertEquals(map.size(), 2);
+        assertEquals(-1, map.put(key1, value1));
+        assertEquals(-1, map.put(key2, value2));
+        assertEquals(2, map.size());
 
         assertEquals(map.remove(key1), value1);
-        assertEquals(map.size(), 1);
+        assertEquals(1, map.size());
 
-        assertEquals(map.put(key1, value1Overwrite), -1);
-        assertEquals(map.size(), 2);
+        assertEquals(-1, map.put(key1, value1Overwrite));
+        assertEquals(2, map.size());
 
         assertEquals(map.remove(key1), value1Overwrite);
-        assertEquals(map.size(), 1);
+        assertEquals(1, map.size());
 
         assertEquals(map.put(key2, value2Overwrite), value2);
         assertEquals(map.get(key2), value2Overwrite);
 
-        assertEquals(map.size(), 1);
+        assertEquals(1, map.size());
         assertEquals(map.remove(key2), value2Overwrite);
         assertTrue(map.isEmpty());
     }
 
     @Test
-    public void testPutIfAbsent() {
+    void putIfAbsent() {
         ConcurrentLongLongHashMap map = ConcurrentLongLongHashMap.newBuilder().build();
-        assertEquals(map.putIfAbsent(1, 11), -1);
-        assertEquals(map.get(1), 11);
+        assertEquals(-1, map.putIfAbsent(1, 11));
+        assertEquals(11, map.get(1));
 
-        assertEquals(map.putIfAbsent(1, 111), 11);
-        assertEquals(map.get(1), 11);
+        assertEquals(11, map.putIfAbsent(1, 111));
+        assertEquals(11, map.get(1));
     }
 
     @Test
-    public void testComputeIfAbsent() {
+    void computeIfAbsent() {
         ConcurrentLongLongHashMap map = ConcurrentLongLongHashMap.newBuilder()
                 .expectedItems(16)
                 .concurrencyLevel(1)
@@ -507,40 +507,40 @@ public class ConcurrentLongLongHashMapTest {
             }
         };
 
-        assertEquals(map.computeIfAbsent(0, provider), 0);
-        assertEquals(map.get(0), 0);
+        assertEquals(0, map.computeIfAbsent(0, provider));
+        assertEquals(0, map.get(0));
 
-        assertEquals(map.computeIfAbsent(1, provider), 1);
-        assertEquals(map.get(1), 1);
+        assertEquals(1, map.computeIfAbsent(1, provider));
+        assertEquals(1, map.get(1));
 
-        assertEquals(map.computeIfAbsent(1, provider), 1);
-        assertEquals(map.get(1), 1);
+        assertEquals(1, map.computeIfAbsent(1, provider));
+        assertEquals(1, map.get(1));
 
-        assertEquals(map.computeIfAbsent(2, provider), 2);
-        assertEquals(map.get(2), 2);
+        assertEquals(2, map.computeIfAbsent(2, provider));
+        assertEquals(2, map.get(2));
     }
 
     @Test
-    public void testAddAndGet() {
+    void addAndGet() {
         ConcurrentLongLongHashMap map = ConcurrentLongLongHashMap.newBuilder()
                 .expectedItems(16)
                 .concurrencyLevel(1)
                 .build();
 
-        assertEquals(map.addAndGet(0, 0), 0);
+        assertEquals(0, map.addAndGet(0, 0));
         assertTrue(map.containsKey(0));
-        assertEquals(map.get(0), 0);
+        assertEquals(0, map.get(0));
 
         assertFalse(map.containsKey(5));
 
-        assertEquals(map.addAndGet(0, 5), 5);
-        assertEquals(map.get(0), 5);
+        assertEquals(5, map.addAndGet(0, 5));
+        assertEquals(5, map.get(0));
 
-        assertEquals(map.addAndGet(0, 1), 6);
-        assertEquals(map.get(0), 6);
+        assertEquals(6, map.addAndGet(0, 1));
+        assertEquals(6, map.get(0));
 
-        assertEquals(map.addAndGet(0, -2), 4);
-        assertEquals(map.get(0), 4);
+        assertEquals(4, map.addAndGet(0, -2));
+        assertEquals(4, map.get(0));
 
         // Cannot bring to value to negative
         try {
@@ -549,11 +549,11 @@ public class ConcurrentLongLongHashMapTest {
         } catch (IllegalArgumentException e) {
             // ok
         }
-        assertEquals(map.get(0), 4);
+        assertEquals(4, map.get(0));
     }
 
     @Test
-    public void testReduceUnnecessaryExpansions() {
+    void reduceUnnecessaryExpansions() {
         ConcurrentLongLongHashMap map = ConcurrentLongLongHashMap.newBuilder()
                 .expectedItems(2)
                 .concurrencyLevel(1)
@@ -572,7 +572,7 @@ public class ConcurrentLongLongHashMapTest {
 
 
     @Test
-    public void testRemoveIf() {
+    void removeIf() {
         ConcurrentLongLongHashMap map = ConcurrentLongLongHashMap.newBuilder()
                 .expectedItems(16)
                 .concurrencyLevel(1)
@@ -592,7 +592,7 @@ public class ConcurrentLongLongHashMapTest {
     }
 
     @Test
-    public void testRemoveIfValue() {
+    void removeIfValue() {
         ConcurrentLongLongHashMap map = ConcurrentLongLongHashMap.newBuilder()
                 .expectedItems(16)
                 .concurrencyLevel(1)
@@ -612,7 +612,7 @@ public class ConcurrentLongLongHashMapTest {
     }
 
     @Test
-    public void testIvalidKeys() {
+    void ivalidKeys() {
         ConcurrentLongLongHashMap map = ConcurrentLongLongHashMap.newBuilder()
                 .expectedItems(16)
                 .concurrencyLevel(1)
@@ -660,7 +660,7 @@ public class ConcurrentLongLongHashMapTest {
     }
 
     @Test
-    public void testAsMap() {
+    void asMap() {
         ConcurrentLongLongHashMap lmap = ConcurrentLongLongHashMap.newBuilder()
                 .expectedItems(16)
                 .concurrencyLevel(1)
@@ -678,7 +678,7 @@ public class ConcurrentLongLongHashMapTest {
     }
 
     @Test
-    public void testSizeInBytes() {
+    void sizeInBytes() {
         ConcurrentLongLongHashMap lmap = new ConcurrentLongLongHashMap(4, 2);
         assertEquals(128, lmap.sizeInBytes());
         lmap.put(1, 1);

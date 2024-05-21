@@ -17,48 +17,50 @@
  */
 package org.apache.bookkeeper.util;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 
-public class TestHardLink {
+class TestHardLink {
 
     private File tempDir;
 
-    @Before
-    public void setup() throws IOException {
+    @BeforeEach
+    void setup() throws IOException {
         // Create at least one file so that target disk will never be empty
         tempDir = IOUtils.createTempDir("TestHardLink", "test-hardlink");
     }
 
-    @After
-    public void tearDown() throws IOException {
+    @AfterEach
+    void tearDown() throws IOException {
         FileUtils.deleteDirectory(tempDir);
     }
 
     private void verifyHardLink(File origin, File linkedOrigin) throws IOException {
-        Assert.assertTrue(origin.exists());
-        Assert.assertFalse(linkedOrigin.exists());
+        assertTrue(origin.exists());
+        assertFalse(linkedOrigin.exists());
 
         HardLink.createHardLink(origin, linkedOrigin);
 
-        Assert.assertTrue(origin.exists());
-        Assert.assertTrue(linkedOrigin.exists());
+        assertTrue(origin.exists());
+        assertTrue(linkedOrigin.exists());
 
         // when delete origin file it should be success and not exist.
         origin.delete();
-        Assert.assertFalse(origin.exists());
-        Assert.assertTrue(linkedOrigin.exists());
+        assertFalse(origin.exists());
+        assertTrue(linkedOrigin.exists());
     }
 
     @Test
-    public void testHardLink() throws IOException {
+    void hardLink() throws IOException {
         String uuidSuffix = UUID.randomUUID().toString();
 
         // prepare file

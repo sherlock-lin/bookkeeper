@@ -21,8 +21,9 @@
 package org.apache.bookkeeper.client;
 
 import static org.apache.bookkeeper.meta.MetadataDrivers.runFunctionWithLedgerManagerFactory;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.UncheckedExecutionException;
@@ -47,25 +48,22 @@ import org.apache.bookkeeper.proto.BookkeeperInternalCallbacks.LedgerMetadataLis
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.versioning.Version;
 import org.apache.bookkeeper.versioning.Versioned;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Test an EnsembleChange watcher.
  */
-@RunWith(Parameterized.class)
 public class TestWatchEnsembleChange extends BookKeeperClusterTestCase {
 
     static final Logger LOG = LoggerFactory.getLogger(TestWatchEnsembleChange.class);
 
-    final DigestType digestType;
-    final Class<? extends LedgerManagerFactory> lmFactoryCls;
+    DigestType digestType;
+    Class<? extends LedgerManagerFactory> lmFactoryCls;
 
-    public TestWatchEnsembleChange(Class<? extends LedgerManagerFactory> lmFactoryCls) {
+    public void initTestWatchEnsembleChange(Class<? extends LedgerManagerFactory> lmFactoryCls) {
         super(7);
         this.digestType = DigestType.CRC32;
         this.lmFactoryCls = lmFactoryCls;
@@ -74,7 +72,6 @@ public class TestWatchEnsembleChange extends BookKeeperClusterTestCase {
     }
 
     @SuppressWarnings("deprecation")
-    @Parameters
     public static Collection<Object[]> configs() {
         return Arrays.asList(new Object[][] {
                 { org.apache.bookkeeper.meta.FlatLedgerManagerFactory.class },
@@ -84,8 +81,10 @@ public class TestWatchEnsembleChange extends BookKeeperClusterTestCase {
         });
     }
 
-    @Test
-    public void testWatchEnsembleChange() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void watchEnsembleChange(Class<? extends LedgerManagerFactory> lmFactoryCls) throws Exception {
+        initTestWatchEnsembleChange(lmFactoryCls);
         int numEntries = 10;
         LedgerHandle lh = bkc.createLedger(3, 3, 3, digestType, "".getBytes());
         for (int i = 0; i < numEntries; i++) {
@@ -112,8 +111,10 @@ public class TestWatchEnsembleChange extends BookKeeperClusterTestCase {
         lh.close();
     }
 
-    @Test
-    public void testWatchMetadataRemoval() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void watchMetadataRemoval(Class<? extends LedgerManagerFactory> lmFactoryCls) throws Exception {
+        initTestWatchEnsembleChange(lmFactoryCls);
         baseConf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         runFunctionWithLedgerManagerFactory(baseConf, factory -> {
             try {
@@ -164,7 +165,7 @@ public class TestWatchEnsembleChange extends BookKeeperClusterTestCase {
             @Override
             public void onChanged(long ledgerId, Versioned<LedgerMetadata> metadata) {
                 assertEquals(ledgerId, createdLid);
-                assertEquals(metadata, null);
+                assertNull(metadata);
                 removeLatch.countDown();
             }
         });

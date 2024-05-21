@@ -20,6 +20,8 @@
  */
 package org.apache.bookkeeper.client;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -28,8 +30,7 @@ import org.apache.bookkeeper.client.AsyncCallback.AddCallback;
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +50,7 @@ public class TestReadTimeout extends BookKeeperClusterTestCase {
 
     @SuppressWarnings("deprecation")
     @Test
-    public void testReadTimeout() throws Exception {
+    void readTimeout() throws Exception {
         final AtomicBoolean completed = new AtomicBoolean(false);
 
         LedgerHandle writelh = bkc.createLedger(3, 3, digestType, "testPasswd".getBytes());
@@ -76,12 +77,12 @@ public class TestReadTimeout extends BookKeeperClusterTestCase {
                 }
             }, null);
         Thread.sleep((baseClientConf.getReadTimeout() * 3) * 1000);
-        Assert.assertTrue("Write request did not finish", completed.get());
+        assertTrue(completed.get(), "Write request did not finish");
 
         Set<BookieId> afterSet = new HashSet<BookieId>();
         afterSet.addAll(writelh.getLedgerMetadata().getEnsembleAt(numEntries + 1));
         beforeSet.removeAll(afterSet);
-        Assert.assertTrue("Bookie set should not match", beforeSet.size() != 0);
+        assertTrue(beforeSet.size() != 0, "Bookie set should not match");
 
     }
 }

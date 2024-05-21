@@ -20,8 +20,8 @@
  */
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -35,7 +35,7 @@ import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.proto.BookieServer;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.awaitility.Awaitility;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test the bookie with multiple journals.
@@ -62,7 +62,7 @@ public class BookieMultipleJournalsTest extends BookKeeperClusterTestCase {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testJournalExit() throws Exception {
+    void journalExit() throws Exception {
 
         LedgerHandle ledgerHandle = bkc.createLedger(1, 1, DigestType.CRC32, new byte[0]);
         for (int i = 0; i < 10; i++) {
@@ -80,7 +80,7 @@ public class BookieMultipleJournalsTest extends BookKeeperClusterTestCase {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testJournalExitAndShutdown() throws Exception {
+    void journalExitAndShutdown() throws Exception {
 
         LedgerHandle ledgerHandle = bkc.createLedger(1, 1, DigestType.CRC32, new byte[0]);
         for (int i = 0; i < 10; i++) {
@@ -98,7 +98,7 @@ public class BookieMultipleJournalsTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testMultipleWritesAndBookieRestart() throws Exception {
+    void multipleWritesAndBookieRestart() throws Exception {
         // Creates few ledgers so that writes are spread across all journals
         final int numLedgers = 16;
         final int numEntriesPerLedger = 30;

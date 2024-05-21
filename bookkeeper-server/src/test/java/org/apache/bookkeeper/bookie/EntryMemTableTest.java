@@ -18,11 +18,11 @@
  */
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.netty.buffer.ByteBuf;
 import java.io.IOException;
@@ -44,18 +44,15 @@ import org.apache.bookkeeper.bookie.Bookie.NoLedgerException;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.conf.TestBKConfiguration;
 import org.apache.bookkeeper.stats.NullStatsLogger;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Test the EntryMemTable class.
  */
 @Slf4j
-@RunWith(Parameterized.class)
 public class EntryMemTableTest implements CacheCallback, SkipListFlusher, CheckpointSource {
 
     private Class entryMemTableClass;
@@ -63,12 +60,11 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
     private final Random random = new Random();
     private TestCheckPoint curCheckpoint = new TestCheckPoint(0, 0);
 
-    @Parameters
     public static Collection<Object[]> memTableClass() {
         return Arrays.asList(new Object[][] { { EntryMemTable.class }, { EntryMemTableWithParallelFlusher.class } });
     }
 
-    public EntryMemTableTest(Class entryMemTableClass) {
+    public void initEntryMemTableTest(Class entryMemTableClass) {
         this.entryMemTableClass = entryMemTableClass;
     }
 
@@ -82,8 +78,8 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
             throws IOException {
     }
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() throws Exception {
         if (entryMemTableClass.equals(EntryMemTableWithParallelFlusher.class)) {
             ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
             this.memTable = new EntryMemTableWithParallelFlusher(conf, this, NullStatsLogger.INSTANCE);
@@ -93,15 +89,17 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
         }
     }
 
-    @After
-    public void cleanup() throws Exception{
+    @AfterEach
+    void cleanup() throws Exception{
         this.memTable.close();
     }
 
-    @Test
-    public void testLogMark() throws IOException {
+    @MethodSource("memTableClass")
+    @ParameterizedTest
+    public void logMark(Class entryMemTableClass) throws IOException {
+        initEntryMemTableTest(entryMemTableClass);
         LogMark mark = new LogMark();
-        assertTrue(mark.compare(new LogMark()) == 0);
+        assertEquals(0, mark.compare(new LogMark()));
         assertTrue(mark.compare(LogMark.MAX_VALUE) < 0);
         mark.setLogMark(3, 11);
         byte[] data = new byte[16];
@@ -111,15 +109,17 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
         LogMark mark1 = new LogMark(9, 13);
         assertTrue(mark1.compare(mark) > 0);
         mark1.readLogMark(buf);
-        assertTrue(mark1.compare(mark) == 0);
+        assertEquals(0, mark1.compare(mark));
     }
 
     /**
      * Basic put/get.
      * @throws IOException
      * */
-    @Test
-    public void testBasicOps() throws IOException {
+    @MethodSource("memTableClass")
+    @ParameterizedTest
+    public void basicOps(Class entryMemTableClass) throws IOException {
+        initEntryMemTableTest(entryMemTableClass);
         long ledgerId = 1;
         long entryId = 1;
         byte[] data = new byte[10];
@@ -128,9 +128,9 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
         memTable.addEntry(ledgerId, entryId, buf, this);
         buf.rewind();
         EntryKeyValue kv = memTable.getEntry(ledgerId, entryId);
-        assertTrue(kv.getLedgerId() == ledgerId);
-        assertTrue(kv.getEntryId() == entryId);
-        assertTrue(kv.getValueAsByteBuffer().nioBuffer().equals(buf));
+        assertEquals(kv.getLedgerId(), ledgerId);
+        assertEquals(kv.getEntryId(), entryId);
+        assertEquals(kv.getValueAsByteBuffer().nioBuffer(), buf);
         memTable.flush(this);
     }
 
@@ -148,8 +148,10 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
      * Test read/write across snapshot.
      * @throws IOException
      */
-    @Test
-    public void testScanAcrossSnapshot() throws IOException {
+    @MethodSource("memTableClass")
+    @ParameterizedTest
+    public void scanAcrossSnapshot(Class entryMemTableClass) throws IOException {
+        initEntryMemTableTest(entryMemTableClass);
         byte[] data = new byte[10];
         List<EntryKeyValue> keyValues = new ArrayList<EntryKeyValue>();
         for (long entryId = 1; entryId < 100; entryId++) {
@@ -164,7 +166,7 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
         }
 
         for (EntryKeyValue kv : keyValues) {
-            assertTrue(memTable.getEntry(kv.getLedgerId(), kv.getEntryId()).equals(kv));
+            assertEquals(memTable.getEntry(kv.getLedgerId(), kv.getEntryId()), kv);
         }
         memTable.flush(this, Checkpoint.MAX);
     }
@@ -172,14 +174,14 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
     private class KVFLusher implements SkipListFlusher {
         final Set<EntryKeyValue> keyValues;
 
-        KVFLusher(final Set<EntryKeyValue> keyValues) {
+        void initEntryMemTableTest(final Set<EntryKeyValue> keyValues) {
             this.keyValues = keyValues;
         }
 
         @Override
         public void process(long ledgerId, long entryId, ByteBuf entry) throws IOException {
-            assertTrue(ledgerId + ":" + entryId + " is duplicate in store!",
-                    keyValues.add(new EntryKeyValue(ledgerId, entryId, entry.array())));
+            assertTrue(keyValues.add(new EntryKeyValue(ledgerId, entryId, entry.array())),
+                    ledgerId + ":" + entryId + " is duplicate in store!");
         }
     }
 
@@ -194,8 +196,10 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
      * Test flush w/ logMark parameter.
      * @throws IOException
      */
-    @Test
-    public void testFlushLogMark() throws IOException {
+    @MethodSource("memTableClass")
+    @ParameterizedTest
+    public void flushLogMark(Class entryMemTableClass) throws IOException {
+        initEntryMemTableTest(entryMemTableClass);
         Set<EntryKeyValue> flushedKVs = Collections.newSetFromMap(new ConcurrentHashMap<EntryKeyValue, Boolean>());
         KVFLusher flusher = new KVFLusher(flushedKVs);
 
@@ -212,15 +216,15 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
         assertNotNull(memTable.snapshot(new TestCheckPoint(3, 3)));
 
         assertTrue(0 < memTable.flush(flusher));
-        assertTrue(0 == memTable.flush(flusher));
+        assertEquals(0, memTable.flush(flusher));
 
         curCheckpoint.setCheckPoint(4, 4);
 
         random.nextBytes(data);
         memTable.addEntry(ledgerId, 101, ByteBuffer.wrap(data), this);
-        assertTrue(0 == memTable.flush(flusher));
+        assertEquals(0, memTable.flush(flusher));
 
-        assertTrue(0 == memTable.flush(flusher, new TestCheckPoint(3, 3)));
+        assertEquals(0, memTable.flush(flusher, new TestCheckPoint(3, 3)));
         assertTrue(0 < memTable.flush(flusher, new TestCheckPoint(4, 5)));
     }
 
@@ -228,8 +232,10 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
      * Test snapshot/flush interaction.
      * @throws IOException
      */
-    @Test
-    public void testFlushSnapshot() throws IOException {
+    @MethodSource("memTableClass")
+    @ParameterizedTest
+    public void flushSnapshot(Class entryMemTableClass) throws IOException {
+        initEntryMemTableTest(entryMemTableClass);
         HashSet<EntryKeyValue> keyValues = new HashSet<EntryKeyValue>();
         Set<EntryKeyValue> flushedKVs = Collections.newSetFromMap(new ConcurrentHashMap<EntryKeyValue, Boolean>());
         KVFLusher flusher = new KVFLusher(flushedKVs);
@@ -238,10 +244,10 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
         for (long entryId = 1; entryId < 100; entryId++) {
             for (long ledgerId = 1; ledgerId < 100; ledgerId++) {
                 random.nextBytes(data);
-                assertTrue(ledgerId + ":" + entryId + " is duplicate in mem-table!",
-                        memTable.addEntry(ledgerId, entryId, ByteBuffer.wrap(data), this) != 0);
-                assertTrue(ledgerId + ":" + entryId + " is duplicate in hash-set!",
-                        keyValues.add(memTable.getEntry(ledgerId, entryId)));
+                assertTrue(memTable.addEntry(ledgerId, entryId, ByteBuffer.wrap(data), this) != 0,
+                        ledgerId + ":" + entryId + " is duplicate in mem-table!");
+                assertTrue(keyValues.add(memTable.getEntry(ledgerId, entryId)),
+                        ledgerId + ":" + entryId + " is duplicate in hash-set!");
                 if (random.nextInt(16) == 0) {
                     if (null != memTable.snapshot()) {
                         if (random.nextInt(2) == 0) {
@@ -254,7 +260,7 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
 
         memTable.flush(flusher, Checkpoint.MAX);
         for (EntryKeyValue kv : keyValues) {
-            assertTrue("kv " + kv.toString() + " was not flushed!", flushedKVs.contains(kv));
+            assertTrue(flushedKVs.contains(kv), "kv " + kv.toString() + " was not flushed!");
         }
     }
 
@@ -262,8 +268,10 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
      * Test NoLedger exception/flush interaction.
      * @throws IOException
      */
-    @Test
-    public void testNoLedgerException() throws IOException {
+    @MethodSource("memTableClass")
+    @ParameterizedTest
+    public void noLedgerException(Class entryMemTableClass) throws IOException {
+        initEntryMemTableTest(entryMemTableClass);
         NoLedgerFLusher flusher = new NoLedgerFLusher();
 
         byte[] data = new byte[10];
@@ -285,7 +293,7 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
 
         LogMark mark;
 
-        public TestCheckPoint(long fid, long fpos) {
+        public void initEntryMemTableTest(long fid, long fpos) {
             mark = new LogMark(fid, fpos);
         }
 
@@ -303,8 +311,10 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
 
     }
 
-    @Test
-    public void testGetListOfEntriesOfLedger() throws IOException {
+    @MethodSource("memTableClass")
+    @ParameterizedTest
+    public void getListOfEntriesOfLedger(Class entryMemTableClass) throws IOException {
+        initEntryMemTableTest(entryMemTableClass);
         Set<EntryKeyValue> flushedKVs = Collections.newSetFromMap(new ConcurrentHashMap<EntryKeyValue, Boolean>());
         KVFLusher flusher = new KVFLusher(flushedKVs);
         int numofEntries = 100;
@@ -313,8 +323,8 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
         for (long entryId = 1; entryId <= numofEntries; entryId++) {
             for (long ledgerId = 1; ledgerId <= numOfLedgers; ledgerId++) {
                 random.nextBytes(data);
-                assertTrue(ledgerId + ":" + entryId + " is duplicate in mem-table!",
-                        memTable.addEntry(ledgerId, entryId, ByteBuffer.wrap(data), this) != 0);
+                assertTrue(memTable.addEntry(ledgerId, entryId, ByteBuffer.wrap(data), this) != 0,
+                        ledgerId + ":" + entryId + " is duplicate in mem-table!");
             }
         }
         for (long ledgerId = 1; ledgerId <= numOfLedgers; ledgerId++) {
@@ -322,35 +332,38 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
             ArrayList<Long> listOfEntries = new ArrayList<Long>();
             Consumer<Long> addMethod = listOfEntries::add;
             entriesItr.forEachRemaining(addMethod);
-            assertEquals("Number of Entries", numofEntries, listOfEntries.size());
+            assertEquals(numofEntries, listOfEntries.size(), "Number of Entries");
             for (int i = 0; i < numofEntries; i++) {
-                assertEquals("listOfEntries should be sorted", Long.valueOf(i + 1), listOfEntries.get(i));
+                assertEquals(Long.valueOf(i + 1), listOfEntries.get(i), "listOfEntries should be sorted");
             }
         }
-        assertTrue("Snapshot is expected to be empty since snapshot is not done", memTable.snapshot.isEmpty());
-        assertTrue("Take snapshot and returned checkpoint should not be empty", memTable.snapshot() != null);
-        assertFalse("After taking snapshot, snapshot should not be empty ", memTable.snapshot.isEmpty());
+        assertTrue(memTable.snapshot.isEmpty(), "Snapshot is expected to be empty since snapshot is not done");
+        assertTrue(memTable.snapshot() != null, "Take snapshot and returned checkpoint should not be empty");
+        assertFalse(memTable.snapshot.isEmpty(), "After taking snapshot, snapshot should not be empty ");
         for (long ledgerId = 1; ledgerId <= numOfLedgers; ledgerId++) {
             OfLong entriesItr = memTable.getListOfEntriesOfLedger((random.nextInt((int) ledgerId) + 1));
             ArrayList<Long> listOfEntries = new ArrayList<Long>();
             Consumer<Long> addMethod = listOfEntries::add;
             entriesItr.forEachRemaining(addMethod);
-            assertEquals("Number of Entries should be the same even after taking snapshot", numofEntries,
-                    listOfEntries.size());
+            assertEquals(numofEntries,
+                    listOfEntries.size(),
+                    "Number of Entries should be the same even after taking snapshot");
             for (int i = 0; i < numofEntries; i++) {
-                assertEquals("listOfEntries should be sorted", Long.valueOf(i + 1), listOfEntries.get(i));
+                assertEquals(Long.valueOf(i + 1), listOfEntries.get(i), "listOfEntries should be sorted");
             }
         }
 
         memTable.flush(flusher);
         for (long ledgerId = 1; ledgerId <= numOfLedgers; ledgerId++) {
             OfLong entriesItr = memTable.getListOfEntriesOfLedger((random.nextInt((int) ledgerId) + 1));
-            assertFalse("After flushing there shouldn't be entries in memtable", entriesItr.hasNext());
+            assertFalse(entriesItr.hasNext(), "After flushing there shouldn't be entries in memtable");
         }
     }
 
-    @Test
-    public void testGetListOfEntriesOfLedgerFromBothKVMapAndSnapshot() throws IOException {
+    @MethodSource("memTableClass")
+    @ParameterizedTest
+    public void getListOfEntriesOfLedgerFromBothKVMapAndSnapshot(Class entryMemTableClass) throws IOException {
+        initEntryMemTableTest(entryMemTableClass);
         int numofEntries = 100;
         int newNumOfEntries = 200;
         int numOfLedgers = 5;
@@ -358,20 +371,20 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
         for (long entryId = 1; entryId <= numofEntries; entryId++) {
             for (long ledgerId = 1; ledgerId <= numOfLedgers; ledgerId++) {
                 random.nextBytes(data);
-                assertTrue(ledgerId + ":" + entryId + " is duplicate in mem-table!",
-                        memTable.addEntry(ledgerId, entryId, ByteBuffer.wrap(data), this) != 0);
+                assertTrue(memTable.addEntry(ledgerId, entryId, ByteBuffer.wrap(data), this) != 0,
+                        ledgerId + ":" + entryId + " is duplicate in mem-table!");
             }
         }
 
-        assertTrue("Snapshot is expected to be empty since snapshot is not done", memTable.snapshot.isEmpty());
-        assertTrue("Take snapshot and returned checkpoint should not be empty", memTable.snapshot() != null);
-        assertFalse("After taking snapshot, snapshot should not be empty ", memTable.snapshot.isEmpty());
+        assertTrue(memTable.snapshot.isEmpty(), "Snapshot is expected to be empty since snapshot is not done");
+        assertTrue(memTable.snapshot() != null, "Take snapshot and returned checkpoint should not be empty");
+        assertFalse(memTable.snapshot.isEmpty(), "After taking snapshot, snapshot should not be empty ");
 
         for (long entryId = numofEntries + 1; entryId <= newNumOfEntries; entryId++) {
             for (long ledgerId = 1; ledgerId <= numOfLedgers; ledgerId++) {
                 random.nextBytes(data);
-                assertTrue(ledgerId + ":" + entryId + " is duplicate in mem-table!",
-                        memTable.addEntry(ledgerId, entryId, ByteBuffer.wrap(data), this) != 0);
+                assertTrue(memTable.addEntry(ledgerId, entryId, ByteBuffer.wrap(data), this) != 0,
+                        ledgerId + ":" + entryId + " is duplicate in mem-table!");
             }
         }
 
@@ -380,15 +393,17 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
             ArrayList<Long> listOfEntries = new ArrayList<Long>();
             Consumer<Long> addMethod = listOfEntries::add;
             entriesItr.forEachRemaining(addMethod);
-            assertEquals("Number of Entries should be the same", newNumOfEntries, listOfEntries.size());
+            assertEquals(newNumOfEntries, listOfEntries.size(), "Number of Entries should be the same");
             for (int i = 0; i < newNumOfEntries; i++) {
-                assertEquals("listOfEntries should be sorted", Long.valueOf(i + 1), listOfEntries.get(i));
+                assertEquals(Long.valueOf(i + 1), listOfEntries.get(i), "listOfEntries should be sorted");
             }
         }
     }
 
-    @Test
-    public void testGetListOfEntriesOfLedgerWhileAddingConcurrently() throws IOException, InterruptedException {
+    @MethodSource("memTableClass")
+    @ParameterizedTest
+    public void getListOfEntriesOfLedgerWhileAddingConcurrently(Class entryMemTableClass) throws IOException, InterruptedException {
+        initEntryMemTableTest(entryMemTableClass);
         final int numofEntries = 100;
         final int newNumOfEntries = 200;
         final int concurrentAddOfEntries = 300;
@@ -396,18 +411,18 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
         byte[] data = new byte[10];
         for (long entryId = 1; entryId <= numofEntries; entryId++) {
             random.nextBytes(data);
-            assertTrue(ledgerId + ":" + entryId + " is duplicate in mem-table!",
-                    memTable.addEntry(ledgerId, entryId, ByteBuffer.wrap(data), this) != 0);
+            assertTrue(memTable.addEntry(ledgerId, entryId, ByteBuffer.wrap(data), this) != 0,
+                    ledgerId + ":" + entryId + " is duplicate in mem-table!");
         }
 
-        assertTrue("Snapshot is expected to be empty since snapshot is not done", memTable.snapshot.isEmpty());
-        assertTrue("Take snapshot and returned checkpoint should not be empty", memTable.snapshot() != null);
-        assertFalse("After taking snapshot, snapshot should not be empty ", memTable.snapshot.isEmpty());
+        assertTrue(memTable.snapshot.isEmpty(), "Snapshot is expected to be empty since snapshot is not done");
+        assertTrue(memTable.snapshot() != null, "Take snapshot and returned checkpoint should not be empty");
+        assertFalse(memTable.snapshot.isEmpty(), "After taking snapshot, snapshot should not be empty ");
 
         for (long entryId = numofEntries + 1; entryId <= newNumOfEntries; entryId++) {
             random.nextBytes(data);
-            assertTrue(ledgerId + ":" + entryId + " is duplicate in mem-table!",
-                    memTable.addEntry(ledgerId, entryId, ByteBuffer.wrap(data), this) != 0);
+            assertTrue(memTable.addEntry(ledgerId, entryId, ByteBuffer.wrap(data), this) != 0,
+                    ledgerId + ":" + entryId + " is duplicate in mem-table!");
         }
 
         AtomicBoolean successfullyAdded = new AtomicBoolean(true);
@@ -442,15 +457,17 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
             Thread.sleep(5);
         }
         threadToAdd.join(5000);
-        assertTrue("Entries should be added successfully in the spawned thread", successfullyAdded.get());
+        assertTrue(successfullyAdded.get(), "Entries should be added successfully in the spawned thread");
 
         for (int i = 0; i < newNumOfEntries; i++) {
-            assertEquals("listOfEntries should be sorted", Long.valueOf(i + 1), listOfEntries.get(i));
+            assertEquals(Long.valueOf(i + 1), listOfEntries.get(i), "listOfEntries should be sorted");
         }
     }
 
-    @Test
-    public void testAddSameEntries() throws IOException {
+    @MethodSource("memTableClass")
+    @ParameterizedTest
+    public void addSameEntries(Class entryMemTableClass) throws IOException {
+        initEntryMemTableTest(entryMemTableClass);
         final long ledgerId = 1;
         final long entryId = 1;
         final int size = 10;
@@ -459,13 +476,13 @@ public class EntryMemTableTest implements CacheCallback, SkipListFlusher, Checkp
 
         for (int i = 0; i < 5; i++) {
             memTable.addEntry(ledgerId, entryId, ByteBuffer.wrap(bytes), this);
-            assertEquals(memTable.kvmap.size(), 1);
+            assertEquals(1, memTable.kvmap.size());
             assertEquals(memTable.skipListSemaphore.availablePermits(), initialPermits - size);
         }
 
         memTable.snapshot(Checkpoint.MAX);
         memTable.flush(this);
-        assertEquals(memTable.kvmap.size(), 0);
+        assertEquals(0, memTable.kvmap.size());
         assertEquals(memTable.skipListSemaphore.availablePermits(), initialPermits);
     }
 }

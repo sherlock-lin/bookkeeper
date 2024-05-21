@@ -22,8 +22,8 @@ package org.apache.bookkeeper.replication;
 
 import static org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicyImpl.REPP_DNS_RESOLVER_CLASS;
 import static org.apache.bookkeeper.replication.ReplicationStats.AUDITOR_SCOPE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
 import java.net.UnknownHostException;
@@ -63,9 +63,9 @@ import org.apache.bookkeeper.test.TestStatsProvider.TestStatsLogger;
 import org.apache.bookkeeper.util.StaticDNSResolver;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.zookeeper.KeeperException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the logic of Auditor's PlacementPolicyCheck.
@@ -78,7 +78,7 @@ public class AuditorPlacementPolicyCheckTest extends BookKeeperClusterTestCase {
         baseConf.setPageLimit(1); // to make it easy to push ledger out of cache
     }
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -87,7 +87,7 @@ public class AuditorPlacementPolicyCheckTest extends BookKeeperClusterTestCase {
         driver.initialize(confByIndex(0), NullStatsLogger.INSTANCE);
     }
 
-    @After
+    @AfterEach
     @Override
     public void tearDown() throws Exception {
         if (null != driver) {
@@ -97,7 +97,7 @@ public class AuditorPlacementPolicyCheckTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testPlacementPolicyCheckWithBookiesFromDifferentRacks() throws Exception {
+    void placementPolicyCheckWithBookiesFromDifferentRacks() throws Exception {
         int numOfBookies = 5;
         List<BookieId> bookieAddresses = new ArrayList<>();
         BookieSocketAddress bookieAddress;
@@ -195,14 +195,16 @@ public class AuditorPlacementPolicyCheckTest extends BookKeeperClusterTestCase {
              * since all of the bookies are in different racks, there shouldn't be any ledger not adhering
              * to placement policy.
              */
-            assertEquals("NUM_LEDGERS_NOT_ADHERING_TO_PLACEMENT_POLICY guage value", 0,
-                    ledgersNotAdheringToPlacementPolicyGuage.getSample());
+            assertEquals(0,
+                    ledgersNotAdheringToPlacementPolicyGuage.getSample(),
+                    "NUM_LEDGERS_NOT_ADHERING_TO_PLACEMENT_POLICY guage value");
             /*
              * since all of the bookies are in different racks, there shouldn't be any ledger softly adhering
              * to placement policy.
              */
-            assertEquals("NUM_LEDGERS_SOFTLY_ADHERING_TO_PLACEMENT_POLICY guage value", 0,
-                    ledgersSoftlyAdheringToPlacementPolicyGuage.getSample());
+            assertEquals(0,
+                    ledgersSoftlyAdheringToPlacementPolicyGuage.getSample(),
+                    "NUM_LEDGERS_SOFTLY_ADHERING_TO_PLACEMENT_POLICY guage value");
         } finally {
             Auditor auditor = auditorRef.getValue();
             if (auditor != null) {
@@ -212,7 +214,7 @@ public class AuditorPlacementPolicyCheckTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testPlacementPolicyCheckWithLedgersNotAdheringToPlacementPolicy() throws Exception {
+    void placementPolicyCheckWithLedgersNotAdheringToPlacementPolicy() throws Exception {
         int numOfBookies = 5;
         int numOfLedgersNotAdheringToPlacementPolicy = 0;
         List<BookieId> bookieAddresses = new ArrayList<>();
@@ -280,12 +282,10 @@ public class AuditorPlacementPolicyCheckTest extends BookKeeperClusterTestCase {
             TestStatsLogger statsLogger = startAuditorAndWaitForPlacementPolicyCheck(servConf, auditorRef);
             Gauge<? extends Number> ledgersNotAdheringToPlacementPolicyGuage = statsLogger
                     .getGauge(ReplicationStats.NUM_LEDGERS_NOT_ADHERING_TO_PLACEMENT_POLICY);
-            assertEquals("NUM_LEDGERS_NOT_ADHERING_TO_PLACEMENT_POLICY guage value",
-                    numOfLedgersNotAdheringToPlacementPolicy, ledgersNotAdheringToPlacementPolicyGuage.getSample());
+            assertEquals(numOfLedgersNotAdheringToPlacementPolicy, ledgersNotAdheringToPlacementPolicyGuage.getSample(), "NUM_LEDGERS_NOT_ADHERING_TO_PLACEMENT_POLICY guage value");
             Gauge<? extends Number> ledgersSoftlyAdheringToPlacementPolicyGuage = statsLogger
                     .getGauge(ReplicationStats.NUM_LEDGERS_SOFTLY_ADHERING_TO_PLACEMENT_POLICY);
-            assertEquals("NUM_LEDGERS_SOFTLY_ADHERING_TO_PLACEMENT_POLICY guage value",
-                    0, ledgersSoftlyAdheringToPlacementPolicyGuage.getSample());
+            assertEquals(0, ledgersSoftlyAdheringToPlacementPolicyGuage.getSample(), "NUM_LEDGERS_SOFTLY_ADHERING_TO_PLACEMENT_POLICY guage value");
         } finally {
             Auditor auditor = auditorRef.getValue();
             if (auditor != null) {
@@ -295,7 +295,7 @@ public class AuditorPlacementPolicyCheckTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testPlacementPolicyCheckWithLedgersNotAdheringToPlacementPolicyAndNotMarkToUnderreplication()
+    void placementPolicyCheckWithLedgersNotAdheringToPlacementPolicyAndNotMarkToUnderreplication()
             throws Exception {
         int numOfBookies = 5;
         int numOfLedgersNotAdheringToPlacementPolicy = 0;
@@ -349,12 +349,10 @@ public class AuditorPlacementPolicyCheckTest extends BookKeeperClusterTestCase {
             TestStatsLogger statsLogger = startAuditorAndWaitForPlacementPolicyCheck(servConf, auditorRef);
             Gauge<? extends Number> ledgersNotAdheringToPlacementPolicyGuage = statsLogger
                     .getGauge(ReplicationStats.NUM_LEDGERS_NOT_ADHERING_TO_PLACEMENT_POLICY);
-            assertEquals("NUM_LEDGERS_NOT_ADHERING_TO_PLACEMENT_POLICY guage value",
-                    numOfLedgersNotAdheringToPlacementPolicy, ledgersNotAdheringToPlacementPolicyGuage.getSample());
+            assertEquals(numOfLedgersNotAdheringToPlacementPolicy, ledgersNotAdheringToPlacementPolicyGuage.getSample(), "NUM_LEDGERS_NOT_ADHERING_TO_PLACEMENT_POLICY guage value");
             Gauge<? extends Number> ledgersSoftlyAdheringToPlacementPolicyGuage = statsLogger
                     .getGauge(ReplicationStats.NUM_LEDGERS_SOFTLY_ADHERING_TO_PLACEMENT_POLICY);
-            assertEquals("NUM_LEDGERS_SOFTLY_ADHERING_TO_PLACEMENT_POLICY guage value",
-                    0, ledgersSoftlyAdheringToPlacementPolicyGuage.getSample());
+            assertEquals(0, ledgersSoftlyAdheringToPlacementPolicyGuage.getSample(), "NUM_LEDGERS_SOFTLY_ADHERING_TO_PLACEMENT_POLICY guage value");
         } finally {
             Auditor auditor = auditorRef.getValue();
             if (auditor != null) {
@@ -363,11 +361,11 @@ public class AuditorPlacementPolicyCheckTest extends BookKeeperClusterTestCase {
         }
         LedgerUnderreplicationManager underreplicationManager = mFactory.newLedgerUnderreplicationManager();
         long unnderReplicateLedgerId = underreplicationManager.pollLedgerToRereplicate();
-        assertEquals(unnderReplicateLedgerId, -1);
+        assertEquals(-1, unnderReplicateLedgerId);
     }
 
     @Test
-    public void testPlacementPolicyCheckWithLedgersNotAdheringToPlacementPolicyAndMarkToUnderreplication()
+    void placementPolicyCheckWithLedgersNotAdheringToPlacementPolicyAndMarkToUnderreplication()
             throws Exception {
         int numOfBookies = 5;
         int numOfLedgersNotAdheringToPlacementPolicy = 0;
@@ -422,12 +420,10 @@ public class AuditorPlacementPolicyCheckTest extends BookKeeperClusterTestCase {
             TestStatsLogger statsLogger = startAuditorAndWaitForPlacementPolicyCheck(servConf, auditorRef);
             Gauge<? extends Number> ledgersNotAdheringToPlacementPolicyGuage = statsLogger
                     .getGauge(ReplicationStats.NUM_LEDGERS_NOT_ADHERING_TO_PLACEMENT_POLICY);
-            assertEquals("NUM_LEDGERS_NOT_ADHERING_TO_PLACEMENT_POLICY guage value",
-                    numOfLedgersNotAdheringToPlacementPolicy, ledgersNotAdheringToPlacementPolicyGuage.getSample());
+            assertEquals(numOfLedgersNotAdheringToPlacementPolicy, ledgersNotAdheringToPlacementPolicyGuage.getSample(), "NUM_LEDGERS_NOT_ADHERING_TO_PLACEMENT_POLICY guage value");
             Gauge<? extends Number> ledgersSoftlyAdheringToPlacementPolicyGuage = statsLogger
                     .getGauge(ReplicationStats.NUM_LEDGERS_SOFTLY_ADHERING_TO_PLACEMENT_POLICY);
-            assertEquals("NUM_LEDGERS_SOFTLY_ADHERING_TO_PLACEMENT_POLICY guage value",
-                    0, ledgersSoftlyAdheringToPlacementPolicyGuage.getSample());
+            assertEquals(0, ledgersSoftlyAdheringToPlacementPolicyGuage.getSample(), "NUM_LEDGERS_SOFTLY_ADHERING_TO_PLACEMENT_POLICY guage value");
         } finally {
             Auditor auditor = auditorRef.getValue();
             if (auditor != null) {
@@ -436,16 +432,16 @@ public class AuditorPlacementPolicyCheckTest extends BookKeeperClusterTestCase {
         }
         LedgerUnderreplicationManager underreplicationManager = mFactory.newLedgerUnderreplicationManager();
         long unnderReplicateLedgerId = underreplicationManager.pollLedgerToRereplicate();
-        assertEquals(unnderReplicateLedgerId, 1L);
+        assertEquals(1L, unnderReplicateLedgerId);
     }
 
     @Test
-    public void testPlacementPolicyCheckForURLedgersElapsedRecoveryGracePeriod() throws Exception {
+    void placementPolicyCheckForURLedgersElapsedRecoveryGracePeriod() throws Exception {
         testPlacementPolicyCheckWithURLedgers(true);
     }
 
     @Test
-    public void testPlacementPolicyCheckForURLedgersNotElapsedRecoveryGracePeriod() throws Exception {
+    void placementPolicyCheckForURLedgersNotElapsedRecoveryGracePeriod() throws Exception {
         testPlacementPolicyCheckWithURLedgers(false);
     }
 
@@ -561,9 +557,9 @@ public class AuditorPlacementPolicyCheckTest extends BookKeeperClusterTestCase {
             TestStatsLogger statsLogger = startAuditorAndWaitForPlacementPolicyCheck(servConf, auditorRef);
             Gauge<? extends Number> underreplicatedLedgersElapsedRecoveryGracePeriodGuage = statsLogger
                     .getGauge(ReplicationStats.NUM_UNDERREPLICATED_LEDGERS_ELAPSED_RECOVERY_GRACE_PERIOD);
-            assertEquals("NUM_UNDERREPLICATED_LEDGERS_ELAPSED_RECOVERY_GRACE_PERIOD guage value",
-                    numOfURLedgersElapsedRecoveryGracePeriod,
-                    underreplicatedLedgersElapsedRecoveryGracePeriodGuage.getSample());
+            assertEquals(numOfURLedgersElapsedRecoveryGracePeriod,
+                    underreplicatedLedgersElapsedRecoveryGracePeriodGuage.getSample(),
+                    "NUM_UNDERREPLICATED_LEDGERS_ELAPSED_RECOVERY_GRACE_PERIOD guage value");
         } finally {
             Auditor auditor = auditorRef.getValue();
             if (auditor != null) {
@@ -573,7 +569,7 @@ public class AuditorPlacementPolicyCheckTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testPlacementPolicyCheckWithLedgersNotAdheringToPolicyWithMultipleSegments() throws Exception {
+    void placementPolicyCheckWithLedgersNotAdheringToPolicyWithMultipleSegments() throws Exception {
         int numOfBookies = 7;
         int numOfLedgersNotAdheringToPlacementPolicy = 0;
         List<BookieId> bookieAddresses = new ArrayList<>();
@@ -662,12 +658,10 @@ public class AuditorPlacementPolicyCheckTest extends BookKeeperClusterTestCase {
             TestStatsLogger statsLogger = startAuditorAndWaitForPlacementPolicyCheck(servConf, auditorRef);
             Gauge<? extends Number> ledgersNotAdheringToPlacementPolicyGuage = statsLogger
                     .getGauge(ReplicationStats.NUM_LEDGERS_NOT_ADHERING_TO_PLACEMENT_POLICY);
-            assertEquals("NUM_LEDGERS_NOT_ADHERING_TO_PLACEMENT_POLICY gauge value",
-                    numOfLedgersNotAdheringToPlacementPolicy, ledgersNotAdheringToPlacementPolicyGuage.getSample());
+            assertEquals(numOfLedgersNotAdheringToPlacementPolicy, ledgersNotAdheringToPlacementPolicyGuage.getSample(), "NUM_LEDGERS_NOT_ADHERING_TO_PLACEMENT_POLICY gauge value");
             Gauge<? extends Number> ledgersSoftlyAdheringToPlacementPolicyGuage = statsLogger
                     .getGauge(ReplicationStats.NUM_LEDGERS_SOFTLY_ADHERING_TO_PLACEMENT_POLICY);
-            assertEquals("NUM_LEDGERS_SOFTLY_ADHERING_TO_PLACEMENT_POLICY gauge value",
-                    0, ledgersSoftlyAdheringToPlacementPolicyGuage.getSample());
+            assertEquals(0, ledgersSoftlyAdheringToPlacementPolicyGuage.getSample(), "NUM_LEDGERS_SOFTLY_ADHERING_TO_PLACEMENT_POLICY gauge value");
         } finally {
             Auditor auditor = auditorRef.getValue();
             if (auditor != null) {
@@ -677,7 +671,7 @@ public class AuditorPlacementPolicyCheckTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testZoneawarePlacementPolicyCheck() throws Exception {
+    void zoneawarePlacementPolicyCheck() throws Exception {
         int numOfBookies = 6;
         int numOfLedgersNotAdheringToPlacementPolicy = 0;
         int numOfLedgersSoftlyAdheringToPlacementPolicy = 0;
@@ -788,13 +782,12 @@ public class AuditorPlacementPolicyCheckTest extends BookKeeperClusterTestCase {
             TestStatsLogger statsLogger = startAuditorAndWaitForPlacementPolicyCheck(servConf, auditorRef);
             Gauge<? extends Number> ledgersNotAdheringToPlacementPolicyGuage = statsLogger
                     .getGauge(ReplicationStats.NUM_LEDGERS_NOT_ADHERING_TO_PLACEMENT_POLICY);
-            assertEquals("NUM_LEDGERS_NOT_ADHERING_TO_PLACEMENT_POLICY guage value",
-                    numOfLedgersNotAdheringToPlacementPolicy, ledgersNotAdheringToPlacementPolicyGuage.getSample());
+            assertEquals(numOfLedgersNotAdheringToPlacementPolicy, ledgersNotAdheringToPlacementPolicyGuage.getSample(), "NUM_LEDGERS_NOT_ADHERING_TO_PLACEMENT_POLICY guage value");
             Gauge<? extends Number> ledgersSoftlyAdheringToPlacementPolicyGuage = statsLogger
                     .getGauge(ReplicationStats.NUM_LEDGERS_SOFTLY_ADHERING_TO_PLACEMENT_POLICY);
-            assertEquals("NUM_LEDGERS_SOFTLY_ADHERING_TO_PLACEMENT_POLICY guage value",
-                    numOfLedgersSoftlyAdheringToPlacementPolicy,
-                    ledgersSoftlyAdheringToPlacementPolicyGuage.getSample());
+            assertEquals(numOfLedgersSoftlyAdheringToPlacementPolicy,
+                    ledgersSoftlyAdheringToPlacementPolicyGuage.getSample(),
+                    "NUM_LEDGERS_SOFTLY_ADHERING_TO_PLACEMENT_POLICY guage value");
         } finally {
             Auditor auditor = auditorRef.getValue();
             if (auditor != null) {
@@ -834,21 +827,21 @@ public class AuditorPlacementPolicyCheckTest extends BookKeeperClusterTestCase {
                 statsLogger, null);
         auditorRef.setValue(auditor);
         CountDownLatch latch = auditor.getLatch();
-        assertEquals("PLACEMENT_POLICY_CHECK_TIME SuccessCount", 0, placementPolicyCheckStatsLogger.getSuccessCount());
+        assertEquals(0, placementPolicyCheckStatsLogger.getSuccessCount(), "PLACEMENT_POLICY_CHECK_TIME SuccessCount");
         urm.setPlacementPolicyCheckCTime(-1);
         auditor.start();
         /*
          * since placementPolicyCheckCTime is set to -1, placementPolicyCheck should be
          * scheduled to run with no initialdelay
          */
-        assertTrue("placementPolicyCheck should have executed", latch.await(20, TimeUnit.SECONDS));
+        assertTrue(latch.await(20, TimeUnit.SECONDS), "placementPolicyCheck should have executed");
         for (int i = 0; i < 20; i++) {
             Thread.sleep(100);
             if (placementPolicyCheckStatsLogger.getSuccessCount() >= 1) {
                 break;
             }
         }
-        assertEquals("PLACEMENT_POLICY_CHECK_TIME SuccessCount", 1, placementPolicyCheckStatsLogger.getSuccessCount());
+        assertEquals(1, placementPolicyCheckStatsLogger.getSuccessCount(), "PLACEMENT_POLICY_CHECK_TIME SuccessCount");
         return statsLogger;
     }
 }

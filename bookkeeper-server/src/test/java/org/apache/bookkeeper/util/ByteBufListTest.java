@@ -18,8 +18,8 @@
  */
 package org.apache.bookkeeper.util;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -37,14 +37,14 @@ import io.netty.util.AttributeKey;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.concurrent.EventExecutor;
 import java.net.SocketAddress;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link ByteBufList}.
  */
-public class ByteBufListTest {
+class ByteBufListTest {
     @Test
-    public void testSingle() throws Exception {
+    void single() throws Exception {
         ByteBuf b1 = PooledByteBufAllocator.DEFAULT.heapBuffer(128, 128);
         b1.writerIndex(b1.capacity());
         ByteBufList buf = ByteBufList.get(b1);
@@ -53,17 +53,17 @@ public class ByteBufListTest {
         assertEquals(128, buf.readableBytes());
         assertEquals(b1, buf.getBuffer(0));
 
-        assertEquals(buf.refCnt(), 1);
-        assertEquals(b1.refCnt(), 1);
+        assertEquals(1, buf.refCnt());
+        assertEquals(1, b1.refCnt());
 
         buf.release();
 
-        assertEquals(buf.refCnt(), 0);
-        assertEquals(b1.refCnt(), 0);
+        assertEquals(0, buf.refCnt());
+        assertEquals(0, b1.refCnt());
     }
 
     @Test
-    public void testDouble() throws Exception {
+    void testDouble() throws Exception {
         ByteBuf b1 = PooledByteBufAllocator.DEFAULT.heapBuffer(128, 128);
         b1.writerIndex(b1.capacity());
         ByteBuf b2 = PooledByteBufAllocator.DEFAULT.heapBuffer(128, 128);
@@ -75,19 +75,19 @@ public class ByteBufListTest {
         assertEquals(b1, buf.getBuffer(0));
         assertEquals(b2, buf.getBuffer(1));
 
-        assertEquals(buf.refCnt(), 1);
-        assertEquals(b1.refCnt(), 1);
-        assertEquals(b2.refCnt(), 1);
+        assertEquals(1, buf.refCnt());
+        assertEquals(1, b1.refCnt());
+        assertEquals(1, b2.refCnt());
 
         buf.release();
 
-        assertEquals(buf.refCnt(), 0);
-        assertEquals(b1.refCnt(), 0);
-        assertEquals(b2.refCnt(), 0);
+        assertEquals(0, buf.refCnt());
+        assertEquals(0, b1.refCnt());
+        assertEquals(0, b2.refCnt());
     }
 
     @Test
-    public void testClone() throws Exception {
+    void testClone() throws Exception {
         ByteBuf b1 = PooledByteBufAllocator.DEFAULT.heapBuffer(128, 128);
         b1.writerIndex(b1.capacity());
         ByteBuf b2 = PooledByteBufAllocator.DEFAULT.heapBuffer(128, 128);
@@ -106,28 +106,28 @@ public class ByteBufListTest {
         assertEquals(b1, clone.getBuffer(0));
         assertEquals(b2, clone.getBuffer(1));
 
-        assertEquals(buf.refCnt(), 1);
-        assertEquals(clone.refCnt(), 1);
-        assertEquals(b1.refCnt(), 2);
-        assertEquals(b2.refCnt(), 2);
+        assertEquals(1, buf.refCnt());
+        assertEquals(1, clone.refCnt());
+        assertEquals(2, b1.refCnt());
+        assertEquals(2, b2.refCnt());
 
         buf.release();
 
-        assertEquals(buf.refCnt(), 0);
-        assertEquals(clone.refCnt(), 1);
-        assertEquals(b1.refCnt(), 1);
-        assertEquals(b2.refCnt(), 1);
+        assertEquals(0, buf.refCnt());
+        assertEquals(1, clone.refCnt());
+        assertEquals(1, b1.refCnt());
+        assertEquals(1, b2.refCnt());
 
         clone.release();
 
-        assertEquals(buf.refCnt(), 0);
-        assertEquals(clone.refCnt(), 0);
-        assertEquals(b1.refCnt(), 0);
-        assertEquals(b2.refCnt(), 0);
+        assertEquals(0, buf.refCnt());
+        assertEquals(0, clone.refCnt());
+        assertEquals(0, b1.refCnt());
+        assertEquals(0, b2.refCnt());
     }
 
     @Test
-    public void testGetBytes() throws Exception {
+    void getBytes() throws Exception {
         ByteBufList buf = ByteBufList.get(Unpooled.wrappedBuffer("hello".getBytes()),
                 Unpooled.wrappedBuffer("world".getBytes()));
 
@@ -151,7 +151,7 @@ public class ByteBufListTest {
     }
 
     @Test
-    public void testCoalesce() throws Exception {
+    void coalesce() throws Exception {
         ByteBufList buf = ByteBufList.get(Unpooled.wrappedBuffer("hello".getBytes()),
                 Unpooled.wrappedBuffer("world".getBytes()));
 
@@ -159,7 +159,7 @@ public class ByteBufListTest {
     }
 
     @Test
-    public void testRetain() throws Exception {
+    void retain() throws Exception {
         ByteBuf b1 = PooledByteBufAllocator.DEFAULT.heapBuffer(128, 128);
         b1.writerIndex(b1.capacity());
         ByteBufList buf = ByteBufList.get(b1);
@@ -168,27 +168,27 @@ public class ByteBufListTest {
         assertEquals(128, buf.readableBytes());
         assertEquals(b1, buf.getBuffer(0));
 
-        assertEquals(buf.refCnt(), 1);
-        assertEquals(b1.refCnt(), 1);
+        assertEquals(1, buf.refCnt());
+        assertEquals(1, b1.refCnt());
 
         buf.retain();
 
-        assertEquals(buf.refCnt(), 2);
-        assertEquals(b1.refCnt(), 1);
+        assertEquals(2, buf.refCnt());
+        assertEquals(1, b1.refCnt());
 
         buf.release();
 
-        assertEquals(buf.refCnt(), 1);
-        assertEquals(b1.refCnt(), 1);
+        assertEquals(1, buf.refCnt());
+        assertEquals(1, b1.refCnt());
 
         buf.release();
 
-        assertEquals(buf.refCnt(), 0);
-        assertEquals(b1.refCnt(), 0);
+        assertEquals(0, buf.refCnt());
+        assertEquals(0, b1.refCnt());
     }
 
     @Test
-    public void testEncoder() throws Exception {
+    void encoder() throws Exception {
         ByteBuf b1 = PooledByteBufAllocator.DEFAULT.heapBuffer(128, 128);
         b1.writerIndex(b1.capacity());
         ByteBuf b2 = PooledByteBufAllocator.DEFAULT.heapBuffer(128, 128);
@@ -199,9 +199,9 @@ public class ByteBufListTest {
 
         ByteBufList.ENCODER.write(ctx, buf, null);
 
-        assertEquals(buf.refCnt(), 0);
-        assertEquals(b1.refCnt(), 0);
-        assertEquals(b2.refCnt(), 0);
+        assertEquals(0, buf.refCnt());
+        assertEquals(0, b1.refCnt());
+        assertEquals(0, b2.refCnt());
     }
 
     class MockChannelHandlerContext implements ChannelHandlerContext {

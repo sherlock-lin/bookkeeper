@@ -23,10 +23,10 @@ package org.apache.bookkeeper.server;
 
 import static org.apache.bookkeeper.bookie.BookKeeperServerStats.LD_INDEX_SCOPE;
 import static org.apache.bookkeeper.bookie.BookKeeperServerStats.LD_LEDGER_SCOPE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
@@ -58,16 +58,16 @@ import org.apache.bookkeeper.stats.NullStatsProvider;
 import org.apache.bookkeeper.stats.StatsLogger;
 import org.apache.bookkeeper.stats.StatsProvider;
 import org.apache.bookkeeper.util.DiskChecker;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Unit test of {@link EmbeddedServer}.
  */
-@RunWith(MockitoJUnitRunner.class)
-public class TestEmbeddedServer {
+@ExtendWith(MockitoExtension.class)
+class TestEmbeddedServer {
 
     static class TestComponent extends ServerLifecycleComponent {
 
@@ -90,7 +90,7 @@ public class TestEmbeddedServer {
     }
 
     @Test
-    public void testBuildBookieServer() throws Exception {
+    void buildBookieServer() throws Exception {
         @Cleanup
         MockedStatic<BookieResources> bookieResourcesMockedStatic = mockStatic(BookieResources.class,
                 CALLS_REAL_METHODS);
@@ -142,7 +142,7 @@ public class TestEmbeddedServer {
     }
 
     @Test
-    public void testBuildBookieServerCustomComponents() throws Exception {
+    void buildBookieServerCustomComponents() throws Exception {
 
         ServerConfiguration serverConf = new ServerConfiguration()
                 .setAllowLoopback(true)
@@ -229,7 +229,7 @@ public class TestEmbeddedServer {
     }
 
     @Test
-    public void testIgnoreExtraServerComponentsStartupFailures() throws Exception {
+    void ignoreExtraServerComponentsStartupFailures() throws Exception {
         @Cleanup
         MockedStatic<BookieResources> bookieResourcesMockedStatic = mockStatic(BookieResources.class,
                 CALLS_REAL_METHODS);
@@ -278,7 +278,7 @@ public class TestEmbeddedServer {
     }
 
     @Test
-    public void testExtraServerComponentsStartupFailures() throws Exception {
+    void extraServerComponentsStartupFailures() throws Exception {
         @Cleanup
         MockedStatic<BookieResources> bookieResourcesMockedStatic = mockStatic(BookieResources.class,
                 CALLS_REAL_METHODS);

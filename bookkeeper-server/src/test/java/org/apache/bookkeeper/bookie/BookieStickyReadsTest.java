@@ -20,10 +20,10 @@
  */
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.beust.jcommander.internal.Lists;
 import java.util.Collections;
@@ -38,7 +38,7 @@ import org.apache.bookkeeper.client.api.ReadHandle;
 import org.apache.bookkeeper.client.api.WriteHandle;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests of the main BookKeeper client.
@@ -55,7 +55,7 @@ public class BookieStickyReadsTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testNormalReads() throws Exception {
+    void normalReads() throws Exception {
         ClientConfiguration conf = new ClientConfiguration(baseClientConf);
 
         // Default should already be set to false
@@ -69,7 +69,7 @@ public class BookieStickyReadsTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testStickyFlagWithStriping() throws Exception {
+    void stickyFlagWithStriping() throws Exception {
         ClientConfiguration conf = new ClientConfiguration(baseClientConf);
         conf.setStickyReadsEnabled(true);
 
@@ -82,7 +82,7 @@ public class BookieStickyReadsTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void stickyReadsWithNoFailures() throws Exception {
+    void stickyReadsWithNoFailures() throws Exception {
         ClientConfiguration conf = new ClientConfiguration(baseClientConf);
         conf.setStickyReadsEnabled(true);
 
@@ -93,14 +93,14 @@ public class BookieStickyReadsTest extends BookKeeperClusterTestCase {
         boolean foundBookieWithRequests = false;
         for (long readRequests : stats.values()) {
             if (readRequests > 0) {
-                assertFalse("Another bookie already had received requests", foundBookieWithRequests);
+                assertFalse(foundBookieWithRequests, "Another bookie already had received requests");
                 foundBookieWithRequests = true;
             }
         }
     }
 
     @Test
-    public void stickyReadsWithFailures() throws Exception {
+    void stickyReadsWithFailures() throws Exception {
         ClientConfiguration conf = new ClientConfiguration(baseClientConf);
         conf.setStickyReadsEnabled(true);
 
@@ -145,7 +145,7 @@ public class BookieStickyReadsTest extends BookKeeperClusterTestCase {
             log.info("Bookie {} --- requests: {}", i, requests);
 
             if (requests > 0) {
-                assertTrue("Another bookie already had received requests", bookieWithRequests == -1);
+                assertEquals(-1, bookieWithRequests, "Another bookie already had received requests");
                 bookieWithRequests = i;
             }
         }

@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -92,7 +93,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
 
     @Test
     @EnabledForJreRange(max = JRE.JAVA_17)
-    public void testConstructionZkDelay() throws Exception {
+    void constructionZkDelay() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri())
             .setZkTimeout(20000);
@@ -108,7 +109,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
 
     @Test
     @EnabledForJreRange(max = JRE.JAVA_17)
-    public void testConstructionNotConnectedExplicitZk() throws Exception {
+    void constructionNotConnectedExplicitZk() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri())
             .setZkTimeout(20000);
@@ -136,12 +137,12 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
      * it provides the wrong password or wrong digest.
      */
     @Test
-    public void testBookkeeperDigestPasswordWithAutoDetection() throws Exception {
+    void bookkeeperDigestPasswordWithAutoDetection() throws Exception {
         testBookkeeperDigestPassword(true);
     }
 
     @Test
-    public void testBookkeeperDigestPasswordWithoutAutoDetection() throws Exception {
+    void bookkeeperDigestPasswordWithoutAutoDetection() throws Exception {
         testBookkeeperDigestPassword(false);
     }
 
@@ -211,7 +212,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
      * @throws Exception
      */
     @Test
-    public void testAsyncReadWithError() throws Exception {
+    void asyncReadWithError() throws Exception {
         LedgerHandle lh = bkc.createLedger(3, 3, DigestType.CRC32, "testPasswd".getBytes());
         bkc.close();
 
@@ -236,7 +237,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
      * while another operation is in progress.
      */
     @Test
-    public void testCloseDuringOp() throws Exception {
+    void closeDuringOp() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         for (int i = 0; i < 10; i++) {
@@ -272,7 +273,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testIsClosed() throws Exception {
+    void isClosed() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
 
@@ -292,7 +293,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testReadFailureCallback() throws Exception {
+    void readFailureCallback() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
 
@@ -337,7 +338,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testAutoCloseableBookKeeper() throws Exception {
+    void autoCloseableBookKeeper() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         BookKeeper bkc2;
@@ -356,7 +357,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testReadAfterLastAddConfirmed() throws Exception {
+    void readAfterLastAddConfirmed() throws Exception {
 
         ClientConfiguration clientConfiguration = new ClientConfiguration();
         clientConfiguration.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
@@ -556,7 +557,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testReadWriteWithV2WireProtocol() throws Exception {
+    void readWriteWithV2WireProtocol() throws Exception {
         ClientConfiguration conf = new ClientConfiguration().setUseV2WireProtocol(true);
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         int numEntries = 100;
@@ -601,7 +602,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testBatchReadFailBackToSingleRead1() throws Exception {
+    void batchReadFailBackToSingleRead1() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         int numEntries = 100;
@@ -656,7 +657,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testBatchReadFailBackToSingleRead2() throws Exception {
+    void batchReadFailBackToSingleRead2() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         int numEntries = 100;
@@ -712,7 +713,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testBatchReadWithV2Protocol() throws Exception {
+    void batchReadWithV2Protocol() throws Exception {
         ClientConfiguration conf = new ClientConfiguration().setUseV2WireProtocol(true);
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         int numEntries = 100;
@@ -781,7 +782,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
 
     @SuppressWarnings("deprecation")
     @Test
-    public void testReadEntryReleaseByteBufs() throws Exception {
+    void readEntryReleaseByteBufs() throws Exception {
         ClientConfiguration confWriter = new ClientConfiguration();
         confWriter.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         int numEntries = 10;
@@ -808,11 +809,9 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
                 for (Enumeration<LedgerEntry> readEntries = lh.readEntries(0, numEntries - 1);
                     readEntries.hasMoreElements();) {
                     LedgerEntry entry = readEntries.nextElement();
-                    try {
+                    Assertions.assertDoesNotThrow(() -> {
                         entry.data.release();
-                    } catch (IllegalReferenceCountException ok) {
-                        fail("ByteBuf already released");
-                    }
+                    }, "ByteBuf already released");
                 }
             }
         }
@@ -829,11 +828,9 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
                 for (Enumeration<LedgerEntry> readEntries = lh.readEntries(0, numEntries - 1);
                     readEntries.hasMoreElements();) {
                     LedgerEntry entry = readEntries.nextElement();
-                    try {
+                    Assertions.assertDoesNotThrow(() -> {
                         entry.data.release();
-                    } catch (IllegalReferenceCountException e) {
-                        fail("ByteBuf already released");
-                    }
+                    }, "ByteBuf already released");
                 }
             }
         }
@@ -916,7 +913,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
      * @throws Exception
      */
     @Test
-    public void testDoubleRead() throws Exception {
+    void doubleRead() throws Exception {
         LedgerHandle lh = bkc.createLedger(digestType, "".getBytes());
 
         lh.addEntry("test".getBytes());
@@ -946,7 +943,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
      * @throws Exception
      */
     @Test
-    public void testDoubleReadWithV2Protocol() throws Exception {
+    void doubleReadWithV2Protocol() throws Exception {
         ClientConfiguration conf = new ClientConfiguration(baseClientConf);
         conf.setUseV2WireProtocol(true);
         BookKeeperTestClient bkc = new BookKeeperTestClient(conf);
@@ -975,7 +972,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testCannotUseWriteFlagsOnV2Protocol() throws Exception {
+    void cannotUseWriteFlagsOnV2Protocol() throws Exception {
         ClientConfiguration conf = new ClientConfiguration(baseClientConf);
         conf.setUseV2WireProtocol(true);
         try (BookKeeperTestClient bkc = new BookKeeperTestClient(conf)) {
@@ -986,14 +983,14 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
                     .withPassword("".getBytes())
                     .withWriteFlags(WriteFlag.DEFERRED_SYNC)
                     .execute())) {
-                Assertions.assertThrows(BKException.BKIllegalOpException.class,
+                assertThrows(BKException.BKIllegalOpException.class,
                         () -> result(wh.appendAsync("test".getBytes())));
             }
         }
     }
 
     @Test
-    public void testCannotUseForceOnV2Protocol() throws Exception {
+    void cannotUseForceOnV2Protocol() throws Exception {
         ClientConfiguration conf = new ClientConfiguration(baseClientConf);
         conf.setUseV2WireProtocol(true);
         try (BookKeeperTestClient bkc = new BookKeeperTestClient(conf)) {
@@ -1005,7 +1002,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
                     .withWriteFlags(WriteFlag.NONE)
                     .execute())) {
                 result(wh.appendAsync("".getBytes()));
-                Assertions.assertThrows(BKException.BKIllegalOpException.class,
+                assertThrows(BKException.BKIllegalOpException.class,
                         () -> result(wh.force()));
             }
         }
@@ -1069,7 +1066,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testZKConnectionLossForLedgerCreation() throws Exception {
+    void zKConnectionLossForLedgerCreation() throws Exception {
         int zkSessionTimeOut = 10000;
         AtomicLong ledgerIdToInjectFailure = new AtomicLong(INVALID_LEDGERID);
         ZooKeeperWatcherBase zooKeeperWatcherBase = new ZooKeeperWatcherBase(zkSessionTimeOut,
@@ -1125,7 +1122,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testLedgerDeletionIdempotency() throws Exception {
+    void ledgerDeletionIdempotency() throws Exception {
         BookKeeper bk = new BookKeeper(baseClientConf);
         long ledgerId = 789L;
         LedgerHandle lh = bk.createLedgerAdv(ledgerId, 1, 1, 1, DigestType.CRC32, "".getBytes(), null);
@@ -1166,7 +1163,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
      * WRITE_TIMED_OUT_DUE_TO_NOT_ENOUGH_FAULT_DOMAINS counters.
      */
     @Test
-    public void testEnforceMinNumFaultDomainsForWrite() throws Exception {
+    void enforceMinNumFaultDomainsForWrite() throws Exception {
         byte[] data = "foobar".getBytes();
         byte[] password = "testPasswd".getBytes();
 
@@ -1227,10 +1224,10 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
             LOG.info("Putting picked bookie to sleep");
             sleepBookie(bookieToSleep, sleepLatchCase1);
 
-            assertEquals(statsLogger
-                           .getCounter(WRITE_DELAYED_DUE_TO_NOT_ENOUGH_FAULT_DOMAINS)
-                           .get()
-                           .longValue(), 0);
+            assertEquals(0, statsLogger
+                    .getCounter(WRITE_DELAYED_DUE_TO_NOT_ENOUGH_FAULT_DOMAINS)
+                    .get()
+                    .longValue());
 
             // Trying to write entry
             writeToLedger.start();
@@ -1246,10 +1243,10 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
             writeToLedger.join(conf.getAddEntryTimeout() * 1000);
             assertEquals(0, lh.lastAddConfirmed, "Write did not succeed but should have");
 
-            assertEquals(statsLogger
-                           .getCounter(WRITE_DELAYED_DUE_TO_NOT_ENOUGH_FAULT_DOMAINS)
-                           .get()
-                           .longValue(), 1);
+            assertEquals(1, statsLogger
+                    .getCounter(WRITE_DELAYED_DUE_TO_NOT_ENOUGH_FAULT_DOMAINS)
+                    .get()
+                    .longValue());
 
             // AddEntry thread for second scenario
             Thread writeToLedger2 = new Thread(() -> {
@@ -1275,16 +1272,16 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
 
             sleepLatchCase2.countDown();
 
-            assertEquals(statsLogger.getCounter(WRITE_DELAYED_DUE_TO_NOT_ENOUGH_FAULT_DOMAINS).get().longValue(),
-                         2);
+            assertEquals(
+                    2, statsLogger.getCounter(WRITE_DELAYED_DUE_TO_NOT_ENOUGH_FAULT_DOMAINS).get().longValue());
 
-            assertEquals(statsLogger.getCounter(WRITE_TIMED_OUT_DUE_TO_NOT_ENOUGH_FAULT_DOMAINS).get().longValue(),
-                         1);
+            assertEquals(
+                    1, statsLogger.getCounter(WRITE_TIMED_OUT_DUE_TO_NOT_ENOUGH_FAULT_DOMAINS).get().longValue());
         }
     }
 
     @Test
-    public void testBookieAddressResolverPassedToDNSToSwitchMapping() throws Exception {
+    void bookieAddressResolverPassedToDNSToSwitchMapping() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
 

@@ -21,7 +21,7 @@
 
 package org.apache.bookkeeper.test;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -176,9 +176,9 @@ public class ZooKeeperUtil implements ZooKeeperCluster {
         // shutdown ZK server
         if (serverFactory != null) {
             serverFactory.shutdown();
-            assertTrue("waiting for server down",
-                    ClientBase.waitForServerDown(getZooKeeperConnectString(),
-                            ClientBase.CONNECTION_TIMEOUT));
+            assertTrue(ClientBase.waitForServerDown(getZooKeeperConnectString(),
+                            ClientBase.CONNECTION_TIMEOUT),
+                    "waiting for server down");
         }
         if (zks != null) {
             zks.getTxnLogFactory().close();

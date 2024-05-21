@@ -20,8 +20,8 @@
  */
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.nullable;
@@ -37,6 +37,7 @@ import static org.mockito.Mockito.when;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -50,29 +51,28 @@ import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.proto.BookkeeperInternalCallbacks.WriteCallback;
 import org.apache.bookkeeper.stats.Counter;
 import org.apache.bookkeeper.test.TestStatsProvider;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
 /**
  * Test the bookie journal.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 @Slf4j
 public class BookieJournalForceTest {
 
     private static final ByteBuf DATA = Unpooled.wrappedBuffer(new byte[]{});
 
-    @Rule
-    public TemporaryFolder tempDir = new TemporaryFolder();
+    @TempDir
+    public File tempDir;
 
     @Test
-    public void testAckAfterSync() throws Exception {
-        File journalDir = tempDir.newFolder();
+    void ackAfterSync() throws Exception {
+        File journalDir = newFolder(tempDir, "junit");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration()
@@ -134,8 +134,8 @@ public class BookieJournalForceTest {
     }
 
     @Test
-    public void testAckBeforeSync() throws Exception {
-        File journalDir = tempDir.newFolder();
+    void ackBeforeSync() throws Exception {
+        File journalDir = newFolder(tempDir, "junit");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
@@ -187,8 +187,8 @@ public class BookieJournalForceTest {
     }
 
     @Test
-    public void testAckBeforeSyncWithJournalBufferedEntriesThreshold() throws Exception {
-        File journalDir = tempDir.newFolder();
+    void ackBeforeSyncWithJournalBufferedEntriesThreshold() throws Exception {
+        File journalDir = newFolder(tempDir, "junit");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
         final int journalBufferedEntriesThreshold = 10;
@@ -253,8 +253,8 @@ public class BookieJournalForceTest {
     }
 
     @Test
-    public void testInterleavedRequests() throws Exception {
-        File journalDir = tempDir.newFolder();
+    void interleavedRequests() throws Exception {
+        File journalDir = newFolder(tempDir, "junit");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
@@ -321,8 +321,8 @@ public class BookieJournalForceTest {
     }
 
     @Test
-    public void testForceLedger() throws Exception {
-        File journalDir = tempDir.newFolder();
+    void forceLedger() throws Exception {
+        File journalDir = newFolder(tempDir, "junit");
         BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(journalDir));
 
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
@@ -382,8 +382,8 @@ public class BookieJournalForceTest {
     }
 
     @Test
-    public void testFileChannelProvider() throws Exception {
-        File bookieFileDirectory = tempDir.newFile();
+    void fileChannelProvider() throws Exception {
+        File bookieFileDirectory = File.createTempFile("junit", null, tempDir);
         ServerConfiguration config = TestBKConfiguration.newServerConfiguration();
 
         DefaultFileChannel defaultFileChannel = spy(new DefaultFileChannel(bookieFileDirectory, config));
@@ -401,6 +401,15 @@ public class BookieJournalForceTest {
         verify(defaultFileChannel, times (1)).fileExists(bookieFileDirectory);
         provider.close(bookieFileChannel);
         verify(defaultFileChannel, times (1)).close();
+    }
+
+    private static File newFolder(File root, String... subDirs) throws IOException {
+        String subFolder = String.join("/", subDirs);
+        File result = new File(root, subFolder);
+        if (!result.mkdirs()) {
+            throw new IOException("Couldn't create folders " + root);
+        }
+        return result;
     }
 
 }

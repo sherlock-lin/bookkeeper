@@ -20,7 +20,7 @@
  */
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import lombok.Cleanup;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,7 @@ import org.apache.bookkeeper.client.api.WriteHandle;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests that we're skipping journal when it's configured to do so.
@@ -53,7 +53,7 @@ public class BookieJournalBypassTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testJournalBypass() throws Exception {
+    void journalBypass() throws Exception {
         ClientConfiguration conf = new ClientConfiguration(baseClientConf);
 
         BookieImpl bookieImpl = (BookieImpl) serverByIndex(0).getBookie();

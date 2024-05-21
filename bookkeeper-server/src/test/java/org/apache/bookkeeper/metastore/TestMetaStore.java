@@ -21,12 +21,12 @@ import static org.apache.bookkeeper.metastore.MetastoreScannableTable.EMPTY_END_
 import static org.apache.bookkeeper.metastore.MetastoreScannableTable.EMPTY_START_KEY;
 import static org.apache.bookkeeper.metastore.MetastoreTable.ALL_FIELDS;
 import static org.apache.bookkeeper.metastore.MetastoreTable.NON_FIELDS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
@@ -44,16 +44,16 @@ import org.apache.bookkeeper.versioning.Version;
 import org.apache.bookkeeper.versioning.Versioned;
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.Configuration;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Test the metastore.
  */
-public class TestMetaStore {
+class TestMetaStore {
     private static final Logger logger = LoggerFactory.getLogger(TestMetaStore.class);
 
     protected static final String TABLE = "myTable";
@@ -198,8 +198,8 @@ public class TestMetaStore {
         return v1.compare(v2) == Version.Occurred.CONCURRENTLY;
     }
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() throws Exception {
         metastore = MetastoreFactory.createMetaStore(getMetaStoreName());
         Configuration config = getConfiguration();
         metastore.init(config, metastore.getVersion());
@@ -211,8 +211,8 @@ public class TestMetaStore {
         clearTable();
     }
 
-    @After
-    public void tearDown() throws Exception {
+    @AfterEach
+    void tearDown() throws Exception {
         // also clear table after test
         clearTable();
 
@@ -302,7 +302,7 @@ public class TestMetaStore {
      * Test (get, get partial field, remove) on non-existent element.
      */
     @Test
-    public void testNonExistent() throws Exception {
+    void nonExistent() throws Exception {
         // get
         try {
             myTable.get(RECORDID);
@@ -331,7 +331,7 @@ public class TestMetaStore {
      * Test usage of get operation on (full and partial) fields.
      */
     @Test
-    public void testGet() throws Exception {
+    void get() throws Exception {
         Versioned<Value> vv;
 
         final Set<String> fields =
@@ -378,7 +378,7 @@ public class TestMetaStore {
      * Test usage of put operation with (full and partial) fields.
      */
     @Test
-    public void testPut() throws Exception {
+    void put() throws Exception {
         final Integer counter = getRandom();
         final String name = "put";
 
@@ -469,7 +469,7 @@ public class TestMetaStore {
      * remove) operation.
      */
     @Test
-    public void testRemove() throws Exception {
+    void remove() throws Exception {
         final Integer counter = getRandom();
         final String name = "remove";
         Version version;
@@ -544,7 +544,7 @@ public class TestMetaStore {
      * Test usage of (scan) operation on (full and partial) fields.
      */
     @Test
-    public void testOpenCursor() throws Exception {
+    void openCursor() throws Exception {
 
         TreeMap<String, Value> allValues = Maps.newTreeMap();
         TreeMap<String, Value> partialValues = Maps.newTreeMap();

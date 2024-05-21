@@ -21,12 +21,12 @@
 package org.apache.bookkeeper.bookie;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
 
@@ -50,22 +50,22 @@ import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.util.DiskChecker;
 import org.apache.bookkeeper.util.SnapshotMap;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test cases for IndexPersistenceMgr.
  */
-public class IndexPersistenceMgrTest {
+class IndexPersistenceMgrTest {
 
     ServerConfiguration conf;
     File journalDir, ledgerDir1, ledgerDir2;
     LedgerDirsManager ledgerDirsManager;
     LedgerDirsMonitor ledgerMonitor;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() throws Exception {
         journalDir = File.createTempFile("IndexPersistenceMgr", "Journal");
         journalDir.delete();
         journalDir.mkdir();
@@ -93,8 +93,8 @@ public class IndexPersistenceMgrTest {
         ledgerMonitor.init();
     }
 
-    @After
-    public void tearDown() throws Exception {
+    @AfterEach
+    void tearDown() throws Exception {
         ledgerMonitor.shutdown();
         FileUtils.deleteDirectory(journalDir);
         FileUtils.deleteDirectory(ledgerDir1);
@@ -119,12 +119,12 @@ public class IndexPersistenceMgrTest {
     }
 
     @Test
-    public void testEvictFileInfoWhenUnderlyingFileExists() throws Exception {
+    void evictFileInfoWhenUnderlyingFileExists() throws Exception {
         evictFileInfoTest(true);
     }
 
     @Test
-    public void testEvictFileInfoWhenUnderlyingFileDoesntExist() throws Exception {
+    void evictFileInfoWhenUnderlyingFileDoesntExist() throws Exception {
         evictFileInfoTest(false);
     }
 
@@ -145,7 +145,7 @@ public class IndexPersistenceMgrTest {
 
             // get the file info again, state should have been flushed
             fi = indexPersistenceMgr.getFileInfo(lid, masterKey);
-            assertTrue("Fence bit should be persisted", fi.isFenced());
+            assertTrue(fi.isFenced(), "Fence bit should be persisted");
         } finally {
             indexPersistenceMgr.close();
         }
@@ -155,7 +155,7 @@ public class IndexPersistenceMgrTest {
     final byte[] masterKey = "write".getBytes();
 
     @Test
-    public void testGetFileInfoReadBeforeWrite() throws Exception {
+    void getFileInfoReadBeforeWrite() throws Exception {
         IndexPersistenceMgr indexPersistenceMgr = null;
         try {
             indexPersistenceMgr = createIndexPersistenceManager(1);
@@ -183,7 +183,7 @@ public class IndexPersistenceMgrTest {
     }
 
     @Test
-    public void testGetFileInfoWriteBeforeRead() throws Exception {
+    void getFileInfoWriteBeforeRead() throws Exception {
         IndexPersistenceMgr indexPersistenceMgr = null;
         try {
             indexPersistenceMgr = createIndexPersistenceManager(1);
@@ -209,7 +209,7 @@ public class IndexPersistenceMgrTest {
     }
 
     @Test
-    public void testReadFileInfoCacheEviction() throws Exception {
+    void readFileInfoCacheEviction() throws Exception {
         IndexPersistenceMgr indexPersistenceMgr = null;
         try {
             indexPersistenceMgr = createIndexPersistenceManager(1);
@@ -257,7 +257,7 @@ public class IndexPersistenceMgrTest {
     }
 
     @Test
-    public void testEvictionShouldNotAffectLongPollRead() throws Exception {
+    void evictionShouldNotAffectLongPollRead() throws Exception {
         IndexPersistenceMgr indexPersistenceMgr = null;
         Watcher<LastAddConfirmedUpdateNotification> watcher = notification -> notification.recycle();
         try {
@@ -288,7 +288,7 @@ public class IndexPersistenceMgrTest {
     }
 
     @Test
-    public void testEvictBeforeReleaseRace() throws Exception {
+    void evictBeforeReleaseRace() throws Exception {
         IndexPersistenceMgr indexPersistenceMgr = null;
         Watcher<LastAddConfirmedUpdateNotification> watcher = notification -> notification.recycle();
         try {
@@ -328,7 +328,7 @@ public class IndexPersistenceMgrTest {
      * persisted and if it is FileInfo.V1 then explicitLac is persisted.
      */
     @Test
-    public void testFileInfosOfVariousHeaderVersions() throws Exception {
+    void fileInfosOfVariousHeaderVersions() throws Exception {
         IndexPersistenceMgr indexPersistenceMgr = null;
         try {
             indexPersistenceMgr = createIndexPersistenceManager(1);
@@ -345,7 +345,7 @@ public class IndexPersistenceMgrTest {
     }
 
     @Test
-    public void testIndexFileRelocation() throws Exception {
+    void indexFileRelocation() throws Exception {
         final long ledgerId = Integer.MAX_VALUE;
         final String ledgerName = IndexPersistenceMgr.getLedgerName(ledgerId);
 
@@ -372,7 +372,7 @@ public class IndexPersistenceMgrTest {
     }
 
     @Test
-    public void testIndexFileRelocationCrashBeforeOriginalFileDeleted() throws Exception {
+    void indexFileRelocationCrashBeforeOriginalFileDeleted() throws Exception {
         final long ledgerId = Integer.MAX_VALUE;
         final String ledgerName = IndexPersistenceMgr.getLedgerName(ledgerId);
         final String reason = "crash before original file deleted";
@@ -407,7 +407,7 @@ public class IndexPersistenceMgrTest {
     }
 
     @Test
-    public void testIndexFileRelocationCrashAfterOriginalFileDeleted() throws Exception {
+    void indexFileRelocationCrashAfterOriginalFileDeleted() throws Exception {
         final long ledgerId = Integer.MAX_VALUE;
         final String ledgerName = IndexPersistenceMgr.getLedgerName(ledgerId);
         final String reason = "crash after original file deleted";
@@ -455,18 +455,20 @@ public class IndexPersistenceMgrTest {
 
         CachedFileInfo fileInfo = indexPersistenceMgr.getFileInfo(ledgerId, masterKey);
         fileInfo.readHeader();
-        assertEquals("ExplicitLac should be null", null, fileInfo.getExplicitLac());
-        assertEquals("Header Version should match with precreated fileinfos headerversion", headerVersion,
-                fileInfo.headerVersion);
-        assertTrue("Masterkey should match with precreated fileinfos masterkey",
-                Arrays.equals(masterKey, fileInfo.masterKey));
+        assertNull(fileInfo.getExplicitLac(), "ExplicitLac should be null");
+        assertEquals(headerVersion,
+                fileInfo.headerVersion,
+                "Header Version should match with precreated fileinfos headerversion");
+        assertTrue(Arrays.equals(masterKey, fileInfo.masterKey),
+                "Masterkey should match with precreated fileinfos masterkey");
         long explicitLac = 22;
         ByteBuf explicitLacByteBuf = digestManager.computeDigestAndPackageForSendingLac(explicitLac).getBuffer(0);
         explicitLacByteBuf.markReaderIndex();
         indexPersistenceMgr.setExplicitLac(ledgerId, explicitLacByteBuf);
         explicitLacByteBuf.resetReaderIndex();
-        assertEquals("explicitLac ByteBuf contents should match", 0,
-                ByteBufUtil.compare(explicitLacByteBuf, indexPersistenceMgr.getExplicitLac(ledgerId)));
+        assertEquals(0,
+                ByteBufUtil.compare(explicitLacByteBuf, indexPersistenceMgr.getExplicitLac(ledgerId)),
+                "explicitLac ByteBuf contents should match");
         /*
          * release fileInfo untill it is marked dead and closed, so that
          * contents of it are persisted.
@@ -480,17 +482,14 @@ public class IndexPersistenceMgrTest {
          */
         fileInfo = indexPersistenceMgr.getFileInfo(ledgerId, masterKey);
         fileInfo.readHeader();
-        assertEquals("Header Version should match with precreated fileinfos headerversion even after reopening",
-                headerVersion, fileInfo.headerVersion);
-        assertTrue("Masterkey should match with precreated fileinfos masterkey",
-                Arrays.equals(masterKey, fileInfo.masterKey));
+        assertEquals(headerVersion, fileInfo.headerVersion, "Header Version should match with precreated fileinfos headerversion even after reopening");
+        assertTrue(Arrays.equals(masterKey, fileInfo.masterKey),
+                "Masterkey should match with precreated fileinfos masterkey");
         if (headerVersion == FileInfo.V0) {
-            assertEquals("Since it is V0 Header, explicitLac will not be persisted and should be null after reopening",
-                    null, indexPersistenceMgr.getExplicitLac(ledgerId));
+            assertNull(indexPersistenceMgr.getExplicitLac(ledgerId), "Since it is V0 Header, explicitLac will not be persisted and should be null after reopening");
         } else {
             explicitLacByteBuf.resetReaderIndex();
-            assertEquals("Since it is V1 Header, explicitLac will be persisted and should not be null after reopening",
-                    0, ByteBufUtil.compare(explicitLacByteBuf, indexPersistenceMgr.getExplicitLac(ledgerId)));
+            assertEquals(0, ByteBufUtil.compare(explicitLacByteBuf, indexPersistenceMgr.getExplicitLac(ledgerId)), "Since it is V1 Header, explicitLac will be persisted and should not be null after reopening");
         }
     }
 

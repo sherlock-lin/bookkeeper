@@ -19,6 +19,9 @@
  */
 package org.apache.bookkeeper.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -26,16 +29,15 @@ import java.util.Iterator;
 import java.util.PrimitiveIterator;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Testsuite for IteratorUtility methods.
  */
-public class IteratorUtilityTest {
+class IteratorUtilityTest {
 
     @Test
-    public void testWithPrimitiveItrMerge() {
+    void withPrimitiveItrMerge() {
         long[][] arrays = {
                 { 0, 1, 2 },
                 { 0, 1 },
@@ -73,21 +75,21 @@ public class IteratorUtilityTest {
                 Consumer<Long> addMethod = mergedArrayList::add;
                 mergedItr.forEachRemaining(addMethod);
                 int mergedListSize = mergedArrayList.size();
-                Assert.assertEquals("Size of the mergedArrayList", unionSet.size(), mergedArrayList.size());
-                Assert.assertTrue("mergedArrayList should contain all elements in unionSet",
-                        mergedArrayList.containsAll(unionSet));
-                Assert.assertTrue("Merged Iterator should be sorted", IntStream.range(0, mergedListSize - 1)
-                        .allMatch(k -> mergedArrayList.get(k) <= mergedArrayList.get(k + 1)));
-                Assert.assertTrue("All elements of tempArray1 should be in mergedArrayList",
-                        IntStream.range(0, tempArray1.length).allMatch(k -> mergedArrayList.contains(tempArray1[k])));
-                Assert.assertTrue("All elements of tempArray2 should be in mergedArrayList",
-                        IntStream.range(0, tempArray2.length).allMatch(k -> mergedArrayList.contains(tempArray2[k])));
+                assertEquals(unionSet.size(), mergedArrayList.size(), "Size of the mergedArrayList");
+                assertTrue(mergedArrayList.containsAll(unionSet),
+                        "mergedArrayList should contain all elements in unionSet");
+                assertTrue(IntStream.range(0, mergedListSize - 1)
+                        .allMatch(k -> mergedArrayList.get(k) <= mergedArrayList.get(k + 1)), "Merged Iterator should be sorted");
+                assertTrue(IntStream.range(0, tempArray1.length).allMatch(k -> mergedArrayList.contains(tempArray1[k])),
+                        "All elements of tempArray1 should be in mergedArrayList");
+                assertTrue(IntStream.range(0, tempArray2.length).allMatch(k -> mergedArrayList.contains(tempArray2[k])),
+                        "All elements of tempArray2 should be in mergedArrayList");
             }
         }
     }
 
     @Test
-    public void testWithItrMerge() {
+    void withItrMerge() {
         long[][] arrays = {
                 { 0, 1, 2 },
                 { 0, 1 },
@@ -125,15 +127,15 @@ public class IteratorUtilityTest {
                 Consumer<Long> addMethod = mergedArrayList::add;
                 mergedItr.forEachRemaining(addMethod);
                 int mergedListSize = mergedArrayList.size();
-                Assert.assertEquals("Size of the mergedArrayList", unionSet.size(), mergedArrayList.size());
-                Assert.assertTrue("mergedArrayList should contain all elements in unionSet",
-                        mergedArrayList.containsAll(unionSet));
-                Assert.assertTrue("Merged Iterator should be sorted", IntStream.range(0, mergedListSize - 1)
-                        .allMatch(k -> mergedArrayList.get(k) <= mergedArrayList.get(k + 1)));
-                Assert.assertTrue("All elements of tempArray1 should be in mergedArrayList",
-                        IntStream.range(0, tempArray1.length).allMatch(k -> mergedArrayList.contains(tempArray1[k])));
-                Assert.assertTrue("All elements of tempArray2 should be in mergedArrayList",
-                        IntStream.range(0, tempArray2.length).allMatch(k -> mergedArrayList.contains(tempArray2[k])));
+                assertEquals(unionSet.size(), mergedArrayList.size(), "Size of the mergedArrayList");
+                assertTrue(mergedArrayList.containsAll(unionSet),
+                        "mergedArrayList should contain all elements in unionSet");
+                assertTrue(IntStream.range(0, mergedListSize - 1)
+                        .allMatch(k -> mergedArrayList.get(k) <= mergedArrayList.get(k + 1)), "Merged Iterator should be sorted");
+                assertTrue(IntStream.range(0, tempArray1.length).allMatch(k -> mergedArrayList.contains(tempArray1[k])),
+                        "All elements of tempArray1 should be in mergedArrayList");
+                assertTrue(IntStream.range(0, tempArray2.length).allMatch(k -> mergedArrayList.contains(tempArray2[k])),
+                        "All elements of tempArray2 should be in mergedArrayList");
             }
         }
     }

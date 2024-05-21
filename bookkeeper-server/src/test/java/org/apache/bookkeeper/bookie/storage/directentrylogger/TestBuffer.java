@@ -22,6 +22,7 @@ package org.apache.bookkeeper.bookie.storage.directentrylogger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 // CHECKSTYLE.OFF: IllegalImport
@@ -31,17 +32,17 @@ import io.netty.buffer.Unpooled;
 import io.netty.util.internal.PlatformDependent;
 import java.io.IOException;
 import org.apache.bookkeeper.common.util.nativeio.NativeIOImpl;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
 // CHECKSTYLE.ON: IllegalImport
 
 /**
  * TestBuffer.
  */
-public class TestBuffer {
+class TestBuffer {
 
     @Test
-    public void testIsAligned() throws Exception {
+    void isAligned() throws Exception {
         assertFalse(Buffer.isAligned(1234));
         assertTrue(Buffer.isAligned(4096));
         assertTrue(Buffer.isAligned(40960));
@@ -52,7 +53,7 @@ public class TestBuffer {
     }
 
     @Test
-    public void testNextAlignment() throws Exception {
+    void nextAlignment() throws Exception {
         assertEquals(0, Buffer.nextAlignment(0));
         assertEquals(4096, Buffer.nextAlignment(1));
         assertEquals(4096, Buffer.nextAlignment(4096));
@@ -61,28 +62,28 @@ public class TestBuffer {
     }
 
     @Test
-    public void testNegativePosition() throws Exception {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+    void negativePosition() throws Exception {
+        assertThrows(IllegalArgumentException.class, () -> {
             Buffer.nextAlignment(-1);
         });
     }
 
     @Test
-    public void testMaxAlignment() throws Exception {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+    void maxAlignment() throws Exception {
+        assertThrows(IllegalArgumentException.class, () -> {
             Buffer.nextAlignment(Integer.MAX_VALUE);
         });
     }
 
     @Test
-    public void testCreateUnaligned() throws Exception {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+    void createUnaligned() throws Exception {
+        assertThrows(IllegalArgumentException.class, () -> {
             new Buffer(new NativeIOImpl(), ByteBufAllocator.DEFAULT, 1234);
         });
     }
 
     @Test
-    public void testWriteInt() throws Exception {
+    void writeInt() throws Exception {
         int bufferSize = 1 << 20;
         Buffer b = new Buffer(new NativeIOImpl(), ByteBufAllocator.DEFAULT, bufferSize);
         assertTrue(b.hasSpace(bufferSize));
@@ -115,7 +116,7 @@ public class TestBuffer {
     }
 
     @Test
-    public void testWriteBuffer() throws Exception {
+    void writeBuffer() throws Exception {
         ByteBuf bb = Unpooled.buffer(1021);
         fillByteBuf(bb, 0xdeadbeef);
         int bufferSize = 1 << 20;
@@ -143,7 +144,7 @@ public class TestBuffer {
     }
 
     @Test
-    public void testPartialRead() throws Exception {
+    void partialRead() throws Exception {
         ByteBuf bb = Unpooled.buffer(5000);
 
         Buffer b = new Buffer(new NativeIOImpl(), ByteBufAllocator.DEFAULT, 4096);
@@ -156,7 +157,7 @@ public class TestBuffer {
     }
 
     @Test
-    public void testReadIntAtBoundary() throws Exception {
+    void readIntAtBoundary() throws Exception {
         Buffer b = new Buffer(new NativeIOImpl(), ByteBufAllocator.DEFAULT, 4096);
 
         for (int i = 0; i < 4096 / Integer.BYTES; i++) {
@@ -166,11 +167,11 @@ public class TestBuffer {
         assertFalse(b.hasData(4093, Integer.BYTES));
         assertFalse(b.hasData(4096, Integer.BYTES));
 
-        Assertions.assertThrows(IOException.class, () -> b.readInt(4096 - 2));
+        assertThrows(IOException.class, () -> b.readInt(4096 - 2));
     }
 
     @Test
-    public void testReadLongAtBoundary() throws Exception {
+    void readLongAtBoundary() throws Exception {
         Buffer b = new Buffer(new NativeIOImpl(), ByteBufAllocator.DEFAULT, 4096);
 
         for (int i = 0; i < 4096 / Integer.BYTES; i++) {
@@ -180,11 +181,11 @@ public class TestBuffer {
         assertFalse(b.hasData(4089, Long.BYTES));
         assertFalse(b.hasData(4096, Long.BYTES));
 
-        Assertions.assertThrows(IOException.class, () -> b.readInt(4096 - 2));
+        assertThrows(IOException.class, () -> b.readInt(4096 - 2));
     }
 
     @Test
-    public void testPadToAlignment() throws Exception {
+    void padToAlignment() throws Exception {
         Buffer b = new Buffer(new NativeIOImpl(), ByteBufAllocator.DEFAULT, 1 << 23);
 
         for (int i = 0; i < 1025; i++) {
@@ -201,7 +202,7 @@ public class TestBuffer {
     }
 
     @Test
-    public void testFree() throws Exception {
+    void free() throws Exception {
         Buffer b = new Buffer(new NativeIOImpl(), ByteBufAllocator.DEFAULT, 1 << 23);
         b.free(); // success if process doesn't explode
         b.free();

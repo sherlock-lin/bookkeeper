@@ -20,9 +20,9 @@
 package org.apache.bookkeeper.client;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -65,15 +65,15 @@ import org.apache.bookkeeper.proto.checksum.DigestManager;
 import org.apache.bookkeeper.proto.checksum.DummyDigestManager;
 import org.apache.bookkeeper.test.TestStatsProvider;
 import org.apache.bookkeeper.util.ByteBufList;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test {@link ReadLastConfirmedAndEntryOp} with mocks.
  */
 @Slf4j
-public class ReadLastConfirmedAndEntryOpTest {
+class ReadLastConfirmedAndEntryOpTest {
 
     private static final long LEDGERID = System.currentTimeMillis();
 
@@ -90,8 +90,8 @@ public class ReadLastConfirmedAndEntryOpTest {
     private DistributionSchedule distributionSchedule;
     private DigestManager digestManager;
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    void setup() throws Exception {
         // stats
         clientStats = BookKeeperClientStats.newInstance(testStatsProvider.getStatsLogger(""));
         // policy
@@ -140,8 +140,8 @@ public class ReadLastConfirmedAndEntryOpTest {
         when(mockLh.getDigestManager()).thenReturn(digestManager);
     }
 
-    @After
-    public void teardown() {
+    @AfterEach
+    void teardown() {
         this.scheduler.shutdown();
         this.orderedScheduler.shutdown();
     }
@@ -163,7 +163,7 @@ public class ReadLastConfirmedAndEntryOpTest {
      * <p>This test case covers {@link https://github.com/apache/bookkeeper/issues/1476}.
      */
     @Test
-    public void testSpeculativeResponses() throws Exception {
+    void speculativeResponses() throws Exception {
         final long entryId = 2L;
         final long lac = 1L;
 

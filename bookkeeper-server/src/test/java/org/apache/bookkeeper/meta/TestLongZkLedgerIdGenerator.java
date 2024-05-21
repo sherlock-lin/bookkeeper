@@ -17,13 +17,17 @@
  */
 package org.apache.bookkeeper.meta;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import junit.framework.TestCase;
 import org.apache.bookkeeper.proto.BookkeeperInternalCallbacks.GenericCallback;
 import org.apache.bookkeeper.test.ZooKeeperUtil;
 import org.apache.bookkeeper.util.ZkUtils;
@@ -32,16 +36,16 @@ import org.apache.zookeeper.KeeperException.Code;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Test ZK ledger id generator of long values.
  */
-public class TestLongZkLedgerIdGenerator extends TestCase {
+class TestLongZkLedgerIdGenerator {
     private static final Logger LOG = LoggerFactory.getLogger(TestZkLedgerIdGenerator.class);
 
     ZooKeeperUtil zkutil;
@@ -49,11 +53,11 @@ public class TestLongZkLedgerIdGenerator extends TestCase {
 
     LongZkLedgerIdGenerator ledgerIdGenerator;
 
-    @Override
-    @Before
-    public void setUp() throws Exception {
+
+    @BeforeEach
+    @BeforeEach
+    void setUp() throws Exception {
         LOG.info("Setting up test");
-        super.setUp();
 
         zkutil = new ZooKeeperUtil();
         zkutil.startCluster();
@@ -65,19 +69,18 @@ public class TestLongZkLedgerIdGenerator extends TestCase {
                 "/test-zk-ledger-id-generator", "idgen-long", shortLedgerIdGenerator, ZooDefs.Ids.OPEN_ACL_UNSAFE);
     }
 
-    @Override
-    @After
-    public void tearDown() throws Exception {
+
+    @AfterEach
+    @AfterEach
+    void tearDown() throws Exception {
         LOG.info("Tearing down test");
         ledgerIdGenerator.close();
         zk.close();
         zkutil.killCluster();
-
-        super.tearDown();
     }
 
     @Test
-    public void testGenerateLedgerId() throws Exception {
+    void generateLedgerId() throws Exception {
         // Create *nThread* threads each generate *nLedgers* ledger id,
         // and then check there is no identical ledger id.
         final int nThread = 2;
@@ -129,17 +132,17 @@ public class TestLongZkLedgerIdGenerator extends TestCase {
             }.start();
         }
 
-        assertTrue("Wait ledger id generation threads to stop timeout : ",
-                countDownLatch.await(120, TimeUnit.SECONDS));
+        assertTrue(countDownLatch.await(120, TimeUnit.SECONDS),
+                "Wait ledger id generation threads to stop timeout : ");
         LOG.info("Number of generated ledger id: {}, time used: {}", ledgerIds.size(),
                 System.currentTimeMillis() - start);
-        assertEquals("Error occur during ledger id generation : ", 0, errCount.get());
+        assertEquals(0, errCount.get(), "Error occur during ledger id generation : ");
 
         Set<Long> ledgers = new HashSet<Long>();
         while (!ledgerIds.isEmpty()) {
             Long ledger = ledgerIds.poll();
-            assertNotNull("Generated ledger id is null : ", ledger);
-            assertFalse("Ledger id [" + ledger + "] conflict : ", ledgers.contains(ledger));
+            assertNotNull(ledger, "Generated ledger id is null : ");
+            assertFalse(ledgers.contains(ledger), "Ledger id [" + ledger + "] conflict : ");
             ledgers.add(ledger);
         }
     }

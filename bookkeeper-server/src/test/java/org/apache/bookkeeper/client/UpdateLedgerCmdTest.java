@@ -20,7 +20,7 @@
  */
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -38,7 +38,7 @@ import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.net.BookieSocketAddress;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.zookeeper.KeeperException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +61,7 @@ public class UpdateLedgerCmdTest extends BookKeeperClusterTestCase {
      * updateledgers to hostname.
      */
     @Test
-    public void testUpdateLedgersToHostname() throws Exception {
+    void updateLedgersToHostname() throws Exception {
         BookKeeper bk = new BookKeeper(baseClientConf, zkc);
         LOG.info("Create ledger and add entries to it");
         List<LedgerHandle> ledgers = new ArrayList<LedgerHandle>();
@@ -80,14 +80,14 @@ public class UpdateLedgerCmdTest extends BookKeeperClusterTestCase {
         updateLedgerCmd(argv, 0, conf);
 
         int updatedLedgersCount = getUpdatedLedgersCount(bk, ledgers, toBookieAddr);
-        assertEquals("Failed to update the ledger metadata to use bookie host name", 40, updatedLedgersCount);
+        assertEquals(40, updatedLedgersCount, "Failed to update the ledger metadata to use bookie host name");
     }
 
     /**
      * replace bookie address in ledger.
      */
     @Test
-    public void testUpdateBookieInLedger() throws Exception {
+    void updateBookieInLedger() throws Exception {
         BookKeeper bk = new BookKeeper(baseClientConf, zkc);
         LOG.info("Create ledger and add entries to it");
         List<LedgerHandle> ledgers = new ArrayList<LedgerHandle>();
@@ -104,9 +104,9 @@ public class UpdateLedgerCmdTest extends BookKeeperClusterTestCase {
         killBookie(0);
         updateLedgerCmd(argv, 0, conf);
         int updatedLedgersCount = getUpdatedLedgersCount(bk, ledgers, srcBookie);
-        assertEquals("Failed to update the ledger metadata with new bookie-address", 0, updatedLedgersCount);
+        assertEquals(0, updatedLedgersCount, "Failed to update the ledger metadata with new bookie-address");
         updatedLedgersCount = getUpdatedLedgersCount(bk, ledgers, destBookie);
-        assertEquals("Failed to update the ledger metadata with new bookie-address", 40, updatedLedgersCount);
+        assertEquals(40, updatedLedgersCount, "Failed to update the ledger metadata with new bookie-address");
     }
 
     private void updateLedgerCmd(String[] argv, int exitCode, ServerConfiguration conf) throws KeeperException,
@@ -115,7 +115,7 @@ public class UpdateLedgerCmdTest extends BookKeeperClusterTestCase {
         BookieShell bkShell = new BookieShell();
         bkShell.setConf(conf);
 
-        assertEquals("Failed to return exit code!", exitCode, bkShell.run(argv));
+        assertEquals(exitCode, bkShell.run(argv), "Failed to return exit code!");
     }
 
     private int getUpdatedLedgersCount(BookKeeper bk, List<LedgerHandle> ledgers, BookieId toBookieAddr)

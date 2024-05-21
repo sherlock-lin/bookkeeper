@@ -18,38 +18,38 @@
  */
 package org.apache.bookkeeper.discover;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.conf.TestBKConfiguration;
 import org.apache.bookkeeper.test.ZooKeeperCluster;
 import org.apache.bookkeeper.test.ZooKeeperUtil;
 import org.apache.zookeeper.ZooKeeper;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test of {@link RegistrationManager}.
  */
-public class TestZkRegistrationManager {
+class TestZkRegistrationManager {
 
     private ZooKeeperCluster localZkServer;
     private ZooKeeper zkc;
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    void setup() throws Exception {
         localZkServer = new ZooKeeperUtil();
         localZkServer.startCluster();
     }
 
-    @After
-    public void teardown() throws Exception {
+    @AfterEach
+    void teardown() throws Exception {
         localZkServer.stopCluster();
     }
 
     @Test
-    public void testPrepareFormat () throws Exception {
+    void prepareFormat() throws Exception {
         try {
             ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
             conf.setMetadataServiceUri("zk+hierarchical://localhost:2181/test/ledgers");

@@ -20,14 +20,14 @@
  */
 package org.apache.bookkeeper.bookie.storage.ldb;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.apache.bookkeeper.client.BookKeeper;
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.client.LedgerHandle;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +51,7 @@ public class DbLedgerStorageBookieTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testRecoveryEmptyLedger() throws Exception {
+    void recoveryEmptyLedger() throws Exception {
         LedgerHandle lh1 = bkc.createLedger(1, 1, DigestType.MAC, new byte[0]);
 
         // Force ledger close & recovery
@@ -62,7 +62,7 @@ public class DbLedgerStorageBookieTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testV2ReadWrite() throws Exception {
+    void v2ReadWrite() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setUseV2WireProtocol(true);
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
@@ -74,7 +74,7 @@ public class DbLedgerStorageBookieTest extends BookKeeperClusterTestCase {
 
         LedgerHandle lh2 = bkc.openLedger(lh1.getId(), DigestType.CRC32, new byte[0]);
         assertEquals(0, lh2.getLastAddConfirmed());
-        assertEquals(new String(lh2.readEntries(0, 0).nextElement().getEntry()),
-                     "Foobar");
+        assertEquals(
+                "Foobar", new String(lh2.readEntries(0, 0).nextElement().getEntry()));
     }
 }

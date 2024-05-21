@@ -20,45 +20,47 @@
  */
 package org.apache.bookkeeper.util;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.getName;
+
 import java.io.IOException;
-import junit.framework.TestCase;
 import org.apache.bookkeeper.test.ZooKeeperUtil;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Test ZooKeeper utilities.
  */
-public class TestZkUtils extends TestCase {
+class TestZkUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(TestZkUtils.class);
 
     // ZooKeeper related variables
     protected ZooKeeperUtil zkUtil = new ZooKeeperUtil();
 
-    @Before
-    @Override
-    public void setUp() throws Exception {
+    @BeforeEach
+    @BeforeEach
+    void setUp() throws Exception {
         logger.info("Setting up test {}.", getName());
         zkUtil.startCluster();
     }
 
-    @After
-    @Override
-    public void tearDown() throws Exception {
+    @AfterEach
+    @AfterEach
+    void tearDown() throws Exception {
         zkUtil.killCluster();
         logger.info("Teared down test {}.", getName());
     }
 
     @Test
-    public void testAsyncCreateAndDeleteFullPathOptimistic() throws IOException, KeeperException, InterruptedException {
+    void asyncCreateAndDeleteFullPathOptimistic() throws IOException, KeeperException, InterruptedException {
         ZooKeeper zkc = new ZooKeeper(zkUtil.getZooKeeperConnectString(), 10000, null);
         /*
          * "/ledgers/available" is already created in ZooKeeperUtil.startServer
@@ -66,23 +68,23 @@ public class TestZkUtils extends TestCase {
         String ledgerZnodePath = "/ledgers/000/000/000/001";
         ZkUtils.createFullPathOptimistic(zkc, ledgerZnodePath, "data".getBytes(), Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT);
-        assertTrue(ledgerZnodePath + " zNode should exist", null != zkc.exists(ledgerZnodePath, false));
+        assertTrue(null != zkc.exists(ledgerZnodePath, false), ledgerZnodePath + " zNode should exist");
 
         ledgerZnodePath = "/ledgers/000/000/000/002";
         ZkUtils.createFullPathOptimistic(zkc, ledgerZnodePath, "data".getBytes(), Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT);
-        assertTrue(ledgerZnodePath + " zNode should exist", null != zkc.exists(ledgerZnodePath, false));
+        assertTrue(null != zkc.exists(ledgerZnodePath, false), ledgerZnodePath + " zNode should exist");
 
         ZkUtils.deleteFullPathOptimistic(zkc, ledgerZnodePath, -1);
-        assertTrue(ledgerZnodePath + " zNode should not exist, since it is deleted",
-                null == zkc.exists(ledgerZnodePath, false));
+        assertTrue(null == zkc.exists(ledgerZnodePath, false),
+                ledgerZnodePath + " zNode should not exist, since it is deleted");
 
         ledgerZnodePath = "/ledgers/000/000/000/001";
-        assertTrue(ledgerZnodePath + " zNode should exist", null != zkc.exists(ledgerZnodePath, false));
+        assertTrue(null != zkc.exists(ledgerZnodePath, false), ledgerZnodePath + " zNode should exist");
         ZkUtils.deleteFullPathOptimistic(zkc, ledgerZnodePath, -1);
-        assertTrue(ledgerZnodePath + " zNode should not exist, since it is deleted",
-                null == zkc.exists(ledgerZnodePath, false));
-        assertTrue("/ledgers/000" + " zNode should not exist, since it should be deleted recursively",
-                null == zkc.exists(ledgerZnodePath, false));
+        assertTrue(null == zkc.exists(ledgerZnodePath, false),
+                ledgerZnodePath + " zNode should not exist, since it is deleted");
+        assertTrue(null == zkc.exists(ledgerZnodePath, false),
+                "/ledgers/000" + " zNode should not exist, since it should be deleted recursively");
     }
 }

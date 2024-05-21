@@ -23,6 +23,8 @@ package org.apache.bookkeeper.bookie.storage.directentrylogger;
 import static org.apache.bookkeeper.bookie.storage.directentrylogger.DirectEntryLogger.logFilename;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.util.concurrent.MoreExecutors;
 import io.netty.buffer.ByteBuf;
@@ -45,7 +47,6 @@ import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.stats.OpStatsLogger;
 import org.apache.bookkeeper.test.TmpDirs;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
@@ -55,20 +56,20 @@ import org.junit.jupiter.api.condition.OS;
  * TestDirectReader.
  */
 @DisabledOnOs(OS.WINDOWS)
-public class TestDirectReader {
+class TestDirectReader {
 
     private final TmpDirs tmpDirs = new TmpDirs();
     private final ExecutorService writeExecutor = Executors.newSingleThreadExecutor();
     private final OpStatsLogger opLogger = NullStatsLogger.INSTANCE.getOpStatsLogger("null");
 
     @AfterEach
-    public void cleanup() throws Exception {
+    void cleanup() throws Exception {
         tmpDirs.cleanup();
         writeExecutor.shutdownNow();
     }
 
     @Test
-    public void testReadInt() throws Exception {
+    void readInt() throws Exception {
         File ledgerDir = tmpDirs.createNew("readInt", "logs");
 
         writeFileWithPattern(ledgerDir, 1234, 0xdeadbeef, 0, 1 << 20);
@@ -85,7 +86,7 @@ public class TestDirectReader {
     }
 
     @Test
-    public void testReadIntAcrossBoundary() throws Exception {
+    void readIntAcrossBoundary() throws Exception {
         File ledgerDir = tmpDirs.createNew("readInt", "logs");
 
         writeFileWithPattern(ledgerDir, 1234, 0xdeadbeef, 0, 1 << 20);
@@ -99,7 +100,7 @@ public class TestDirectReader {
     }
 
     @Test
-    public void testReadLong() throws Exception {
+    void readLong() throws Exception {
         File ledgerDir = tmpDirs.createNew("readLong", "logs");
 
         writeFileWithPattern(ledgerDir, 1234, 0xbeefcafe, 0, 1 << 20);
@@ -116,7 +117,7 @@ public class TestDirectReader {
     }
 
     @Test
-    public void testReadLongAcrossBoundary() throws Exception {
+    void readLongAcrossBoundary() throws Exception {
         File ledgerDir = tmpDirs.createNew("readLong", "logs");
 
         writeFileWithPattern(ledgerDir, 1234, 0xbeefcafe, 0, 1 << 20);
@@ -133,7 +134,7 @@ public class TestDirectReader {
     }
 
     @Test
-    public void testReadBuffer() throws Exception {
+    void readBuffer() throws Exception {
         File ledgerDir = tmpDirs.createNew("readBuffer", "logs");
 
         writeFileWithPattern(ledgerDir, 1234, 0xbeefcafe, 1, 1 << 20);
@@ -180,7 +181,7 @@ public class TestDirectReader {
     }
 
     @Test
-    public void testReadBufferAcrossBoundary() throws Exception {
+    void readBufferAcrossBoundary() throws Exception {
         File ledgerDir = tmpDirs.createNew("readBuffer", "logs");
 
         writeFileWithPattern(ledgerDir, 1234, 0xbeefcafe, 1, 1 << 20);
@@ -206,7 +207,7 @@ public class TestDirectReader {
     }
 
     @Test
-    public void testReadBufferBiggerThanReaderBuffer() throws Exception {
+    void readBufferBiggerThanReaderBuffer() throws Exception {
         File ledgerDir = tmpDirs.createNew("readBuffer", "logs");
 
         writeFileWithPattern(ledgerDir, 1234, 0xbeefcafe, 1, 1 << 20);
@@ -232,11 +233,11 @@ public class TestDirectReader {
     }
 
     @Test
-    public void testReadPastEndOfFile() throws Exception {
+    void readPastEndOfFile() throws Exception {
         File ledgerDir = tmpDirs.createNew("readBuffer", "logs");
 
         writeFileWithPattern(ledgerDir, 1234, 0xbeeeeeef, 1, 1 << 13);
-        Assertions.assertThrows(EOFException.class, () -> {
+        assertThrows(EOFException.class, () -> {
             try (LogReader reader = new DirectReader(1234, logFilename(ledgerDir, 1234),
                                                      ByteBufAllocator.DEFAULT,
                                                      new NativeIOImpl(), Buffer.ALIGNMENT,
@@ -247,11 +248,11 @@ public class TestDirectReader {
     }
 
     @Test
-    public void testReadPastEndOfFilePartial() throws Exception {
+    void readPastEndOfFilePartial() throws Exception {
         File ledgerDir = tmpDirs.createNew("readBuffer", "logs");
 
         writeFileWithPattern(ledgerDir, 1234, 0xbeeeeeef, 1, 1 << 13);
-        Assertions.assertThrows(EOFException.class, () -> {
+        assertThrows(EOFException.class, () -> {
             try (LogReader reader = new DirectReader(1234, logFilename(ledgerDir, 1234),
                                                      ByteBufAllocator.DEFAULT,
                                                      new NativeIOImpl(), Buffer.ALIGNMENT,
@@ -262,7 +263,7 @@ public class TestDirectReader {
     }
 
     @Test
-    public void testReadEntries() throws Exception {
+    void readEntries() throws Exception {
         File ledgerDir = tmpDirs.createNew("readEntries", "logs");
 
         int entrySize = Buffer.ALIGNMENT / 4 + 100;
@@ -303,7 +304,7 @@ public class TestDirectReader {
     }
 
     @Test
-    public void testReadFromFileBeingWrittenNoPreallocation() throws Exception {
+    void readFromFileBeingWrittenNoPreallocation() throws Exception {
         File ledgerDir = tmpDirs.createNew("readWhileWriting", "logs");
 
         int entrySize = Buffer.ALIGNMENT / 2 + 8;
@@ -328,7 +329,7 @@ public class TestDirectReader {
 
             try {
                 reader.readEntryAt(offset);
-                Assertions.fail("Should have failed");
+                fail("Should have failed");
             } catch (IOException ioe) {
                 // expected
             }
@@ -347,7 +348,7 @@ public class TestDirectReader {
     }
 
     @Test
-    public void testReadFromFileBeingWrittenReadInPreallocated() throws Exception {
+    void readFromFileBeingWrittenReadInPreallocated() throws Exception {
         File ledgerDir = tmpDirs.createNew("readWhileWriting", "logs");
 
         int entrySize = Buffer.ALIGNMENT / 2 + 8;
@@ -366,7 +367,7 @@ public class TestDirectReader {
 
             try {
                 reader.readEntryAt(offset);
-                Assertions.fail("Should have failed");
+                fail("Should have failed");
             } catch (IOException ioe) {
                 // expected
             }
@@ -384,7 +385,7 @@ public class TestDirectReader {
     }
 
     @Test
-    public void testPartialRead() throws Exception {
+    void partialRead() throws Exception {
         File ledgerDir = tmpDirs.createNew("partialRead", "logs");
 
         int entrySize = Buffer.ALIGNMENT * 4;
@@ -446,7 +447,7 @@ public class TestDirectReader {
     }
 
     @Test
-    public void testLargeEntry() throws Exception {
+    void largeEntry() throws Exception {
         File ledgerDir = tmpDirs.createNew("largeEntries", "logs");
 
         int entrySize = Buffer.ALIGNMENT * 4;

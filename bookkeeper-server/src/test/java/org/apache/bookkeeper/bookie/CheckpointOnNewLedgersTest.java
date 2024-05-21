@@ -18,9 +18,9 @@
  */
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
@@ -29,6 +29,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.ReferenceCountUtil;
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.extern.slf4j.Slf4j;
@@ -36,11 +37,10 @@ import org.apache.bookkeeper.bookie.Journal.LastLogMark;
 import org.apache.bookkeeper.bookie.storage.ldb.DbLedgerStorage;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.conf.TestBKConfiguration;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Test the checkpoint logic of {@link DbLedgerStorage}.
@@ -48,17 +48,17 @@ import org.junit.rules.TemporaryFolder;
 @Slf4j
 public class CheckpointOnNewLedgersTest {
 
-    @Rule
-    public final TemporaryFolder testDir = new TemporaryFolder();
+    @TempDir
+    public File testDir;
 
     private ServerConfiguration conf;
     private BookieImpl bookie;
     private CountDownLatch getLedgerDescCalledLatch;
     private CountDownLatch getLedgerDescWaitLatch;
 
-    @Before
-    public void setup() throws Exception {
-        File bkDir = testDir.newFolder("dbLedgerStorageCheckpointTest");
+    @BeforeEach
+    void setup() throws Exception {
+        File bkDir = newFolder(testDir, "dbLedgerStorageCheckpointTest");
         File curDir = BookieImpl.getCurrentDirectory(bkDir);
         BookieImpl.checkDirectoryStructure(curDir);
 
@@ -94,8 +94,8 @@ public class CheckpointOnNewLedgersTest {
             any(byte[].class));
     }
 
-    @After
-    public void teardown() throws Exception {
+    @AfterEach
+    void teardown() throws Exception {
         if (null != bookie) {
             bookie.shutdown();
         }
@@ -114,7 +114,7 @@ public class CheckpointOnNewLedgersTest {
     }
 
     @Test
-    public void testCheckpoint() throws Exception {
+    void checkpoint() throws Exception {
         int entrySize = 1024;
         long l1 = 1L;
         long l2 = 2L;
@@ -193,6 +193,15 @@ public class CheckpointOnNewLedgersTest {
         assertEquals(0L, entry.readLong());
         ReferenceCountUtil.release(entry);
         newBookie.shutdown();
+    }
+
+    private static File newFolder(File root, String... subDirs) throws IOException {
+        String subFolder = String.join("/", subDirs);
+        File result = new File(root, subFolder);
+        if (!result.mkdirs()) {
+            throw new IOException("Couldn't create folders " + root);
+        }
+        return result;
     }
 
 }

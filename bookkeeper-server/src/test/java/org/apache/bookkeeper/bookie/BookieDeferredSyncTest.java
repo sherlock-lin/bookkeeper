@@ -22,7 +22,7 @@ package org.apache.bookkeeper.bookie;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.bookkeeper.common.concurrent.FutureUtils.result;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.EnumSet;
 import org.apache.bookkeeper.client.api.DigestType;
@@ -32,7 +32,7 @@ import org.apache.bookkeeper.client.api.ReadHandle;
 import org.apache.bookkeeper.client.api.WriteFlag;
 import org.apache.bookkeeper.client.api.WriteHandle;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test the bookie journal without sync, driven by client with
@@ -45,7 +45,7 @@ public class BookieDeferredSyncTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testWriteAndRecovery() throws Exception {
+    void writeAndRecovery() throws Exception {
         // this WriteHandle will not be closed
         WriteHandle lh = result(bkc.newCreateLedgerOp()
                 .withEnsembleSize(1)
@@ -80,12 +80,12 @@ public class BookieDeferredSyncTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testCloseNoForce() throws Exception {
+    void closeNoForce() throws Exception {
         testClose(true);
     }
 
     @Test
-    public void testCloseWithForce() throws Exception {
+    void closeWithForce() throws Exception {
         testClose(false);
     }
 
@@ -158,12 +158,12 @@ public class BookieDeferredSyncTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testForceWithDeferredSyncWriteFlags() throws Exception {
+    void forceWithDeferredSyncWriteFlags() throws Exception {
         testForce(EnumSet.of(WriteFlag.DEFERRED_SYNC));
     }
 
     @Test
-    public void testForceNoWriteFlag() throws Exception {
+    void forceNoWriteFlag() throws Exception {
         // force API will work even without DEFERRED_SYNC flag
         testForce(WriteFlag.NONE);
     }

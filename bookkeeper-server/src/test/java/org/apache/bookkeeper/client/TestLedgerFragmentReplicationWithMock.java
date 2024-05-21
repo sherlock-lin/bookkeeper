@@ -19,7 +19,7 @@
  */
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -47,13 +47,13 @@ import org.apache.bookkeeper.proto.checksum.DigestManager;
 import org.apache.bookkeeper.proto.checksum.DummyDigestManager;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.zookeeper.AsyncCallback;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-public class TestLedgerFragmentReplicationWithMock {
+class TestLedgerFragmentReplicationWithMock {
 
     @Test
-    public void testRecoverLedgerFragmentEntrySendRightRequestWithFlag() throws Exception {
+    void recoverLedgerFragmentEntrySendRightRequestWithFlag() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
         BookieClientImpl bookieClient = Mockito.mock(BookieClientImpl.class);
         doAnswer(invocationOnMock -> {
@@ -66,7 +66,7 @@ public class TestLedgerFragmentReplicationWithMock {
             Field flagField = request.getClass().getSuperclass().getDeclaredField("flags");
             flagField.setAccessible(true);
             short flag = flagField.getShort(request);
-            assertEquals(flag, BookieProtocol.FLAG_RECOVERY_ADD);
+                assertEquals(BookieProtocol.FLAG_RECOVERY_ADD, flag);
             latch.countDown();
             return null;
         }).when(bookieClient)

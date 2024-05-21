@@ -21,9 +21,9 @@
 package org.apache.bookkeeper.client;
 
 import static org.apache.bookkeeper.bookie.BookieException.Code.OK;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -33,10 +33,9 @@ import java.util.Enumeration;
 import java.util.Random;
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +44,6 @@ import org.slf4j.LoggerFactory;
  * This can happen as result of clients using different settings
  * yet reading each other data or configuration change roll out.
  */
-@RunWith(Parameterized.class)
 public class BookieWriteLedgersWithDifferentDigestsTest extends
     BookKeeperClusterTestCase implements AsyncCallback.AddCallbackWithLatency {
 
@@ -63,25 +61,24 @@ public class BookieWriteLedgersWithDifferentDigestsTest extends
     ArrayList<byte[]> entries1; // generated entries
     ArrayList<byte[]> entries2; // generated entries
 
-    private final DigestType digestType;
-    private final DigestType otherDigestType;
+    private DigestType digestType;
+    private DigestType otherDigestType;
 
     private static class SyncObj {
         volatile int counter;
         volatile int rc;
 
-        public SyncObj() {
+        public void initBookieWriteLedgersWithDifferentDigestsTest() {
             counter = 0;
         }
     }
 
-    @Parameterized.Parameters
     public static Collection<Object[]> configs() {
         return Arrays.asList(new Object[][] { {DigestType.MAC }, {DigestType.CRC32}, {DigestType.CRC32C} });
     }
 
     @Override
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         super.setUp();
         rng = new Random(System.currentTimeMillis()); // Initialize the Random
@@ -90,7 +87,7 @@ public class BookieWriteLedgersWithDifferentDigestsTest extends
         entries2 = new ArrayList<byte[]>(); // initialize the entries list
     }
 
-    public BookieWriteLedgersWithDifferentDigestsTest(DigestType digestType) {
+    public void initBookieWriteLedgersWithDifferentDigestsTest(DigestType digestType) {
         super(3);
         this.digestType = digestType;
         this.otherDigestType = digestType == DigestType.CRC32 ? DigestType.MAC : DigestType.CRC32;
@@ -100,8 +97,10 @@ public class BookieWriteLedgersWithDifferentDigestsTest extends
         baseClientConf.setLedgerManagerFactoryClassName(ledgerManagerFactory);
     }
 
-    @Test
-    public void testLedgersWithDifferentDigestTypesNoAutodetection() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void ledgersWithDifferentDigestTypesNoAutodetection(DigestType digestType) throws Exception {
+        initBookieWriteLedgersWithDifferentDigestsTest(digestType);
         bkc.conf.setEnableDigestTypeAutodetection(false);
         // Create ledgers
         lh = bkc.createLedgerAdv(3, 2, 2, digestType, ledgerPassword);
@@ -133,8 +132,10 @@ public class BookieWriteLedgersWithDifferentDigestsTest extends
         }
     }
 
-    @Test
-    public void testLedgersWithDifferentDigestTypesWithAutodetection() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void ledgersWithDifferentDigestTypesWithAutodetection(DigestType digestType) throws Exception {
+        initBookieWriteLedgersWithDifferentDigestsTest(digestType);
         bkc.conf.setEnableDigestTypeAutodetection(true);
         // Create ledgers
         lh = bkc.createLedgerAdv(3, 2, 2, digestType, ledgerPassword);
@@ -187,8 +188,7 @@ public class BookieWriteLedgersWithDifferentDigestsTest extends
                 LOG.debug("Original entry: " + origEntry);
                 LOG.debug("Retrieved entry: " + retrEntry);
             }
-            assertTrue("Checking entry " + index + " for equality", origEntry
-                    .equals(retrEntry));
+            assertEquals(origEntry, retrEntry, "Checking entry " + index + " for equality");
         }
     }
 
@@ -196,7 +196,7 @@ public class BookieWriteLedgersWithDifferentDigestsTest extends
     public void addCompleteWithLatency(int rc, LedgerHandle lh, long entryId, long qwcLatency, Object ctx) {
         SyncObj x = (SyncObj) ctx;
         captureThrowable(() -> {
-            assertTrue("Successful write should have non-zero latency", rc != OK || qwcLatency > 0);
+            assertTrue(rc != OK || qwcLatency > 0, "Successful write should have non-zero latency");
         });
         synchronized (x) {
             x.rc = rc;

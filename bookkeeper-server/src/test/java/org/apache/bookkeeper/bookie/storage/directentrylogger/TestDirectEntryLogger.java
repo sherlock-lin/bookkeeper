@@ -28,6 +28,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.util.concurrent.MoreExecutors;
 import io.netty.buffer.ByteBuf;
@@ -50,7 +51,6 @@ import org.apache.bookkeeper.slogger.Slogger;
 import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.test.TmpDirs;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
@@ -60,7 +60,7 @@ import org.junit.jupiter.api.condition.OS;
  */
 @Slf4j
 @DisabledOnOs(OS.WINDOWS)
-public class TestDirectEntryLogger {
+class TestDirectEntryLogger {
     private final Slogger slog = Slogger.CONSOLE;
 
     private static final long ledgerId1 = 1234;
@@ -68,12 +68,12 @@ public class TestDirectEntryLogger {
     private final TmpDirs tmpDirs = new TmpDirs();
 
     @AfterEach
-    public void cleanup() throws Exception {
+    void cleanup() throws Exception {
         tmpDirs.cleanup();
     }
 
     @Test
-    public void testLogRolling() throws Exception {
+    void logRolling() throws Exception {
         File ledgerDir = tmpDirs.createNew("logRolling", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();
@@ -111,7 +111,7 @@ public class TestDirectEntryLogger {
     }
 
     @Test
-    public void testReadLog() throws Exception {
+    void readLog() throws Exception {
         File ledgerDir = tmpDirs.createNew("logRolling", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();
@@ -155,7 +155,7 @@ public class TestDirectEntryLogger {
     }
 
     @Test
-    public void testLogReaderCleanup() throws Exception {
+    void logReaderCleanup() throws Exception {
         File ledgerDir = tmpDirs.createNew("logRolling", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();
@@ -213,7 +213,7 @@ public class TestDirectEntryLogger {
     }
 
     @Test
-    public void testReadMetadataAndScan() throws Exception {
+    void readMetadataAndScan() throws Exception {
         File ledgerDir = tmpDirs.createNew("directCanReadAndScanMeta", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();
@@ -280,7 +280,7 @@ public class TestDirectEntryLogger {
     }
 
     @Test
-    public void testMetadataFallback() throws Exception {
+    void metadataFallback() throws Exception {
         File ledgerDir = tmpDirs.createNew("directMetaFallback", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();
@@ -330,7 +330,7 @@ public class TestDirectEntryLogger {
                 int logId = logIdFromLocation(loc1);
                 try {
                     reader.readEntryLogIndex(logId);
-                    Assertions.fail("Shouldn't be there");
+                    fail("Shouldn't be there");
                 } catch (IOException ioe) {
                     // expected
                 }
@@ -346,7 +346,7 @@ public class TestDirectEntryLogger {
     }
 
     @Test
-    public void testMetadataManyBatch() throws Exception {
+    void metadataManyBatch() throws Exception {
         File ledgerDir = tmpDirs.createNew("directMetaManyBatches", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();
@@ -404,7 +404,7 @@ public class TestDirectEntryLogger {
     }
 
     @Test
-    public void testGetFlushedLogs() throws Exception {
+    void getFlushedLogs() throws Exception {
         File ledgerDir = tmpDirs.createNew("testFlushedLogs", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();
@@ -481,7 +481,7 @@ public class TestDirectEntryLogger {
     }
 
     @Test
-    public void testBufferSizeNotPageAligned() throws Exception {
+    void bufferSizeNotPageAligned() throws Exception {
         File ledgerDir = tmpDirs.createNew("logRolling", "ledgers");
         File curDir = new File(ledgerDir, "current");
         curDir.mkdirs();

@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.util.TestUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +40,7 @@ public class ExplicitLACWithWriteHandleAPITest extends BookKeeperClusterTestCase
     }
 
     @Test
-    public void testUseExplicitLAC() throws Exception {
+    void useExplicitLAC() throws Exception {
         ClientConfiguration conf = new ClientConfiguration(baseClientConf);
         conf.setExplictLacInterval(1000);
         try (BookKeeper bkc = BookKeeper

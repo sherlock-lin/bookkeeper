@@ -23,6 +23,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyLong;
@@ -53,10 +54,9 @@ import org.apache.bookkeeper.common.util.MockTicker;
 import org.apache.bookkeeper.common.util.OrderedExecutor;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.proto.MockBookieClient;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +65,7 @@ import org.slf4j.LoggerFactory;
  * Tests for EntryCopierImpl.
  */
 @SuppressWarnings("deprecation")
-public class EntryCopierTest {
+class EntryCopierTest {
     private static final Logger log = LoggerFactory.getLogger(EntryCopierTest.class);
     private static final BookieId bookie1 = BookieId.parse("bookie1:3181");
     private static final BookieId bookie2 = BookieId.parse("bookie2:3181");
@@ -76,20 +76,20 @@ public class EntryCopierTest {
 
     private OrderedExecutor executor = null;
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    void setup() throws Exception {
         executor = OrderedExecutor.newBuilder().numThreads(1).name("test").build();
     }
 
-    @After
-    public void teardown() throws Exception {
+    @AfterEach
+    void teardown() throws Exception {
         if (executor != null) {
             executor.shutdownNow();
         }
     }
 
     @Test
-    public void testCopyFromAvailable() throws Exception {
+    void copyFromAvailable() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerStorage storage = spy(new MockLedgerStorage());
         long ledgerId = 0xbeeb;
@@ -117,14 +117,14 @@ public class EntryCopierTest {
         CompletableFuture<Long> f4 = batch.copyFromAvailable(10);
         try {
             batch.copyFromAvailable(100);
-            Assert.fail("Should have given IllegalArgumentException");
+            fail("Should have given IllegalArgumentException");
         } catch (IllegalArgumentException ie) {
             // correct
         }
 
         try {
             batch.copyFromAvailable(-1);
-            Assert.fail("Should have given IllegalArgumentException");
+            fail("Should have given IllegalArgumentException");
         } catch (IllegalArgumentException ie) {
             // correct
         }
@@ -149,7 +149,7 @@ public class EntryCopierTest {
     }
 
     @Test
-    public void testNoCopiesAvailable() throws Exception {
+    void noCopiesAvailable() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerStorage storage = spy(new MockLedgerStorage());
         long ledgerId = 0xbeeb;
@@ -176,14 +176,14 @@ public class EntryCopierTest {
         }
         try {
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
-            Assert.fail("Should have failed");
+            fail("Should have failed");
         } catch (ExecutionException e) {
             assertThat(e.getCause(), instanceOf(BKException.BKReadException.class));
         }
     }
 
     @Test
-    public void testCopyOneEntryFails() throws Exception {
+    void copyOneEntryFails() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerStorage storage = spy(new MockLedgerStorage());
         long ledgerId = 0xbeeb;
@@ -218,7 +218,7 @@ public class EntryCopierTest {
 
         try {
             CompletableFuture.allOf(f1, f2, f3, f4).get();
-            Assert.fail("Should have failed");
+            fail("Should have failed");
         } catch (ExecutionException ee) {
             assertThat(ee.getCause(), instanceOf(BKException.BKTimeoutException.class));
         }
@@ -231,7 +231,7 @@ public class EntryCopierTest {
     }
 
     @Test
-    public void testCopyAllEntriesFail() throws Exception {
+    void copyAllEntriesFail() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerStorage storage = spy(new MockLedgerStorage());
         long ledgerId = 0xbeeb;
@@ -261,7 +261,7 @@ public class EntryCopierTest {
 
         try {
             CompletableFuture.allOf(f1, f2, f3, f4).get();
-            Assert.fail("Should have failed");
+            fail("Should have failed");
         } catch (ExecutionException ee) {
             assertThat(ee.getCause(), instanceOf(BKException.BKTimeoutException.class));
         }
@@ -271,7 +271,7 @@ public class EntryCopierTest {
     }
 
     @Test
-    public void testCopyOneEntryFailsOnStorage() throws Exception {
+    void copyOneEntryFailsOnStorage() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerStorage storage = spy(new MockLedgerStorage() {
                 @Override
@@ -308,7 +308,7 @@ public class EntryCopierTest {
 
         try {
             CompletableFuture.allOf(f1, f2, f3, f4).get();
-            Assert.fail("Should have failed");
+            fail("Should have failed");
         } catch (ExecutionException ee) {
             assertThat(ee.getCause(), instanceOf(IOException.class));
         }
@@ -322,7 +322,7 @@ public class EntryCopierTest {
     }
 
     @Test
-    public void testCopyAllEntriesFailOnStorage() throws Exception {
+    void copyAllEntriesFailOnStorage() throws Exception {
         MockBookieClient bookieClient = spy(new MockBookieClient(executor));
         MockLedgerStorage storage = spy(new MockLedgerStorage() {
                 @Override
@@ -355,7 +355,7 @@ public class EntryCopierTest {
 
         try {
             CompletableFuture.allOf(f1, f2, f3, f4).get();
-            Assert.fail("Should have failed");
+            fail("Should have failed");
         } catch (ExecutionException ee) {
             assertThat(ee.getCause(), instanceOf(IOException.class));
         }
@@ -369,7 +369,7 @@ public class EntryCopierTest {
     }
 
     @Test
-    public void testReadOneEntry() throws Exception {
+    void readOneEntry() throws Exception {
         long ledgerId = 0xbeeb; // don't change, the shuffle for preferred bookies uses ledger id as seed
         LedgerMetadata metadata = LedgerMetadataBuilder.create()
             .withId(ledgerId)
@@ -400,7 +400,7 @@ public class EntryCopierTest {
     }
 
     @Test
-    public void testReadOneFirstReplicaFails() throws Exception {
+    void readOneFirstReplicaFails() throws Exception {
         long ledgerId = 0xbeeb; // don't change, the shuffle for preferred bookies uses ledger id as seed
         LedgerMetadata metadata = LedgerMetadataBuilder.create()
             .withId(ledgerId)
@@ -452,7 +452,7 @@ public class EntryCopierTest {
     }
 
     @Test
-    public void testReadOneAllReplicasFail() throws Exception {
+    void readOneAllReplicasFail() throws Exception {
         long ledgerId = 0xbeeb; // don't change, the shuffle for preferred bookies uses ledger id as seed
         LedgerMetadata metadata = LedgerMetadataBuilder.create()
             .withId(ledgerId)
@@ -485,7 +485,7 @@ public class EntryCopierTest {
 
         try {
             batch.fetchEntry(0).get();
-            Assert.fail("Shouldn't get this far");
+            fail("Shouldn't get this far");
         } catch (ExecutionException ee) {
             assertThat(ee.getCause(), instanceOf(BKException.BKBookieException.class));
         }
@@ -498,7 +498,7 @@ public class EntryCopierTest {
     }
 
     @Test
-    public void testReadOneWithErrorBookieReinstatedAfterSinBin() throws Exception {
+    void readOneWithErrorBookieReinstatedAfterSinBin() throws Exception {
         long ledgerId = 0xbeeb; // don't change, the shuffle for preferred bookies uses ledger id as seed
         LedgerMetadata metadata = LedgerMetadataBuilder.create()
             .withId(ledgerId)
@@ -561,7 +561,7 @@ public class EntryCopierTest {
     }
 
     @Test
-    public void testReadEntryOnlyOnSelf() throws Exception {
+    void readEntryOnlyOnSelf() throws Exception {
         long ledgerId = 0xbeeb;
         LedgerMetadata metadata = LedgerMetadataBuilder.create()
             .withId(ledgerId)
@@ -595,7 +595,7 @@ public class EntryCopierTest {
     }
 
     @Test
-    public void testPreferredBookieIndices() throws Exception {
+    void preferredBookieIndices() throws Exception {
         long ledgerId = 0xbeeb;
         LedgerMetadata metadata1 = LedgerMetadataBuilder.create()
             .withId(ledgerId)

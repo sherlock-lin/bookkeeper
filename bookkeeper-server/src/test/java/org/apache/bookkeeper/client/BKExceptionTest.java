@@ -29,24 +29,24 @@ import org.junit.jupiter.api.Test;
 /**
  * Test for extracting codes from BKException.
  */
-public class BKExceptionTest {
+class BKExceptionTest {
 
     @Test
-    public void testBKExceptionCode() {
+    void bKExceptionCode() {
         assertEquals(BKException.Code.WriteException,
                 BKException.getExceptionCode(new BKException.BKWriteException(),
                         BKException.Code.ReadException));
     }
 
     @Test
-    public void testNonBKExceptionCode() {
+    void nonBKExceptionCode() {
         assertEquals(BKException.Code.ReadException,
                 BKException.getExceptionCode(new Exception(),
                         BKException.Code.ReadException));
     }
 
     @Test
-    public void testNestedBKExceptionCode() {
+    void nestedBKExceptionCode() {
         assertEquals(BKException.Code.WriteException,
                 BKException.getExceptionCode(
                         new ExecutionException("test", new BKException.BKWriteException()),
@@ -54,7 +54,7 @@ public class BKExceptionTest {
     }
 
     @Test
-    public void testDoubleNestedBKExceptionCode() {
+    void doubleNestedBKExceptionCode() {
         assertEquals(BKException.Code.WriteException,
                 BKException.getExceptionCode(
                         new ExecutionException("test",

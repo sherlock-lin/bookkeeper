@@ -20,19 +20,19 @@
  */
 package org.apache.bookkeeper.bookie.storage.ldb;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import org.apache.bookkeeper.bookie.BookieException;
 import org.apache.bookkeeper.bookie.EntryLogMetadata;
 import org.apache.bookkeeper.conf.ServerConfiguration;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Unit test for {@link PersistentEntryLogMetadataMap}.
@@ -41,8 +41,8 @@ public class PersistentEntryLogMetadataMapTest {
 
     private final ServerConfiguration configuration;
 
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
+    @TempDir
+    public File tempFolder;
 
     public PersistentEntryLogMetadataMapTest() {
         this.configuration = new ServerConfiguration();
@@ -54,8 +54,8 @@ public class PersistentEntryLogMetadataMapTest {
      * @throws Exception
      */
     @Test
-    public void simple() throws Exception {
-        File tmpDir = tempFolder.newFolder("metadata-cache");
+    void simple() throws Exception {
+        File tmpDir = newFolder(tempFolder, "metadata-cache");
         String path = tmpDir.getAbsolutePath();
         PersistentEntryLogMetadataMap entryMetadataMap = new PersistentEntryLogMetadataMap(path, configuration);
 
@@ -103,7 +103,7 @@ public class PersistentEntryLogMetadataMapTest {
             assertFalse(entryMetadataMap.containsKey(i));
         }
 
-        assertEquals(entryMetadataMap.size(), 0);
+        assertEquals(0, entryMetadataMap.size());
 
         entryMetadataMap.close();
     }
@@ -115,8 +115,8 @@ public class PersistentEntryLogMetadataMapTest {
      * @throws Exception
      */
     @Test
-    public void closeAndOpen() throws Exception {
-        File tmpDir = tempFolder.newFolder();
+    void closeAndOpen() throws Exception {
+        File tmpDir = newFolder(tempFolder, "junit");
         String path = tmpDir.getAbsolutePath();
         PersistentEntryLogMetadataMap entryMetadataMap = new PersistentEntryLogMetadataMap(path, configuration);
 
@@ -152,5 +152,14 @@ public class PersistentEntryLogMetadataMapTest {
             metadata.addLedgerSize(i, 1);
         }
         return metadata;
+    }
+
+    private static File newFolder(File root, String... subDirs) throws IOException {
+        String subFolder = String.join("/", subDirs);
+        File result = new File(root, subFolder);
+        if (!result.mkdirs()) {
+            throw new IOException("Couldn't create folders " + root);
+        }
+        return result;
     }
 }

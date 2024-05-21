@@ -19,18 +19,18 @@
 
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test of {@link LastAddConfirmedUpdateNotification}.
  */
-public class LastAddConfirmedUpdateNotificationTest {
+class LastAddConfirmedUpdateNotificationTest {
 
     @Test
-    public void testGetters() {
+    void getters() {
         long lac = System.currentTimeMillis();
         LastAddConfirmedUpdateNotification notification = LastAddConfirmedUpdateNotification.of(lac);
 
@@ -42,7 +42,7 @@ public class LastAddConfirmedUpdateNotificationTest {
     }
 
     @Test
-    public void testRecycle() {
+    void recycle() {
         long lac = System.currentTimeMillis();
         LastAddConfirmedUpdateNotification notification = LastAddConfirmedUpdateNotification.of(lac);
         notification.recycle();
@@ -52,7 +52,7 @@ public class LastAddConfirmedUpdateNotificationTest {
     }
 
     @Test
-    public void testFunc() {
+    void func() {
         long lac = System.currentTimeMillis();
         LastAddConfirmedUpdateNotification notification = LastAddConfirmedUpdateNotification.FUNC.apply(lac);
 

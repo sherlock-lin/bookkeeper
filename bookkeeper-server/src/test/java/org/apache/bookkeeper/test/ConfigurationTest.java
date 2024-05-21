@@ -20,17 +20,18 @@
  */
 package org.apache.bookkeeper.test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.apache.bookkeeper.conf.AbstractConfiguration;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.conf.ServerConfiguration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test the configuration class.
  */
-public class ConfigurationTest {
+class ConfigurationTest {
 
     static {
         // this property is read when AbstractConfiguration class is loaded.
@@ -39,11 +40,11 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void testConfigurationOverwrite() {
+    void configurationOverwrite() {
         System.clearProperty("metadataServiceUri");
 
         ServerConfiguration conf = new ServerConfiguration();
-        assertEquals(null, conf.getMetadataServiceUriUnchecked());
+        assertNull(conf.getMetadataServiceUriUnchecked());
 
         // override setting from property
         System.setProperty("metadataServiceUri", "zk://server:2181/ledgers");
@@ -57,7 +58,7 @@ public class ConfigurationTest {
 
         // load other configuration
         ServerConfiguration newConf = new ServerConfiguration();
-        assertEquals(null, newConf.getMetadataServiceUriUnchecked());
+        assertNull(newConf.getMetadataServiceUriUnchecked());
         newConf.setMetadataServiceUri("zk://newserver:2181/ledgers");
         assertEquals("zk://newserver:2181/ledgers", newConf.getMetadataServiceUriUnchecked());
         conf2.loadConf(newConf);
@@ -65,13 +66,11 @@ public class ConfigurationTest {
     }
 
     @Test
-    public void testGetZkServers() {
+    void getZkServers() {
         System.setProperty("metadataServiceUri", "zk://server1:port1;server2:port2/ledgers");
         ServerConfiguration conf = new ServerConfiguration();
         ClientConfiguration clientConf = new ClientConfiguration();
-        assertEquals("zookeeper connect string doesn't match in server configuration",
-                     "zk://server1:port1;server2:port2/ledgers", conf.getMetadataServiceUriUnchecked());
-        assertEquals("zookeeper connect string doesn't match in client configuration",
-                     "zk://server1:port1;server2:port2/ledgers", clientConf.getMetadataServiceUriUnchecked());
+        assertEquals("zk://server1:port1;server2:port2/ledgers", conf.getMetadataServiceUriUnchecked(), "zookeeper connect string doesn't match in server configuration");
+        assertEquals("zk://server1:port1;server2:port2/ledgers", clientConf.getMetadataServiceUriUnchecked(), "zookeeper connect string doesn't match in client configuration");
     }
 }

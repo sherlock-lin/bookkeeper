@@ -24,7 +24,7 @@ import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.test.TestCallbacks.AddCallbackFuture;
 import org.apache.bookkeeper.zookeeper.ZooKeeperWatcherBase;
 import org.apache.zookeeper.ZooKeeper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +39,7 @@ public class BookKeeperClientZKSessionExpiry extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testSessionLossWhileWriting() throws Exception {
+    void sessionLossWhileWriting() throws Exception {
 
         Thread expiryThread = new Thread() {
                 @Override

@@ -20,8 +20,10 @@
  */
 package org.apache.bookkeeper.bookie.storage.ldb;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -38,14 +40,14 @@ import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.conf.TestBKConfiguration;
 import org.apache.bookkeeper.meta.LedgerManager;
 import org.apache.bookkeeper.stats.StatsLogger;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test for {@link DbLedgerStorage}.
  */
-public class DbLedgerStorageWriteCacheTest {
+class DbLedgerStorageWriteCacheTest {
 
     private DbLedgerStorage storage;
     private File tmpDir;
@@ -101,8 +103,8 @@ public class DbLedgerStorageWriteCacheTest {
         }
     }
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    void setup() throws Exception {
         tmpDir = File.createTempFile("bkTest", ".dir");
         tmpDir.delete();
         tmpDir.mkdir();
@@ -121,17 +123,17 @@ public class DbLedgerStorageWriteCacheTest {
         storage = (DbLedgerStorage) bookie.getLedgerStorage();
     }
 
-    @After
-    public void teardown() throws Exception {
+    @AfterEach
+    void teardown() throws Exception {
         storage.shutdown();
         tmpDir.delete();
     }
 
     @Test
-    public void writeCacheFull() throws Exception {
+    void writeCacheFull() throws Exception {
         storage.setMasterKey(4, "key".getBytes());
-        assertEquals(false, storage.isFenced(4));
-        assertEquals(true, storage.ledgerExists(4));
+        assertFalse(storage.isFenced(4));
+        assertTrue(storage.ledgerExists(4));
 
         assertEquals("key", new String(storage.readMasterKey(4)));
 

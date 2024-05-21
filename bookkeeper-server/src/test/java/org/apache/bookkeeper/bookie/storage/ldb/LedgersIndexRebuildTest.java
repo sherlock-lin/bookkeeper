@@ -20,7 +20,8 @@
  */
 package org.apache.bookkeeper.bookie.storage.ldb;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -37,25 +38,24 @@ import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.util.DiskChecker;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Test for class {@link LedgersIndexRebuildOp}.
  */
-@RunWith(MockitoJUnitRunner.class)
-public class LedgersIndexRebuildTest {
+@ExtendWith(MockitoExtension.class)
+class LedgersIndexRebuildTest {
 
     private final BookieId bookieAddress = BookieId.parse(UUID.randomUUID().toString());
     private ServerConfiguration conf;
     private File tmpDir;
 
-    @Before
-    public void setUp() throws IOException {
+    @BeforeEach
+    void setUp() throws IOException {
         tmpDir = File.createTempFile("bkTest", ".dir");
         tmpDir.delete();
         tmpDir.mkdir();
@@ -65,13 +65,13 @@ public class LedgersIndexRebuildTest {
         System.out.println(tmpDir);
     }
 
-    @After
-    public void tearDown() throws IOException {
+    @AfterEach
+    void tearDown() throws IOException {
         FileUtils.forceDelete(tmpDir);
     }
 
     @Test
-    public void testRebuildIncludesAllLedgersAndSetToFenced() throws Exception {
+    void rebuildIncludesAllLedgersAndSetToFenced() throws Exception {
         byte[] masterKey = "12345".getBytes();
         long ledgerCount = 100;
 
@@ -100,7 +100,7 @@ public class LedgersIndexRebuildTest {
         shell.setConf(conf);
         int res = shell.run(new String[] { "rebuild-db-ledgers-index", "-v" });
 
-        Assert.assertEquals(0, res);
+        assertEquals(0, res);
 
         // Verify that the ledgers index has the ledgers and that they are fenced
         ledgerStorage = new DbLedgerStorage();

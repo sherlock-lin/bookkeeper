@@ -22,15 +22,16 @@ package org.apache.bookkeeper.client.api;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.bookkeeper.common.concurrent.FutureUtils.result;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import io.netty.buffer.Unpooled;
 import java.nio.ByteBuffer;
@@ -47,7 +48,7 @@ import org.apache.bookkeeper.client.MockBookKeeperTestCase;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.util.LoggerOutput;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.event.LoggingEvent;
 
 /**
@@ -63,7 +64,7 @@ public class BookKeeperApiTest extends MockBookKeeperTestCase {
     public LoggerOutput loggerOutput = new LoggerOutput();
 
     @Test
-    public void testWriteHandle() throws Exception {
+    void writeHandle() throws Exception {
         try (WriteHandle writer = result(newCreateLedgerOp()
                 .withAckQuorumSize(1)
                 .withWriteQuorumSize(2)
@@ -83,7 +84,7 @@ public class BookKeeperApiTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    public void testWriteAdvHandle() throws Exception {
+    void writeAdvHandle() throws Exception {
         long ledgerId = 12345;
         setNewGeneratedLedgerId(ledgerId);
         try (WriteAdvHandle writer = result(newCreateLedgerOp()
@@ -106,7 +107,7 @@ public class BookKeeperApiTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    public void testWriteAdvHandleWithFixedLedgerId() throws Exception {
+    void writeAdvHandleWithFixedLedgerId() throws Exception {
         setNewGeneratedLedgerId(12345);
         try (WriteAdvHandle writer = result(newCreateLedgerOp()
                 .withAckQuorumSize(1)
@@ -128,41 +129,45 @@ public class BookKeeperApiTest extends MockBookKeeperTestCase {
         }
     }
 
-    @Test(expected = BKDuplicateEntryIdException.class)
-    public void testWriteAdvHandleBKDuplicateEntryId() throws Exception {
-        try (WriteAdvHandle writer = result(newCreateLedgerOp()
-                .withAckQuorumSize(1)
-                .withWriteQuorumSize(2)
-                .withEnsembleSize(3)
-                .withPassword(password)
-                .makeAdv()
-                .withLedgerId(1234)
-                .execute())) {
-            assertEquals(1234, writer.getId());
-            long entryId = 0;
-            writer.write(entryId++, ByteBuffer.wrap(data));
-            assertEquals(data.length, writer.getLength());
-            writer.write(entryId - 1, ByteBuffer.wrap(data));
-        }
+    @Test
+    void writeAdvHandleBKDuplicateEntryId() throws Exception {
+        assertThrows(BKDuplicateEntryIdException.class, () -> {
+            try (WriteAdvHandle writer = result(newCreateLedgerOp()
+                    .withAckQuorumSize(1)
+                    .withWriteQuorumSize(2)
+                    .withEnsembleSize(3)
+                    .withPassword(password)
+                    .makeAdv()
+                    .withLedgerId(1234)
+                    .execute())) {
+                assertEquals(1234, writer.getId());
+                long entryId = 0;
+                writer.write(entryId++, ByteBuffer.wrap(data));
+                assertEquals(data.length, writer.getLength());
+                writer.write(entryId - 1, ByteBuffer.wrap(data));
+            }
+        });
     }
 
-    @Test(expected = BKUnauthorizedAccessException.class)
-    public void testOpenLedgerUnauthorized() throws Exception {
-        long lId;
-        try (WriteHandle writer = result(newCreateLedgerOp()
-                .withAckQuorumSize(1)
-                .withWriteQuorumSize(2)
-                .withEnsembleSize(3)
-                .withPassword(password)
-                .execute())) {
-            lId = writer.getId();
-            assertEquals(-1L, writer.getLastAddPushed());
-        }
-        try (ReadHandle ignored = result(newOpenLedgerOp()
-                .withPassword("bad-password".getBytes(UTF_8))
-                .withLedgerId(lId)
-                .execute())) {
-        }
+    @Test
+    void openLedgerUnauthorized() throws Exception {
+        assertThrows(BKUnauthorizedAccessException.class, () -> {
+            long lId;
+            try (WriteHandle writer = result(newCreateLedgerOp()
+                    .withAckQuorumSize(1)
+                    .withWriteQuorumSize(2)
+                    .withEnsembleSize(3)
+                    .withPassword(password)
+                    .execute())) {
+                lId = writer.getId();
+                assertEquals(-1L, writer.getLastAddPushed());
+            }
+            try (ReadHandle ignored = result(newOpenLedgerOp()
+                    .withPassword("bad-password".getBytes(UTF_8))
+                    .withLedgerId(lId)
+                    .execute())) {
+            }
+        });
     }
 
     /**
@@ -171,7 +176,7 @@ public class BookKeeperApiTest extends MockBookKeeperTestCase {
      * @throws Exception
      */
     @Test
-    public void testLedgerDigests() throws Exception {
+    void ledgerDigests() throws Exception {
         for (DigestType type: DigestType.values()) {
             long lId;
             try (WriteHandle writer = result(newCreateLedgerOp()
@@ -200,12 +205,12 @@ public class BookKeeperApiTest extends MockBookKeeperTestCase {
 
 
     @Test
-    public void testOpenLedgerDigestUnmatchedWhenAutoDetectionEnabled() throws Exception {
+    void openLedgerDigestUnmatchedWhenAutoDetectionEnabled() throws Exception {
         testOpenLedgerDigestUnmatched(true);
     }
 
     @Test
-    public void testOpenLedgerDigestUnmatchedWhenAutoDetectionDisabled() throws Exception {
+    void openLedgerDigestUnmatchedWhenAutoDetectionDisabled() throws Exception {
         testOpenLedgerDigestUnmatched(false);
     }
 
@@ -241,7 +246,7 @@ public class BookKeeperApiTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    public void testOpenLedgerNoSealed() throws Exception {
+    void openLedgerNoSealed() throws Exception {
         try (WriteHandle writer = result(newCreateLedgerOp()
                 .withEnsembleSize(3)
                 .withWriteQuorumSize(3)
@@ -264,7 +269,7 @@ public class BookKeeperApiTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    public void testOpenLedgerRead() throws Exception {
+    void openLedgerRead() throws Exception {
         long lId;
         try (WriteHandle writer = result(newCreateLedgerOp()
                 .withAckQuorumSize(1)
@@ -301,79 +306,85 @@ public class BookKeeperApiTest extends MockBookKeeperTestCase {
         }
     }
 
-    @Test(expected = BKLedgerFencedException.class)
-    public void testOpenLedgerWithRecovery() throws Exception {
+    @Test
+    void openLedgerWithRecovery() throws Exception {
+        assertThrows(BKLedgerFencedException.class, () -> {
 
-        loggerOutput.expect((List<LoggingEvent> logEvents) -> {
-            assertThat(logEvents, hasItem(hasProperty("message",
-                    containsString("due to LedgerFencedException: "
-                            + "Ledger has been fenced off. Some other client must have opened it to read")
-            )));
-        });
+            loggerOutput.expect((List<LoggingEvent> logEvents) -> {
+                assertThat(logEvents, hasItem(hasProperty("message",
+                        containsString("due to LedgerFencedException: "
+                                + "Ledger has been fenced off. Some other client must have opened it to read")
+                )));
+            });
 
-        long lId;
-        try (WriteHandle writer = result(newCreateLedgerOp()
-            .withAckQuorumSize(1)
-            .withWriteQuorumSize(2)
-            .withEnsembleSize(3)
-            .withPassword(password)
-            .execute())) {
-            lId = writer.getId();
-
-            writer.append(ByteBuffer.wrap(data));
-            writer.append(ByteBuffer.wrap(data));
-            assertEquals(1L, writer.getLastAddPushed());
-
-            // open with fencing
-            try (ReadHandle reader = result(newOpenLedgerOp()
+            long lId;
+            try (WriteHandle writer = result(newCreateLedgerOp()
+                    .withAckQuorumSize(1)
+                    .withWriteQuorumSize(2)
+                    .withEnsembleSize(3)
                     .withPassword(password)
-                    .withRecovery(true)
-                    .withLedgerId(lId)
                     .execute())) {
-                assertTrue(reader.isClosed());
-                assertEquals(1L, reader.getLastAddConfirmed());
+                lId = writer.getId();
+
+                writer.append(ByteBuffer.wrap(data));
+                writer.append(ByteBuffer.wrap(data));
+                assertEquals(1L, writer.getLastAddPushed());
+
+                // open with fencing
+                try (ReadHandle reader = result(newOpenLedgerOp()
+                        .withPassword(password)
+                        .withRecovery(true)
+                        .withLedgerId(lId)
+                        .execute())) {
+                    assertTrue(reader.isClosed());
+                    assertEquals(1L, reader.getLastAddConfirmed());
+                }
+
+                writer.append(ByteBuffer.wrap(data));
+
             }
-
-            writer.append(ByteBuffer.wrap(data));
-
-        }
-    }
-
-    @Test(expected = BKNoSuchLedgerExistsOnMetadataServerException.class)
-    public void testDeleteLedger() throws Exception {
-        long lId;
-
-        try (WriteHandle writer = result(newCreateLedgerOp()
-            .withPassword(password)
-            .execute())) {
-            lId = writer.getId();
-            assertEquals(-1L, writer.getLastAddPushed());
-        }
-
-        result(newDeleteLedgerOp().withLedgerId(lId).execute());
-
-        result(newOpenLedgerOp()
-            .withPassword(password)
-            .withLedgerId(lId)
-            .execute());
-    }
-
-    @Test(expected = BKNoSuchLedgerExistsOnMetadataServerException.class)
-    public void testCannotDeleteLedgerTwice() throws Exception {
-        long lId;
-
-        try (WriteHandle writer = result(newCreateLedgerOp()
-            .withPassword(password)
-            .execute())) {
-            lId = writer.getId();
-            assertEquals(-1L, writer.getLastAddPushed());
-        }
-        result(newDeleteLedgerOp().withLedgerId(lId).execute());
-        result(newDeleteLedgerOp().withLedgerId(lId).execute());
+        });
     }
 
     @Test
-    public void testLedgerEntriesIterable() throws Exception {
+    void deleteLedger() throws Exception {
+        assertThrows(BKNoSuchLedgerExistsOnMetadataServerException.class, () -> {
+            long lId;
+
+            try (WriteHandle writer = result(newCreateLedgerOp()
+                    .withPassword(password)
+                    .execute())) {
+                lId = writer.getId();
+                assertEquals(-1L, writer.getLastAddPushed());
+            }
+
+            result(newDeleteLedgerOp().withLedgerId(lId).execute());
+
+            result(newOpenLedgerOp()
+                    .withPassword(password)
+                    .withLedgerId(lId)
+                    .execute());
+        });
+    }
+
+    @Test
+    void cannotDeleteLedgerTwice() throws Exception {
+        assertThrows(BKNoSuchLedgerExistsOnMetadataServerException.class, () -> {
+            long lId;
+
+            try (WriteHandle writer = result(newCreateLedgerOp()
+                    .withPassword(password)
+                    .execute())) {
+                lId = writer.getId();
+                assertEquals(-1L, writer.getLastAddPushed());
+            }
+            result(newDeleteLedgerOp().withLedgerId(lId).execute());
+            result(newDeleteLedgerOp().withLedgerId(lId).execute());
+        });
+    }
+
+    @Test
+    void ledgerEntriesIterable() throws Exception {
         long lId;
         try (WriteHandle writer = newCreateLedgerOp()
                 .withAckQuorumSize(1)
@@ -412,7 +423,7 @@ public class BookKeeperApiTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    public void testBKExceptionCodeLogger() {
+    void bKExceptionCodeLogger() {
         assertEquals("OK: No problem", BKException.codeLogger(0).toString());
         assertEquals("ReadException: Error while reading ledger", BKException.codeLogger(-1).toString());
         assertEquals("IncorrectParameterException: Incorrect parameter input", BKException.codeLogger(-14).toString());

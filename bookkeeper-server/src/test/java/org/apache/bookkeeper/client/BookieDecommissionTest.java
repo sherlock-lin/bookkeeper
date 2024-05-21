@@ -55,7 +55,7 @@ public class BookieDecommissionTest extends BookKeeperClusterTestCase {
 
     @FlakyTest("https://github.com/apache/bookkeeper/issues/502")
     @Test
-    public void testDecommissionBookie() throws Exception {
+    void decommissionBookie() throws Exception {
         ZkLedgerUnderreplicationManager urLedgerMgr = new ZkLedgerUnderreplicationManager(baseClientConf, zkc);
         BookKeeperAdmin bkAdmin = new BookKeeperAdmin(zkUtil.getZooKeeperConnectString());
 
@@ -128,7 +128,7 @@ public class BookieDecommissionTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testDecommissionForLedgersWithMultipleSegmentsAndNotWriteClosed() throws Exception {
+    void decommissionForLedgersWithMultipleSegmentsAndNotWriteClosed() throws Exception {
         ZkLedgerUnderreplicationManager urLedgerMgr = new ZkLedgerUnderreplicationManager(baseClientConf, zkc);
         BookKeeperAdmin bkAdmin = new BookKeeperAdmin(zkUtil.getZooKeeperConnectString());
         int numOfEntries = 2 * NUM_OF_BOOKIES;
@@ -206,7 +206,7 @@ public class BookieDecommissionTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testDecommissionForEmptyLedgers() throws Exception {
+    void decommissionForEmptyLedgers() throws Exception {
         ZkLedgerUnderreplicationManager urLedgerMgr = new ZkLedgerUnderreplicationManager(baseClientConf, zkc);
         BookKeeperAdmin bkAdmin = new BookKeeperAdmin(zkUtil.getZooKeeperConnectString());
 

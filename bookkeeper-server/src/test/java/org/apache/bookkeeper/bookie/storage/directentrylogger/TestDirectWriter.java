@@ -23,6 +23,8 @@ package org.apache.bookkeeper.bookie.storage.directentrylogger;
 import static org.apache.bookkeeper.bookie.storage.directentrylogger.DirectEntryLogger.logFilename;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.util.concurrent.MoreExecutors;
 import io.netty.buffer.ByteBuf;
@@ -41,7 +43,6 @@ import org.apache.bookkeeper.common.util.nativeio.NativeIOImpl;
 import org.apache.bookkeeper.slogger.Slogger;
 import org.apache.bookkeeper.test.TmpDirs;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
@@ -50,22 +51,22 @@ import org.junit.jupiter.api.condition.OS;
  * TestDirectWriter.
  */
 @DisabledOnOs(OS.WINDOWS)
-public class TestDirectWriter {
+class TestDirectWriter {
     private static final Slogger slog = Slogger.CONSOLE;
 
     private final TmpDirs tmpDirs = new TmpDirs();
     private final ExecutorService writeExecutor = Executors.newSingleThreadExecutor();
 
     @AfterEach
-    public void cleanup() throws Exception {
+    void cleanup() throws Exception {
         tmpDirs.cleanup();
         writeExecutor.shutdownNow();
     }
 
     @Test
-    public void testWriteAtAlignment() throws Exception {
+    void writeAtAlignment() throws Exception {
         File ledgerDir = tmpDirs.createNew("writeAlignment", "logs");
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             try (BufferPool buffers = new BufferPool(new NativeIOImpl(), ByteBufAllocator.DEFAULT, Buffer.ALIGNMENT, 8);
                  LogWriter writer = new DirectWriter(5678, logFilename(ledgerDir, 5678),
                          1 << 24, writeExecutor,
@@ -79,9 +80,9 @@ public class TestDirectWriter {
     }
 
     @Test
-    public void testWriteAlignmentSize() throws Exception {
+    void writeAlignmentSize() throws Exception {
         File ledgerDir = tmpDirs.createNew("writeAlignment", "logs");
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             try (BufferPool buffers = new BufferPool(new NativeIOImpl(), ByteBufAllocator.DEFAULT, Buffer.ALIGNMENT, 8);
                  LogWriter writer = new DirectWriter(5678, logFilename(ledgerDir, 5678), 1 << 24, writeExecutor,
                          buffers, new NativeIOImpl(), Slogger.CONSOLE)) {
@@ -94,7 +95,7 @@ public class TestDirectWriter {
     }
 
     @Test
-    public void testWriteAlignedNotAtStart() throws Exception {
+    void writeAlignedNotAtStart() throws Exception {
         File ledgerDir = tmpDirs.createNew("writeAlignment", "logs");
         try (BufferPool buffers = new BufferPool(new NativeIOImpl(), ByteBufAllocator.DEFAULT, Buffer.ALIGNMENT, 8);
              LogWriter writer = new DirectWriter(5678, logFilename(ledgerDir, 5678), 1 << 24, writeExecutor,
@@ -108,7 +109,7 @@ public class TestDirectWriter {
 
 
     @Test
-    public void testFlushingWillWaitForBuffer() throws Exception {
+    void flushingWillWaitForBuffer() throws Exception {
         File ledgerDir = tmpDirs.createNew("writeFailFailsFlush", "logs");
         try (BufferPool buffers = new BufferPool(new NativeIOImpl(), ByteBufAllocator.DEFAULT,
                 Buffer.ALIGNMENT, 1); // only one buffer available, so we can't flush in bg
@@ -122,7 +123,7 @@ public class TestDirectWriter {
     }
 
     @Test
-    public void testWriteFailFailsFlush() throws Exception {
+    void writeFailFailsFlush() throws Exception {
         File ledgerDir = tmpDirs.createNew("writeFailFailsFlush", "logs");
         NativeIO io = new NativeIOImpl() {
             boolean failed = false;
@@ -137,7 +138,7 @@ public class TestDirectWriter {
                 return super.pwrite(fd, pointer, count, offset);
             }
         };
-        Assertions.assertThrows(IOException.class, () -> {
+        assertThrows(IOException.class, () -> {
             try (BufferPool buffers = new BufferPool(new NativeIOImpl(), ByteBufAllocator.DEFAULT, Buffer.ALIGNMENT, 8);
                  LogWriter writer = new DirectWriter(5678, logFilename(ledgerDir, 5678), 1 << 24, writeExecutor,
                          buffers, io, Slogger.CONSOLE)) {
@@ -152,7 +153,7 @@ public class TestDirectWriter {
     }
 
     @Test
-    public void testWriteAtFailFailsFlush() throws Exception {
+    void writeAtFailFailsFlush() throws Exception {
         File ledgerDir = tmpDirs.createNew("writeAtFailFailsFlush", "logs");
         NativeIO io = new NativeIOImpl() {
             boolean failed = false;
@@ -167,7 +168,7 @@ public class TestDirectWriter {
                 return super.pwrite(fd, pointer, count, offset);
             }
         };
-        Assertions.assertThrows(IOException.class, () -> {
+        assertThrows(IOException.class, () -> {
             try (BufferPool buffers = new BufferPool(new NativeIOImpl(), ByteBufAllocator.DEFAULT, 1 << 14, 8);
                  LogWriter writer = new DirectWriter(5678, logFilename(ledgerDir, 5678), 1 << 24, writeExecutor,
                          buffers, io, Slogger.CONSOLE)) {
@@ -180,7 +181,7 @@ public class TestDirectWriter {
     }
 
     @Test
-    public void testWriteWithPadding() throws Exception {
+    void writeWithPadding() throws Exception {
         File ledgerDir = tmpDirs.createNew("paddingWrite", "logs");
         try (BufferPool buffers = new BufferPool(new NativeIOImpl(), ByteBufAllocator.DEFAULT, 1 << 14, 8);
              LogWriter writer = new DirectWriter(5678, logFilename(ledgerDir, 5678), 1 << 24, writeExecutor,
@@ -206,7 +207,7 @@ public class TestDirectWriter {
     }
 
     @Test
-    public void testWriteBlocksFlush() throws Exception {
+    void writeBlocksFlush() throws Exception {
         ExecutorService flushExecutor = Executors.newSingleThreadExecutor();
         try {
             File ledgerDir = tmpDirs.createNew("blockWrite", "logs");
@@ -246,12 +247,12 @@ public class TestDirectWriter {
     }
 
     @Test
-    public void testFailsToOpen() throws Exception {
+    void failsToOpen() throws Exception {
         File ledgerDir = tmpDirs.createNew("failOpen", "logs");
         ledgerDir.delete();
 
         try (BufferPool buffers = new BufferPool(new NativeIOImpl(), ByteBufAllocator.DEFAULT, 1 << 14, 8)) {
-            Assertions.assertThrows(IOException.class, () -> {
+            assertThrows(IOException.class, () -> {
                 new DirectWriter(1234, logFilename(ledgerDir, 1234),
                         1 << 30, MoreExecutors.newDirectExecutorService(),
                         buffers, new NativeIOImpl(), Slogger.CONSOLE);
@@ -260,7 +261,7 @@ public class TestDirectWriter {
     }
 
     @Test
-    public void fallocateNotAvailable() throws Exception {
+    void fallocateNotAvailable() throws Exception {
         File ledgerDir = tmpDirs.createNew("fallocUnavailable", "logs");
         NativeIO nativeIO = new NativeIOImpl() {
                 @Override
@@ -289,7 +290,7 @@ public class TestDirectWriter {
     }
 
     @Test
-    public void testWriteAtIntLimit() throws Exception {
+    void writeAtIntLimit() throws Exception {
         File ledgerDir = tmpDirs.createNew("intLimit", "logs");
 
         try (BufferPool buffers = new BufferPool(new NativeIOImpl(), ByteBufAllocator.DEFAULT, 1 << 14, 8);
@@ -313,7 +314,7 @@ public class TestDirectWriter {
 
             try {
                 writer.writeDelimited(b1);
-                Assertions.fail("Shouldn't be possible, we've gone past MAX_INT");
+                fail("Shouldn't be possible, we've gone past MAX_INT");
             } catch (IOException ioe) {
                 // expected
             }

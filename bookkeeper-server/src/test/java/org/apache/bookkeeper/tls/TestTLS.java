@@ -17,13 +17,14 @@
  */
 package org.apache.bookkeeper.tls;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,20 +66,17 @@ import org.apache.bookkeeper.tls.TLSContextFactory.KeyStoreType;
 import org.apache.bookkeeper.util.IOUtils;
 import org.apache.bookkeeper.util.TestUtils;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Tests with TLS enabled.
  */
-@RunWith(Parameterized.class)
 public class TestTLS extends BookKeeperClusterTestCase {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestPerChannelBookieClient.class);
@@ -93,9 +91,8 @@ public class TestTLS extends BookKeeperClusterTestCase {
     private KeyStoreType clientTrustStoreFormat;
     private KeyStoreType serverKeyStoreFormat;
     private KeyStoreType serverTrustStoreFormat;
-    private final boolean useV2Protocol;
+    private boolean useV2Protocol;
 
-    @Parameters
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
                  { "JKS", "JKS", false },
@@ -107,7 +104,8 @@ public class TestTLS extends BookKeeperClusterTestCase {
                  { "PKCS12", "JKS", false }
             });
     }
-    public TestTLS(String keyStoreFormat,
+
+    public void initTestTLS(String keyStoreFormat,
                    String trustStoreFormat,
                    boolean useV2Protocol) {
         super(3);
@@ -122,7 +120,7 @@ public class TestTLS extends BookKeeperClusterTestCase {
         return Paths.get(this.getClass().getClassLoader().getResource(resource).toURI()).toString();
     }
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         /* client configuration */
@@ -229,7 +227,7 @@ public class TestTLS extends BookKeeperClusterTestCase {
         super.setUp();
     }
 
-    @After
+    @AfterEach
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
@@ -238,17 +236,21 @@ public class TestTLS extends BookKeeperClusterTestCase {
     /**
      * Verify the BouncyCastleProvider Name is expected.
      */
-    @Test
-    public void testGetBouncyCastleProviderName() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void getBouncyCastleProviderName(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         String bcName = TLSContextFactory.getProvider().getName();
-        Assert.assertEquals(bcName, TLSContextFactory.BC_FIPS);
+        assertEquals(TLSContextFactory.BC_FIPS, bcName);
     }
 
     /**
      * Verify that a server will not start if tls is enabled but no cert is specified.
      */
-    @Test
-    public void testStartTLSServerNoKeyStore() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void startTLSServerNoKeyStore(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         ServerConfiguration bookieConf = newServerConfiguration().setTLSKeyStore(null);
 
         try {
@@ -262,8 +264,10 @@ public class TestTLS extends BookKeeperClusterTestCase {
     /**
      * Verify handshake failure with a bad cert.
      */
-    @Test
-    public void testKeyMismatchFailure() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void keyMismatchFailure(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         // Valid test case only for PEM format keys
         assumeTrue(serverKeyStoreFormat == KeyStoreType.PEM);
 
@@ -297,8 +301,10 @@ public class TestTLS extends BookKeeperClusterTestCase {
     /**
      * Verify that a server will not start if ssl is enabled but the cert password is incorrect.
      */
-    @Test
-    public void testStartTLSServerBadPassword() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void startTLSServerBadPassword(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         ServerConfiguration bookieConf = newServerConfiguration().setTLSKeyStorePasswordPath("badpassword");
         try {
             startAndAddBookie(bookieConf);
@@ -323,7 +329,7 @@ public class TestTLS extends BookKeeperClusterTestCase {
             Enumeration<LedgerEntry> entries = lh.readEntries(0, numEntries);
             while (entries.hasMoreElements()) {
                 LedgerEntry e = entries.nextElement();
-                assertTrue("Entry contents incorrect", Arrays.equals(e.getEntry(), testEntry));
+                assertTrue(Arrays.equals(e.getEntry(), testEntry), "Entry contents incorrect");
             }
             BookKeeperAdmin admin = new BookKeeperAdmin(client, baseClientConf);
             return admin.getLedgerMetadata(lh);
@@ -339,8 +345,10 @@ public class TestTLS extends BookKeeperClusterTestCase {
     /**
      * Verify the basic use of TLS. TLS client, TLS servers.
      */
-    @Test
-    public void testConnectToTLSClusterTLSClient() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void connectToTLSClusterTLSClient(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         ClientConfiguration clientConf = new ClientConfiguration(baseClientConf);
         testClient(clientConf, numBookies);
     }
@@ -348,8 +356,10 @@ public class TestTLS extends BookKeeperClusterTestCase {
     /**
      * Verify the basic use of TLS. TLS client, TLS servers with LocalTransport.
      */
-    @Test
-    public void testConnectToLocalTLSClusterTLSClient() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void connectToLocalTLSClusterTLSClient(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         // skip test
         if (useV2Protocol) {
             return;
@@ -368,8 +378,10 @@ public class TestTLS extends BookKeeperClusterTestCase {
     /**
      * Verify Bookie refreshes certs at configured duration.
      */
-    @Test
-    public void testRefreshDurationForBookieCerts() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void refreshDurationForBookieCerts(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         assumeTrue(serverKeyStoreFormat == KeyStoreType.PEM);
         String originalTlsKeyFilePath = confByIndex(0).getTLSKeyStore();
         String invalidServerKey = getResourcePath("client-key.pem");
@@ -390,7 +402,7 @@ public class TestTLS extends BookKeeperClusterTestCase {
         ClientConfiguration clientConf = new ClientConfiguration(baseClientConf);
         try {
             testClient(clientConf, numBookies);
-            Assert.fail("Should have fail due to invalid cert");
+            fail("Should have fail due to invalid cert");
         } catch (Exception e) {
             // Ok.
         }
@@ -409,8 +421,10 @@ public class TestTLS extends BookKeeperClusterTestCase {
     /**
      * Verify Bookkeeper-client refreshes certs at configured duration.
      */
-    @Test
-    public void testRefreshDurationForBookkeeperClientCerts() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void refreshDurationForBookkeeperClientCerts(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         assumeTrue(serverKeyStoreFormat == KeyStoreType.PEM);
 
         ClientConfiguration clientConf = new ClientConfiguration(baseClientConf);
@@ -443,7 +457,7 @@ public class TestTLS extends BookKeeperClusterTestCase {
                 }, null);
             }
             latch.await(1, TimeUnit.SECONDS);
-            Assert.assertNotEquals(result.get(), BKException.Code.OK);
+            assertNotEquals(BKException.Code.OK, result.get());
 
             // Sleep so, cert file can be refreshed
             Thread.sleep(refreshDurationInSec * 1000 + 1000);
@@ -462,7 +476,7 @@ public class TestTLS extends BookKeeperClusterTestCase {
                 }, null);
             }
             latchWithValidCert.await(1, TimeUnit.SECONDS);
-            Assert.assertEquals(validCertResult.get(), BKException.Code.OK);
+            assertEquals(BKException.Code.OK, validCertResult.get());
             newTlsCertFile.delete();
         }
     }
@@ -470,8 +484,10 @@ public class TestTLS extends BookKeeperClusterTestCase {
     /**
      * Multiple clients, some with TLS, and some without TLS.
      */
-    @Test
-    public void testConnectToTLSClusterMixedClient() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void connectToTLSClusterMixedClient(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         ClientConfiguration confWithTLS = new ClientConfiguration(baseClientConf);
         testClient(confWithTLS, numBookies);
 
@@ -483,8 +499,10 @@ public class TestTLS extends BookKeeperClusterTestCase {
     /**
      * Verify the basic use of TLS. TLS client, TLS servers. No Mutual Authentication.
      */
-    @Test
-    public void testConnectToTLSClusterTLSClientWithTLSNoAuthentication() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void connectToTLSClusterTLSClientWithTLSNoAuthentication(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         restartBookies(c -> {
                 c.setTLSClientAuthentication(false);
                 return c;
@@ -497,35 +515,37 @@ public class TestTLS extends BookKeeperClusterTestCase {
     /**
      * Verify the basic use of TLS. TLS client, TLS servers with mutual Auth.
      */
-    @Test
-    public void testConnectToTLSClusterTLSClientWithAuthentication() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void connectToTLSClusterTLSClientWithAuthentication(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         ClientConfiguration conf = new ClientConfiguration(baseClientConf);
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             testClient(conf, numBookies);
-        } catch (BKException.BKNotEnoughBookiesException nnbe) {
-            fail("Client should be able to connect to bookie");
-        }
+        }, "Client should be able to connect to bookie");
     }
 
     /**
      * Verify that a client without tls enabled can connect to a cluster with TLS.
      */
-    @Test
-    public void testConnectToTLSClusterNonTLSClient() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void connectToTLSClusterNonTLSClient(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         ClientConfiguration conf = new ClientConfiguration(baseClientConf);
         conf.setTLSProviderFactoryClass(null);
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             testClient(conf, numBookies);
-        } catch (BKException.BKNotEnoughBookiesException nnbe) {
-            fail("non tls client should be able to connect to tls enabled bookies");
-        }
+        }, "non tls client should be able to connect to tls enabled bookies");
     }
 
     /**
      * Verify that a client will fail to connect to a server if it has asked for TLS, but it is not available.
      */
-    @Test
-    public void testClientWantsTLSNoServersHaveIt() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void clientWantsTLSNoServersHaveIt(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         restartBookies(c -> {
                 c.setTLSProviderFactoryClass(null);
                 return c;
@@ -544,8 +564,10 @@ public class TestTLS extends BookKeeperClusterTestCase {
      * Verify that a client will be able to connect to a bookie cluster if it has asked for TLS, and there are enough
      * bookies with TLS enabled in the cluster, although few bookies do not have TLS enabled.
      */
-    @Test
-    public void testTLSClientButOnlyFewTLSServers() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void tlsClientButOnlyFewTLSServers(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         // disable TLS on initial set of bookies
         restartBookies(c -> {
                 c.setTLSProviderFactoryClass(null);
@@ -576,8 +598,10 @@ public class TestTLS extends BookKeeperClusterTestCase {
     /**
      * Verify that a client-side Auth plugin can access server certificates.
      */
-    @Test
-    public void testClientAuthPlugin() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void clientAuthPlugin(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         secureClientSideChannel = false;
         secureClientSideChannelPrincipals = null;
         ClientConfiguration clientConf = new ClientConfiguration(baseClientConf);
@@ -587,7 +611,7 @@ public class TestTLS extends BookKeeperClusterTestCase {
         testClient(clientConf, numBookies);
         assertTrue(secureClientSideChannel);
         assertNotNull(secureClientSideChannelPrincipals);
-        assertTrue(!secureClientSideChannelPrincipals.isEmpty());
+        assertFalse(secureClientSideChannelPrincipals.isEmpty());
         assertTrue(secureClientSideChannelPrincipals.iterator().next() instanceof Certificate);
         Certificate cert = (Certificate) secureClientSideChannelPrincipals.iterator().next();
         assertTrue(cert instanceof X509Certificate);
@@ -596,8 +620,10 @@ public class TestTLS extends BookKeeperClusterTestCase {
     /**
      * Verify that a bookie-side Auth plugin can access server certificates.
      */
-    @Test
-    public void testBookieAuthPluginRequireClientTLSAuthentication() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void bookieAuthPluginRequireClientTLSAuthentication(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         restartBookies(c -> {
                 c.setBookieAuthProviderFactoryClass(
                         AllowOnlyClientsWithX509Certificates.class.getName());
@@ -611,7 +637,7 @@ public class TestTLS extends BookKeeperClusterTestCase {
         testClient(clientConf, numBookies);
         assertTrue(secureBookieSideChannel);
         assertNotNull(secureBookieSideChannelPrincipals);
-        assertTrue(!secureBookieSideChannelPrincipals.isEmpty());
+        assertFalse(secureBookieSideChannelPrincipals.isEmpty());
         assertTrue(secureBookieSideChannelPrincipals.iterator().next() instanceof Certificate);
         Certificate cert = (Certificate) secureBookieSideChannelPrincipals.iterator().next();
         assertTrue(cert instanceof X509Certificate);
@@ -620,8 +646,10 @@ public class TestTLS extends BookKeeperClusterTestCase {
     /**
      * Verify that a bookie-side Auth plugin can access server certificates over LocalTransport.
      */
-    @Test
-    public void testBookieAuthPluginRequireClientTLSAuthenticationLocal() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void bookieAuthPluginRequireClientTLSAuthenticationLocal(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         if (useV2Protocol) {
             return;
         }
@@ -641,7 +669,7 @@ public class TestTLS extends BookKeeperClusterTestCase {
         testClient(clientConf, numBookies);
         assertTrue(secureBookieSideChannel);
         assertNotNull(secureBookieSideChannelPrincipals);
-        assertTrue(!secureBookieSideChannelPrincipals.isEmpty());
+        assertFalse(secureBookieSideChannelPrincipals.isEmpty());
         assertTrue(secureBookieSideChannelPrincipals.iterator().next() instanceof Certificate);
         Certificate cert = (Certificate) secureBookieSideChannelPrincipals.iterator().next();
         assertTrue(cert instanceof X509Certificate);
@@ -653,8 +681,10 @@ public class TestTLS extends BookKeeperClusterTestCase {
      * If authorization fails unexpectedly, we catch the UnauthorizedAccessException and fail.
      * Otherwise we exit the test and mark it as success
      */
-    @Test
-    public void testRoleBasedAuthZInCertificate() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void roleBasedAuthZInCertificate(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         restartBookies(serverConf -> {
             serverConf.setBookieAuthProviderFactoryClass(BookieAuthZFactory.class.getCanonicalName());
             serverConf.setAuthorizedRoles("testRole,testRole1");
@@ -663,18 +693,18 @@ public class TestTLS extends BookKeeperClusterTestCase {
 
         ClientConfiguration clientConf = new ClientConfiguration(baseClientConf);
 
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             testClient(clientConf, numBookies);
-        } catch (BKException.BKUnauthorizedAccessException bke) {
-            fail("Could not verify given role.");
-        }
+        }, "Could not verify given role.");
     }
 
     /**
      * Verify that a bookie-side Auth plugin can access server certificates.
      */
-    @Test
-    public void testBookieAuthPluginDenyAccesstoClientWithoutTLSAuthentication() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void bookieAuthPluginDenyAccesstoClientWithoutTLSAuthentication(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         restartBookies(c -> {
                 c.setTLSClientAuthentication(false);
                 c.setBookieAuthProviderFactoryClass(
@@ -705,8 +735,10 @@ public class TestTLS extends BookKeeperClusterTestCase {
     /**
      * Verify that a bookie-side Auth plugin can access server certificates over LocalTransport.
      */
-    @Test
-    public void testBookieAuthPluginDenyAccessToClientWithoutTLSAuthenticationLocal() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void bookieAuthPluginDenyAccessToClientWithoutTLSAuthenticationLocal(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         restartBookies(c -> {
                 c.setTLSClientAuthentication(false);
                 c.setBookieAuthProviderFactoryClass(
@@ -739,8 +771,10 @@ public class TestTLS extends BookKeeperClusterTestCase {
     /**
      * Verify that a bookie-side Auth plugin can access server certificates.
      */
-    @Test
-    public void testBookieAuthPluginDenyAccessToClientWithoutTLS() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void bookieAuthPluginDenyAccessToClientWithoutTLS(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         restartBookies(c -> {
                 c.setBookieAuthProviderFactoryClass(
                         AllowOnlyClientsWithX509Certificates.class.getName());
@@ -848,8 +882,10 @@ public class TestTLS extends BookKeeperClusterTestCase {
      * Verify that a client will fail to connect to a server if it has asked for TLS, but it is not available. Verify
      * that if there are enough TLS servers to fill the ensemble, it will eventually use those rather than the non-TLS
      */
-    @Test
-    public void testMixedCluster() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void mixedCluster(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         ClientConfiguration clientConf = new ClientConfiguration(baseClientConf);
         int origNumBookies = numBookies;
 
@@ -862,8 +898,10 @@ public class TestTLS extends BookKeeperClusterTestCase {
     /**
      * Verify that if the server hangs while an TLS client is trying to connect, the client can continue.
      */
-    @Test
-    public void testHungServer() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void hungServer(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         ClientConfiguration clientConf = new ClientConfiguration(baseClientConf);
         CountDownLatch latch = new CountDownLatch(1);
         sleepBookie(getBookie(0), latch);
@@ -880,8 +918,10 @@ public class TestTLS extends BookKeeperClusterTestCase {
     /**
      * Verify TLS and non-TLS channel counters.
      */
-    @Test
-    public void testTLSChannelCounters() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void tlsChannelCounters(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         ClientConfiguration tlsClientConf = new ClientConfiguration(baseClientConf)
                 .setNumChannelsPerBookie(1);
         ClientConfiguration nonTlsClientConf = new ClientConfiguration(baseClientConf)
@@ -906,40 +946,50 @@ public class TestTLS extends BookKeeperClusterTestCase {
                     .append(TestUtils.buildStatsCounterPathFromBookieID(bookie.getBookieId()))
                     .append(".");
             // check stats on TLS enabled client
-            assertEquals("Mismatch TLS channel count", 1,
+            assertEquals(1,
                     tlsClient.getTestStatsProvider().getCounter(nameBuilder
-                    + BookKeeperClientStats.ACTIVE_TLS_CHANNEL_COUNTER).get().longValue());
-            assertEquals("TLS handshake failure unexpected", 0,
+                    + BookKeeperClientStats.ACTIVE_TLS_CHANNEL_COUNTER).get().longValue(),
+                    "Mismatch TLS channel count");
+            assertEquals(0,
                     tlsClient.getTestStatsProvider().getCounter(nameBuilder
-                    + BookKeeperClientStats.FAILED_TLS_HANDSHAKE_COUNTER).get().longValue());
-            assertEquals("Mismatch non-TLS channel count", 0,
+                    + BookKeeperClientStats.FAILED_TLS_HANDSHAKE_COUNTER).get().longValue(),
+                    "TLS handshake failure unexpected");
+            assertEquals(0,
                     tlsClient.getTestStatsProvider().getCounter(nameBuilder
-                    + BookKeeperClientStats.ACTIVE_NON_TLS_CHANNEL_COUNTER).get().longValue());
-            assertEquals("Connection failures unexpected", 0,
+                    + BookKeeperClientStats.ACTIVE_NON_TLS_CHANNEL_COUNTER).get().longValue(),
+                    "Mismatch non-TLS channel count");
+            assertEquals(0,
                     tlsClient.getTestStatsProvider().getCounter(nameBuilder
-                    + BookKeeperClientStats.FAILED_CONNECTION_COUNTER).get().longValue());
+                    + BookKeeperClientStats.FAILED_CONNECTION_COUNTER).get().longValue(),
+                    "Connection failures unexpected");
 
             // check stats on non-TLS enabled client
-            assertEquals("Mismatch TLS channel count", 0,
+            assertEquals(0,
                     nonTlsClient.getTestStatsProvider().getCounter(nameBuilder
-                    + BookKeeperClientStats.ACTIVE_TLS_CHANNEL_COUNTER).get().longValue());
-            assertEquals("TLS handshake failure unexpected", 0,
+                    + BookKeeperClientStats.ACTIVE_TLS_CHANNEL_COUNTER).get().longValue(),
+                    "Mismatch TLS channel count");
+            assertEquals(0,
                     nonTlsClient.getTestStatsProvider().getCounter(nameBuilder
-                    + BookKeeperClientStats.FAILED_TLS_HANDSHAKE_COUNTER).get().longValue());
-            assertEquals("Mismatch non-TLS channel count", 1,
+                    + BookKeeperClientStats.FAILED_TLS_HANDSHAKE_COUNTER).get().longValue(),
+                    "TLS handshake failure unexpected");
+            assertEquals(1,
                     nonTlsClient.getTestStatsProvider().getCounter(nameBuilder
-                    + BookKeeperClientStats.ACTIVE_NON_TLS_CHANNEL_COUNTER).get().longValue());
-            assertEquals("Connection failures unexpected", 0,
+                    + BookKeeperClientStats.ACTIVE_NON_TLS_CHANNEL_COUNTER).get().longValue(),
+                    "Mismatch non-TLS channel count");
+            assertEquals(0,
                     nonTlsClient.getTestStatsProvider().getCounter(nameBuilder
-                    + BookKeeperClientStats.FAILED_CONNECTION_COUNTER).get().longValue());
+                    + BookKeeperClientStats.FAILED_CONNECTION_COUNTER).get().longValue(),
+                    "Connection failures unexpected");
 
             bookie.shutdown();
-            assertEquals("Mismatch TLS channel count", 0,
+            assertEquals(0,
                     tlsClient.getTestStatsProvider().getCounter(nameBuilder
-                    + BookKeeperClientStats.ACTIVE_TLS_CHANNEL_COUNTER).get().longValue());
-            assertEquals("Mismatch non-TLS channel count", 0,
+                    + BookKeeperClientStats.ACTIVE_TLS_CHANNEL_COUNTER).get().longValue(),
+                    "Mismatch TLS channel count");
+            assertEquals(0,
                     nonTlsClient.getTestStatsProvider().getCounter(nameBuilder
-                    + BookKeeperClientStats.ACTIVE_NON_TLS_CHANNEL_COUNTER).get().longValue());
+                    + BookKeeperClientStats.ACTIVE_NON_TLS_CHANNEL_COUNTER).get().longValue(),
+                    "Mismatch non-TLS channel count");
 
         }
     }
@@ -947,8 +997,10 @@ public class TestTLS extends BookKeeperClusterTestCase {
     /**
      * Verify handshake failure due to missing entry in trust store.
      */
-    @Test
-    public void testHandshakeFailure() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void handshakeFailure(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         ClientConfiguration clientConf = new ClientConfiguration(baseClientConf)
                 .setNumChannelsPerBookie(1);
 
@@ -1000,17 +1052,20 @@ public class TestTLS extends BookKeeperClusterTestCase {
                 .append("bookie_")
                 .append(TestUtils.buildStatsCounterPathFromBookieID(bookie.getBookieId()))
                 .append(".");
-        assertEquals("TLS handshake failure expected", 1,
+        assertEquals(1,
                 client.getTestStatsProvider().getCounter(nameBuilder
-                + BookKeeperClientStats.FAILED_TLS_HANDSHAKE_COUNTER).get().longValue());
+                + BookKeeperClientStats.FAILED_TLS_HANDSHAKE_COUNTER).get().longValue(),
+                "TLS handshake failure expected");
     }
 
     /**
      * Verify that a client fails to connect to bookie if hostname verification
      * fails.
      */
-    @Test
-    public void testClientAuthPluginWithHostnameVerificationEnabled() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void clientAuthPluginWithHostnameVerificationEnabled(String keyStoreFormat, String trustStoreFormat, boolean useV2Protocol) throws Exception {
+        initTestTLS(keyStoreFormat, trustStoreFormat, useV2Protocol);
         secureClientSideChannel = false;
         secureClientSideChannelPrincipals = null;
         ClientConfiguration clientConf = new ClientConfiguration(baseClientConf);

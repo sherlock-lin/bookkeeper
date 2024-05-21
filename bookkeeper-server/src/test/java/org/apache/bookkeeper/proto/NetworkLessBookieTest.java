@@ -21,7 +21,7 @@
 
 package org.apache.bookkeeper.proto;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import io.netty.channel.Channel;
 import io.netty.channel.local.LocalChannel;
@@ -30,7 +30,7 @@ import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.client.LedgerHandle;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests of the main BookKeeper client using networkless comunication.
@@ -44,7 +44,7 @@ public class NetworkLessBookieTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testUseLocalBookie() throws Exception {
+    void useLocalBookie() throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         conf.setZkTimeout(20000);

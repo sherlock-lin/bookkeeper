@@ -62,6 +62,7 @@ import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.util.BookKeeperConstants;
 import org.apache.bookkeeper.util.StaticDNSResolver;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
@@ -155,7 +156,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
 
 
     @Test
-    public void testNotReorderReadIfInDefaultRack() throws Exception {
+    void notReorderReadIfInDefaultRack() throws Exception {
         repp.uninitalize();
         updateMyRack(NetworkTopology.DEFAULT_REGION_AND_RACK);
 
@@ -170,7 +171,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testNodeInSameRegion() throws Exception {
+    void nodeInSameRegion() throws Exception {
         repp.uninitalize();
         updateMyRack("/r1/rack3");
 
@@ -200,7 +201,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testNodeNotInSameRegions() throws Exception {
+    void nodeNotInSameRegions() throws Exception {
         repp.uninitalize();
         updateMyRack("/r2/rack1");
 
@@ -216,7 +217,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testNodeDown() throws Exception {
+    void nodeDown() throws Exception {
         repp.uninitalize();
         updateMyRack("/r1/rack1");
 
@@ -244,7 +245,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testNodeReadOnly() throws Exception {
+    void nodeReadOnly() throws Exception {
         repp.uninitalize();
         updateMyRack("/r1/rack1");
 
@@ -274,7 +275,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testNodeSlow() throws Exception {
+    void nodeSlow() throws Exception {
         repp.uninitalize();
         updateMyRack("/r1/rack1");
 
@@ -304,7 +305,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testTwoNodesSlow() throws Exception {
+    void twoNodesSlow() throws Exception {
         repp.uninitalize();
         updateMyRack("/r1/rack1");
 
@@ -336,7 +337,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testTwoNodesDown() throws Exception {
+    void twoNodesDown() throws Exception {
         repp.uninitalize();
         updateMyRack("/r1/rack1");
 
@@ -365,7 +366,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testNodeDownAndNodeSlow() throws Exception {
+    void nodeDownAndNodeSlow() throws Exception {
         repp.uninitalize();
         updateMyRack("/r1/rack1");
 
@@ -396,7 +397,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testNodeDownAndReadOnlyAndNodeSlow() throws Exception {
+    void nodeDownAndReadOnlyAndNodeSlow() throws Exception {
         repp.uninitalize();
         updateMyRack("/r1/rack1");
 
@@ -430,7 +431,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testReplaceBookieWithEnoughBookiesInSameRegion() throws Exception {
+    void replaceBookieWithEnoughBookiesInSameRegion() throws Exception {
         BookieSocketAddress addr1 = new BookieSocketAddress("127.0.0.2", 3181);
         BookieSocketAddress addr2 = new BookieSocketAddress("127.0.0.3", 3181);
         BookieSocketAddress addr3 = new BookieSocketAddress("127.0.0.4", 3181);
@@ -454,7 +455,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testReplaceBookieWithEnoughBookiesInDifferentRegion() throws Exception {
+    void replaceBookieWithEnoughBookiesInDifferentRegion() throws Exception {
         BookieSocketAddress addr1 = new BookieSocketAddress("127.0.0.2", 3181);
         BookieSocketAddress addr2 = new BookieSocketAddress("127.0.0.3", 3181);
         BookieSocketAddress addr3 = new BookieSocketAddress("127.0.0.4", 3181);
@@ -483,7 +484,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testNewEnsembleBookieWithNotEnoughBookies() throws Exception {
+    void newEnsembleBookieWithNotEnoughBookies() throws Exception {
         BookieSocketAddress addr1 = new BookieSocketAddress("127.0.0.2", 3181);
         BookieSocketAddress addr2 = new BookieSocketAddress("127.0.0.3", 3181);
         BookieSocketAddress addr3 = new BookieSocketAddress("127.0.0.4", 3181);
@@ -512,7 +513,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
 
     @Test
     @EnabledForJreRange(max = JRE.JAVA_11)
-    public void testNewEnsembleBookieWithOneEmptyRegion() throws Exception {
+    void newEnsembleBookieWithOneEmptyRegion() throws Exception {
         BookieSocketAddress addr1 = new BookieSocketAddress("127.0.0.2", 3181);
         BookieSocketAddress addr2 = new BookieSocketAddress("127.0.0.3", 3181);
         BookieSocketAddress addr3 = new BookieSocketAddress("127.0.0.4", 3181);
@@ -557,7 +558,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testReplaceBookieWithNotEnoughBookies() throws Exception {
+    void replaceBookieWithNotEnoughBookies() throws Exception {
         BookieSocketAddress addr1 = new BookieSocketAddress("127.0.0.2", 3181);
         BookieSocketAddress addr2 = new BookieSocketAddress("127.0.0.3", 3181);
         BookieSocketAddress addr3 = new BookieSocketAddress("127.0.0.4", 3181);
@@ -588,7 +589,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testNewEnsembleWithSingleRegion() throws Exception {
+    void newEnsembleWithSingleRegion() throws Exception {
         repp.uninitalize();
         repp = new RegionAwareEnsemblePlacementPolicy();
         repp.initialize(conf, Optional.<DNSToSwitchMapping>empty(), timer, DISABLE_ALL,
@@ -609,20 +610,18 @@ public class TestRegionAwareEnsemblePlacementPolicy {
         addrs.add(addr3.toBookieId());
         addrs.add(addr4.toBookieId());
         repp.onClusterChanged(addrs, new HashSet<BookieId>());
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             List<BookieId> ensemble = repp.newEnsemble(3, 2, 2, null,
                     new HashSet<BookieId>()).getResult();
             assertEquals(0, getNumCoveredRegionsInWriteQuorum(ensemble, 2));
             List<BookieId> ensemble2 = repp.newEnsemble(4, 2, 2, null,
                     new HashSet<BookieId>()).getResult();
             assertEquals(0, getNumCoveredRegionsInWriteQuorum(ensemble2, 2));
-        } catch (BKNotEnoughBookiesException bnebe) {
-            fail("Should not get not enough bookies exception even there is only one rack.");
-        }
+        }, "Should not get not enough bookies exception even there is only one rack.");
     }
 
     @Test
-    public void testNewEnsembleWithMultipleRegions() throws Exception {
+    void newEnsembleWithMultipleRegions() throws Exception {
         repp.uninitalize();
         repp = new RegionAwareEnsemblePlacementPolicy();
         repp.initialize(conf, Optional.<DNSToSwitchMapping>empty(), timer, DISABLE_ALL,
@@ -643,27 +642,23 @@ public class TestRegionAwareEnsemblePlacementPolicy {
         addrs.add(addr3.toBookieId());
         addrs.add(addr4.toBookieId());
         repp.onClusterChanged(addrs, new HashSet<BookieId>());
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             List<BookieId> ensemble = repp.newEnsemble(3, 2, 2, null,
                     new HashSet<BookieId>()).getResult();
             int numCovered = getNumCoveredRegionsInWriteQuorum(ensemble, 2);
             assertTrue(numCovered >= 1);
             assertTrue(numCovered < 3);
-        } catch (BKNotEnoughBookiesException bnebe) {
-            fail("Should not get not enough bookies exception even there is only one rack.");
-        }
-        try {
+        }, "Should not get not enough bookies exception even there is only one rack.");
+        Assertions.assertDoesNotThrow(() -> {
             List<BookieId> ensemble2 = repp.newEnsemble(4, 2, 2, null,
                     new HashSet<BookieId>()).getResult();
             int numCovered = getNumCoveredRegionsInWriteQuorum(ensemble2, 2);
             assertTrue(numCovered >= 1 && numCovered < 3);
-        } catch (BKNotEnoughBookiesException bnebe) {
-            fail("Should not get not enough bookies exception even there is only one rack.");
-        }
+        }, "Should not get not enough bookies exception even there is only one rack.");
     }
 
     @Test
-    public void testNewEnsembleWithPickDifferentRack() throws Exception {
+    void newEnsembleWithPickDifferentRack() throws Exception {
         ClientConfiguration clientConf = new ClientConfiguration(conf);
         clientConf.setMinNumRacksPerWriteQuorum(2);
         clientConf.setEnforceMinNumFaultDomainsForWrite(false);
@@ -721,7 +716,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testNewEnsembleWithEnoughRegions() throws Exception {
+    void newEnsembleWithEnoughRegions() throws Exception {
         BookieSocketAddress addr1 = new BookieSocketAddress("127.0.0.2", 3181);
         BookieSocketAddress addr2 = new BookieSocketAddress("127.0.0.3", 3181);
         BookieSocketAddress addr3 = new BookieSocketAddress("127.0.0.4", 3181);
@@ -750,20 +745,18 @@ public class TestRegionAwareEnsemblePlacementPolicy {
         addrs.add(addr7.toBookieId());
         addrs.add(addr8.toBookieId());
         repp.onClusterChanged(addrs, new HashSet<BookieId>());
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             List<BookieId> ensemble1 = repp.newEnsemble(3, 2, 2, null,
                     new HashSet<BookieId>()).getResult();
             assertEquals(3, getNumCoveredRegionsInWriteQuorum(ensemble1, 2));
             List<BookieId> ensemble2 = repp.newEnsemble(4, 2, 2, null,
                     new HashSet<BookieId>()).getResult();
             assertEquals(4, getNumCoveredRegionsInWriteQuorum(ensemble2, 2));
-        } catch (BKNotEnoughBookiesException bnebe) {
-            fail("Should not get not enough bookies exception even there is only one rack.");
-        }
+        }, "Should not get not enough bookies exception even there is only one rack.");
     }
 
     @Test
-    public void testNewEnsembleWithMultipleRacksWithCommonRack() throws Exception {
+    void newEnsembleWithMultipleRacksWithCommonRack() throws Exception {
         ClientConfiguration clientConf = new ClientConfiguration(conf);
         clientConf.setEnforceMinNumRacksPerWriteQuorum(true);
         clientConf.setMinNumRacksPerWriteQuorum(3);
@@ -807,7 +800,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
         addrs.add(addr10.toBookieId());
         repp.onClusterChanged(addrs, new HashSet<BookieId>());
 
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             int ensembleSize = 10;
             int writeQuorumSize = 10;
             int ackQuorumSize = 2;
@@ -818,13 +811,11 @@ public class TestRegionAwareEnsemblePlacementPolicy {
                         repp.newEnsemble(ensembleSize, writeQuorumSize,
                                 ackQuorumSize, null, excludeBookies);
             }
-        } catch (Exception e) {
-            fail("RegionAwareEnsemblePlacementPolicy should newEnsemble succeed.");
-        }
+        }, "RegionAwareEnsemblePlacementPolicy should newEnsemble succeed.");
     }
 
     @Test
-    public void testNewEnsembleWithThreeRegions() throws Exception {
+    void newEnsembleWithThreeRegions() throws Exception {
         repp.uninitalize();
         repp = new RegionAwareEnsemblePlacementPolicy();
         repp.initialize(conf, Optional.<DNSToSwitchMapping>empty(), timer, DISABLE_ALL,
@@ -863,7 +854,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
         addrs.add(addr9.toBookieId());
         addrs.add(addr10.toBookieId());
         repp.onClusterChanged(addrs, new HashSet<BookieId>());
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             List<BookieId> ensemble = repp.newEnsemble(6, 6, 4, null,
                     new HashSet<BookieId>()).getResult();
             assert(ensemble.contains(addr4.toBookieId()));
@@ -885,13 +876,11 @@ public class TestRegionAwareEnsemblePlacementPolicy {
             assert(ensemble.contains(addr8.toBookieId()));
             assert(ensemble.size() == 9);
             assertEquals(3, getNumRegionsInEnsemble(ensemble));
-        } catch (BKNotEnoughBookiesException bnebe) {
-            fail("Should not get not enough bookies exception even there is only one rack.");
-        }
+        }, "Should not get not enough bookies exception even there is only one rack.");
     }
 
     @Test
-    public void testNewEnsembleWithThreeRegionsWithDisable() throws Exception {
+    void newEnsembleWithThreeRegionsWithDisable() throws Exception {
         FeatureProvider featureProvider = new SettableFeatureProvider("", 0);
         repp.uninitalize();
         repp = new RegionAwareEnsemblePlacementPolicy();
@@ -932,10 +921,10 @@ public class TestRegionAwareEnsemblePlacementPolicy {
         addrs.add(addr9.toBookieId());
         addrs.add(addr10.toBookieId());
         repp.onClusterChanged(addrs, new HashSet<BookieId>());
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             ((SettableFeature) featureProvider.scope("region1").getFeature("disallowBookies")).set(true);
             List<BookieId> ensemble = repp.newEnsemble(6, 6, 4, null,
-                                                                  new HashSet<BookieId>()).getResult();
+                    new HashSet<BookieId>()).getResult();
             assertEquals(2, getNumRegionsInEnsemble(ensemble));
             assert(ensemble.contains(addr1.toBookieId()));
             assert(ensemble.contains(addr3.toBookieId()));
@@ -944,9 +933,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
             assert(ensemble.contains(addr8.toBookieId()));
             assert(ensemble.contains(addr9.toBookieId()));
             assert(ensemble.size() == 6);
-        } catch (BKNotEnoughBookiesException bnebe) {
-            fail("Should not get not enough bookies exception even there is only one rack.");
-        }
+        }, "Should not get not enough bookies exception even there is only one rack.");
         try {
             ((SettableFeature) featureProvider.scope("region2").getFeature("disallowBookies")).set(true);
             repp.newEnsemble(6, 6, 4, null, new HashSet<BookieId>());
@@ -954,10 +941,10 @@ public class TestRegionAwareEnsemblePlacementPolicy {
         } catch (BKNotEnoughBookiesException bnebe) {
             // Expected
         }
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             ((SettableFeature) featureProvider.scope("region2").getFeature("disallowBookies")).set(false);
             List<BookieId> ensemble = repp.newEnsemble(6, 6, 4, null,
-                                                                  new HashSet<BookieId>()).getResult();
+                    new HashSet<BookieId>()).getResult();
             assert(ensemble.contains(addr1.toBookieId()));
             assert(ensemble.contains(addr3.toBookieId()));
             assert(ensemble.contains(addr4.toBookieId()));
@@ -966,14 +953,12 @@ public class TestRegionAwareEnsemblePlacementPolicy {
             assert(ensemble.contains(addr9.toBookieId()));
             assert(ensemble.size() == 6);
             assertEquals(2, getNumRegionsInEnsemble(ensemble));
-        } catch (BKNotEnoughBookiesException bnebe) {
-            fail("Should not get not enough bookies exception even there is only one rack.");
-        }
+        }, "Should not get not enough bookies exception even there is only one rack.");
     }
 
 
     @Test
-    public void testNewEnsembleWithFiveRegions() throws Exception {
+    void newEnsembleWithFiveRegions() throws Exception {
         repp.uninitalize();
         repp = new RegionAwareEnsemblePlacementPolicy();
         conf.setProperty(REPP_REGIONS_TO_WRITE, "region1;region2;region3;region4;region5");
@@ -1040,36 +1025,34 @@ public class TestRegionAwareEnsemblePlacementPolicy {
             fail("Should not get not enough bookies exception even there is only one rack.");
         }
 
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             Set<BookieId> excludedAddrs = new HashSet<BookieId>();
             excludedAddrs.add(addr10.toBookieId());
             List<BookieId> ensemble = repp.newEnsemble(10, 10, 10, null,
-                                                                  excludedAddrs).getResult();
+                    excludedAddrs).getResult();
             assert(ensemble.contains(addr11.toBookieId()) && ensemble.contains(addr12.toBookieId()));
             assert(ensemble.size() == 10);
             assertEquals(5, getNumRegionsInEnsemble(ensemble));
-        } catch (BKNotEnoughBookiesException bnebe) {
-            fail("Should not get not enough bookies exception even there is only one rack.");
-        }
+        }, "Should not get not enough bookies exception even there is only one rack.");
     }
 
     @Test
-    public void testEnsembleWithThreeRegionsReplace() throws Exception {
+    void ensembleWithThreeRegionsReplace() throws Exception {
         testEnsembleWithThreeRegionsReplaceInternal(3, false, false);
     }
 
     @Test
-    public void testEnsembleWithThreeRegionsReplaceDisableOneRegion() throws Exception {
+    void ensembleWithThreeRegionsReplaceDisableOneRegion() throws Exception {
         testEnsembleWithThreeRegionsReplaceInternal(2, false, true);
     }
 
     @Test
-    public void testEnsembleWithThreeRegionsReplaceMinDurabilityOne() throws Exception {
+    void ensembleWithThreeRegionsReplaceMinDurabilityOne() throws Exception {
         testEnsembleWithThreeRegionsReplaceInternal(1, false, false);
     }
 
     @Test
-    public void testEnsembleWithThreeRegionsReplaceDisableDurability() throws Exception {
+    void ensembleWithThreeRegionsReplaceDisableDurability() throws Exception {
         testEnsembleWithThreeRegionsReplaceInternal(1, true, false);
     }
 
@@ -1182,14 +1165,12 @@ public class TestRegionAwareEnsemblePlacementPolicy {
             }
             Set<BookieId> excludedAddrs = new HashSet<BookieId>();
 
-            try {
+            Assertions.assertDoesNotThrow(() -> {
                 BookieId replacedBookie = repp.replaceBookie(6, 6, ackQuorum, null,
                         ensemble, bookieToReplace, excludedAddrs).getResult();
                 assertEquals(replacedBookieExpected, replacedBookie);
                 assertEquals(3, getNumRegionsInEnsemble(ensemble));
-            } catch (BKNotEnoughBookiesException bnebe) {
-                fail("Should not get not enough bookies exception even there is only one rack.");
-            }
+            }, "Should not get not enough bookies exception even there is only one rack.");
 
             excludedAddrs.add(replacedBookieExpected);
             try {
@@ -1206,12 +1187,12 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testEnsembleMinDurabilityOne() throws Exception {
+    void ensembleMinDurabilityOne() throws Exception {
         testEnsembleDurabilityDisabledInternal(1, false);
     }
 
     @Test
-    public void testEnsembleDisableDurability() throws Exception {
+    void ensembleDisableDurability() throws Exception {
         testEnsembleDurabilityDisabledInternal(2, true);
     }
 
@@ -1280,15 +1261,13 @@ public class TestRegionAwareEnsemblePlacementPolicy {
 
         Set<BookieId> excludedAddrs = new HashSet<BookieId>();
 
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             repp.replaceBookie(6, 6, 4, null, ensemble, ensemble.get(2), excludedAddrs);
-        } catch (BKNotEnoughBookiesException bnebe) {
-            fail("Should not get not enough bookies exception even there is only one rack.");
-        }
+        }, "Should not get not enough bookies exception even there is only one rack.");
     }
 
     @Test
-    public void testNewEnsembleFailWithFiveRegions() throws Exception {
+    void newEnsembleFailWithFiveRegions() throws Exception {
         repp.uninitalize();
         repp = new RegionAwareEnsemblePlacementPolicy();
         conf.setProperty(REPP_REGIONS_TO_WRITE, "region1;region2;region3;region4;region5");
@@ -1384,12 +1363,12 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testBasicReorderReadSequenceWithLocalRegion() throws Exception {
+    void basicReorderReadSequenceWithLocalRegion() throws Exception {
         basicReorderReadSequenceWithLocalRegionTest("region2", false);
     }
 
     @Test
-    public void testBasicReorderReadLACSequenceWithLocalRegion() throws Exception {
+    void basicReorderReadLACSequenceWithLocalRegion() throws Exception {
         basicReorderReadSequenceWithLocalRegionTest("region2", true);
     }
 
@@ -1444,12 +1423,12 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testBasicReorderReadSequenceWithRemoteRegion() throws Exception {
+    void basicReorderReadSequenceWithRemoteRegion() throws Exception {
         basicReorderReadSequenceWithRemoteRegionTest("region4", false);
     }
 
     @Test
-    public void testBasicReorderReadLACSequenceWithRemoteRegion() throws Exception {
+    void basicReorderReadLACSequenceWithRemoteRegion() throws Exception {
         basicReorderReadSequenceWithRemoteRegionTest("region4", true);
     }
 
@@ -1486,12 +1465,12 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testReorderReadSequenceWithUnavailableOrReadOnlyBookies() throws Exception {
+    void reorderReadSequenceWithUnavailableOrReadOnlyBookies() throws Exception {
         reorderReadSequenceWithUnavailableOrReadOnlyBookiesTest(false);
     }
 
     @Test
-    public void testReorderReadLACSequenceWithUnavailableOrReadOnlyBookies() throws Exception {
+    void reorderReadLACSequenceWithUnavailableOrReadOnlyBookies() throws Exception {
         reorderReadSequenceWithUnavailableOrReadOnlyBookiesTest(true);
     }
 
@@ -1599,7 +1578,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testRecoveryOnNodeFailure() throws Exception {
+    void recoveryOnNodeFailure() throws Exception {
         repp.uninitalize();
         repp = new RegionAwareEnsemblePlacementPolicy();
         repp.initialize(conf, Optional.empty(), timer, DISABLE_ALL,
@@ -1647,7 +1626,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testNodeWithFailures() throws Exception {
+    void nodeWithFailures() throws Exception {
         repp.uninitalize();
         updateMyRack("/r2/rack1");
 
@@ -1706,7 +1685,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testNewEnsembleSetWithFiveRegions() throws Exception {
+    void newEnsembleSetWithFiveRegions() throws Exception {
         repp.uninitalize();
         repp = new RegionAwareEnsemblePlacementPolicy();
         repp.initialize(conf, Optional.empty(), timer, DISABLE_ALL,
@@ -1733,26 +1712,24 @@ public class TestRegionAwareEnsemblePlacementPolicy {
         addrs.add(addr5.toBookieId());
 
         repp.onClusterChanged(addrs, new HashSet<>());
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             List<BookieId> ensemble1 = repp.newEnsemble(3, 3, 2,
-                null, new HashSet<>()).getResult();
-            assertEquals(ensemble1.size(), 3);
+                    null, new HashSet<>()).getResult();
+            assertEquals(3, ensemble1.size());
             List<BookieId> ensemble2 = repp.newEnsemble(3, 3, 2,
-                null, new HashSet<>()).getResult();
+                    null, new HashSet<>()).getResult();
             ensemble1.retainAll(ensemble2);
             assert(!ensemble1.isEmpty());
 
             List<BookieId> ensemble3 = repp.newEnsemble(3, 3, 2,
-                null, new HashSet<>()).getResult();
+                    null, new HashSet<>()).getResult();
             ensemble2.removeAll(ensemble3);
             assert(!ensemble2.isEmpty());
-        } catch (BKNotEnoughBookiesException bnebe) {
-            fail("Should not get not enough bookies exception even there is only one rack.");
-        }
+        }, "Should not get not enough bookies exception even there is only one rack.");
     }
 
     @Test
-    public void testRegionsWithDiskWeight() throws Exception {
+    void regionsWithDiskWeight() throws Exception {
         repp.uninitalize();
         repp = new RegionAwareEnsemblePlacementPolicy();
         conf.setProperty(REPP_ENABLE_VALIDATION, false);
@@ -1788,7 +1765,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testNotifyRackChangeWithOldRegion() throws Exception {
+    void notifyRackChangeWithOldRegion() throws Exception {
         BookieSocketAddress addr1 = new BookieSocketAddress("127.0.1.1", 3181);
         BookieSocketAddress addr2 = new BookieSocketAddress("127.0.1.2", 3181);
         BookieSocketAddress addr3 = new BookieSocketAddress("127.0.1.3", 3181);
@@ -1862,7 +1839,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
     }
 
     @Test
-    public void testNotifyRackChangeWithNewRegion() throws Exception {
+    void notifyRackChangeWithNewRegion() throws Exception {
         BookieSocketAddress addr1 = new BookieSocketAddress("127.0.1.1", 3181);
         BookieSocketAddress addr2 = new BookieSocketAddress("127.0.1.2", 3181);
         BookieSocketAddress addr3 = new BookieSocketAddress("127.0.1.3", 3181);
@@ -1940,8 +1917,8 @@ public class TestRegionAwareEnsemblePlacementPolicy {
 
 
     @Test
-    public void testNewEnsemblePickLocalRegionBookies()
-        throws Exception {
+    void newEnsemblePickLocalRegionBookies()
+            throws Exception {
         repp.uninitalize();
         BookieSocketAddress addr1 = new BookieSocketAddress("127.0.0.10", 3181);
         BookieSocketAddress addr2 = new BookieSocketAddress("127.0.0.2", 3181);
@@ -2025,10 +2002,10 @@ public class TestRegionAwareEnsemblePlacementPolicy {
         bookie8Count = 0;
         bookie9Count = 0;
         for (int i = 0; i < 100; ++i) {
-            try {
+            Assertions.assertDoesNotThrow(() -> {
                 EnsemblePlacementPolicy.PlacementResult<List<BookieId>> ensembleResponse =
-                    repp.newEnsemble(ensembleSize, writeQuorumSize,
-                        ackQuorumSize, null, excludeBookies);
+                        repp.newEnsemble(ensembleSize, writeQuorumSize,
+                                ackQuorumSize, null, excludeBookies);
                 List<BookieId> ensemble = ensembleResponse.getResult();
                 if (ensemble.contains(addr1.toBookieId())) {
                     bookie1Count++;
@@ -2045,9 +2022,7 @@ public class TestRegionAwareEnsemblePlacementPolicy {
                 if (ensemble.contains(addr8.toBookieId()) || ensemble.contains(addr9.toBookieId())) {
                     fail("Selected the shutdown bookies");
                 }
-            } catch (BKNotEnoughBookiesException e) {
-                fail("Failed to select the ensemble.");
-            }
+            }, "Failed to select the ensemble.");
         }
         LOG.info("Bookie1 Count: {}, Bookie8 Count: {}, Bookie9 Count: {}", bookie1Count, bookie8Count, bookie9Count);
 

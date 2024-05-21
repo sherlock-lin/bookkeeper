@@ -18,7 +18,10 @@
 
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.util.concurrent.MoreExecutors;
 import io.netty.buffer.UnpooledByteBufAllocator;
@@ -45,10 +48,9 @@ import org.apache.bookkeeper.test.TestStatsProvider.TestOpStatsLogger;
 import org.apache.bookkeeper.test.TestStatsProvider.TestStatsLogger;
 import org.apache.bookkeeper.util.DiskChecker;
 import org.apache.commons.lang.mutable.MutableInt;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,8 +64,8 @@ public class CreateNewLogTest {
     private String[] ledgerDirs;
     private int numDirs = 100;
 
-    @Before
-    public void setUp() throws Exception{
+    @BeforeEach
+    void setUp() throws Exception{
         ledgerDirs = new String[numDirs];
         for (int i = 0; i < numDirs; i++){
             File temp = File.createTempFile("bookie", "test");
@@ -75,8 +77,8 @@ public class CreateNewLogTest {
         }
     }
 
-    @After
-    public void tearDown() throws Exception{
+    @AfterEach
+    void tearDown() throws Exception{
         for (int i = 0; i < numDirs; i++){
             File f = new File(ledgerDirs[i]);
             deleteRecursive(f);
@@ -101,7 +103,7 @@ public class CreateNewLogTest {
      * @throws Exception
      */
     @Test
-    public void testCreateNewLog() throws Exception {
+    void createNewLog() throws Exception {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
 
         // Creating a new configuration with a number of
@@ -123,11 +125,11 @@ public class CreateNewLogTest {
         EntryLogManagerForSingleEntryLog entryLogManager = (EntryLogManagerForSingleEntryLog) el.getEntryLogManager();
         entryLogManager.createNewLog(0L);
         LOG.info("This is the current log id: {}", entryLogManager.getCurrentLogId());
-        assertTrue("Wrong log id", entryLogManager.getCurrentLogId() > 1);
+        assertTrue(entryLogManager.getCurrentLogId() > 1, "Wrong log id");
     }
 
     @Test
-    public void testCreateNewLogWithNoWritableLedgerDirs() throws Exception {
+    void createNewLogWithNoWritableLedgerDirs() throws Exception {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
 
         // Creating a new configuration with a number of ledger directories.
@@ -155,7 +157,7 @@ public class CreateNewLogTest {
         EntryLogManagerForSingleEntryLog entryLogManager = (EntryLogManagerForSingleEntryLog) el.getEntryLogManager();
         entryLogManager.createNewLog(0L);
         LOG.info("This is the current log id: {}", entryLogManager.getCurrentLogId());
-        assertTrue("Wrong log id", entryLogManager.getCurrentLogId() > 1);
+        assertTrue(entryLogManager.getCurrentLogId() > 1, "Wrong log id");
     }
 
     void setSameThreadExecutorForEntryLoggerAllocator(EntryLoggerAllocator entryLoggerAllocator) {
@@ -168,7 +170,7 @@ public class CreateNewLogTest {
      * entryLogPerLedger is enabled and various scenarios of entrylogcreation are tested
      */
     @Test
-    public void testEntryLogPerLedgerCreationWithPreAllocation() throws Exception {
+    void entryLogPerLedgerCreationWithPreAllocation() throws Exception {
         /*
          * I wish I could shorten this testcase or split it into multiple testcases,
          * but I want to cover a scenario and it requires multiple operations in
@@ -197,8 +199,7 @@ public class CreateNewLogTest {
          * no entrylog will be created during initialization
          */
         int expectedPreAllocatedLogID = -1;
-        Assert.assertEquals("PreallocatedlogId after initialization of Entrylogger",
-                expectedPreAllocatedLogID, entryLoggerAllocator.getPreallocatedLogId());
+        assertEquals(expectedPreAllocatedLogID, entryLoggerAllocator.getPreallocatedLogId(), "PreallocatedlogId after initialization of Entrylogger");
 
         int numOfLedgers = 6;
 
@@ -211,12 +212,15 @@ public class CreateNewLogTest {
          * preallocation is enabled so though entryLogId starts with 0, preallocatedLogId would be equal to numOfLedgers
          */
         expectedPreAllocatedLogID = numOfLedgers;
-        Assert.assertEquals("PreallocatedlogId after creation of logs for ledgers", expectedPreAllocatedLogID,
-                entryLoggerAllocator.getPreallocatedLogId());
-        Assert.assertEquals("Number of current ", numOfLedgers,
-                entryLogManager.getCopyOfCurrentLogs().size());
-        Assert.assertEquals("Number of LogChannels to flush", 0,
-                entryLogManager.getRotatedLogChannels().size());
+        assertEquals(expectedPreAllocatedLogID,
+                entryLoggerAllocator.getPreallocatedLogId(),
+                "PreallocatedlogId after creation of logs for ledgers");
+        assertEquals(numOfLedgers,
+                entryLogManager.getCopyOfCurrentLogs().size(),
+                "Number of current ");
+        assertEquals(0,
+                entryLogManager.getRotatedLogChannels().size(),
+                "Number of LogChannels to flush");
 
         // create dummy entrylog file with id - (expectedPreAllocatedLogID + 1)
         String logFileName = Long.toHexString(expectedPreAllocatedLogID + 1) + ".log";
@@ -235,13 +239,13 @@ public class CreateNewLogTest {
         entryLogManager.createNewLog(rotatedLedger);
 
         expectedPreAllocatedLogID = expectedPreAllocatedLogID + 2;
-        Assert.assertEquals("PreallocatedlogId ",
-                expectedPreAllocatedLogID, entryLoggerAllocator.getPreallocatedLogId());
-        Assert.assertEquals("Number of current ", numOfLedgers,
-                entryLogManager.getCopyOfCurrentLogs().size());
+        assertEquals(expectedPreAllocatedLogID, entryLoggerAllocator.getPreallocatedLogId(), "PreallocatedlogId ");
+        assertEquals(numOfLedgers,
+                entryLogManager.getCopyOfCurrentLogs().size(),
+                "Number of current ");
         List<DefaultEntryLogger.BufferedLogChannel> rotatedLogChannels = entryLogManager.getRotatedLogChannels();
-        Assert.assertEquals("Number of LogChannels rotated", 1, rotatedLogChannels.size());
-        Assert.assertEquals("Rotated logchannel logid", rotatedLedger, rotatedLogChannels.iterator().next().getLogId());
+        assertEquals(1, rotatedLogChannels.size(), "Number of LogChannels rotated");
+        assertEquals(rotatedLedger, rotatedLogChannels.iterator().next().getLogId(), "Rotated logchannel logid");
         entryLogger.flush();
         /*
          * when flush is called all the rotatedlogchannels are flushed and
@@ -250,19 +254,19 @@ public class CreateNewLogTest {
          * return 0.
          */
         rotatedLogChannels = entryLogManager.getRotatedLogChannels();
-        Assert.assertEquals("Number of LogChannels rotated", 0, rotatedLogChannels.size());
-        Assert.assertEquals("Least UnflushedLoggerId", 0, entryLogger.getLeastUnflushedLogId());
+        assertEquals(0, rotatedLogChannels.size(), "Number of LogChannels rotated");
+        assertEquals(0, entryLogger.getLeastUnflushedLogId(), "Least UnflushedLoggerId");
 
         entryLogManager.createNewLog(0L);
         rotatedLogChannels = entryLogManager.getRotatedLogChannels();
-        Assert.assertEquals("Number of LogChannels rotated", 1, rotatedLogChannels.size());
-        Assert.assertEquals("Least UnflushedLoggerId", 0, entryLogger.getLeastUnflushedLogId());
+        assertEquals(1, rotatedLogChannels.size(), "Number of LogChannels rotated");
+        assertEquals(0, entryLogger.getLeastUnflushedLogId(), "Least UnflushedLoggerId");
         entryLogger.flush();
         /*
          * since both entrylogids 0, 1 are rotated and flushed,
          * leastunFlushedLogId should be 2
          */
-        Assert.assertEquals("Least UnflushedLoggerId", 2, entryLogger.getLeastUnflushedLogId());
+        assertEquals(2, entryLogger.getLeastUnflushedLogId(), "Least UnflushedLoggerId");
         expectedPreAllocatedLogID = expectedPreAllocatedLogID + 1;
 
         /*
@@ -272,8 +276,8 @@ public class CreateNewLogTest {
          */
         for (int i = 0; i <= expectedPreAllocatedLogID; i++) {
             EntryLogMetadata meta = entryLogger.getEntryLogMetadata(i);
-            Assert.assertTrue("EntryLogMetadata should be empty", meta.isEmpty());
-            Assert.assertTrue("EntryLog usage should be 0", meta.getTotalSize() == 0);
+            assertTrue(meta.isEmpty(), "EntryLogMetadata should be empty");
+            assertEquals(0, meta.getTotalSize(), "EntryLog usage should be 0");
         }
     }
 
@@ -282,7 +286,7 @@ public class CreateNewLogTest {
      * while ledgerdirs are getting full.
      */
     @Test
-    public void testEntryLogCreationWithFilledDirs() throws Exception {
+    void entryLogCreationWithFilledDirs() throws Exception {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
 
         // Creating a new configuration with a number of ledger directories.
@@ -302,10 +306,8 @@ public class CreateNewLogTest {
         setSameThreadExecutorForEntryLoggerAllocator(entryLoggerAllocator);
 
         int expectedPreAllocatedLogIDDuringInitialization = -1;
-        Assert.assertEquals("PreallocatedlogId after initialization of Entrylogger",
-                expectedPreAllocatedLogIDDuringInitialization, entryLoggerAllocator.getPreallocatedLogId());
-        Assert.assertEquals("Preallocation Future of this slot should be null", null,
-                entryLogger.entryLoggerAllocator.preallocation);
+        assertEquals(expectedPreAllocatedLogIDDuringInitialization, entryLoggerAllocator.getPreallocatedLogId(), "PreallocatedlogId after initialization of Entrylogger");
+        assertNull(entryLogger.entryLoggerAllocator.preallocation, "Preallocation Future of this slot should be null");
 
         long ledgerId = 0L;
 
@@ -314,8 +316,7 @@ public class CreateNewLogTest {
         /*
          * pre-allocation is not enabled, so it would not preallocate for next entrylog
          */
-        Assert.assertEquals("PreallocatedlogId after initialization of Entrylogger",
-                expectedPreAllocatedLogIDDuringInitialization + 1, entryLoggerAllocator.getPreallocatedLogId());
+        assertEquals(expectedPreAllocatedLogIDDuringInitialization + 1, entryLoggerAllocator.getPreallocatedLogId(), "PreallocatedlogId after initialization of Entrylogger");
 
         for (int i = 0; i < numDirs - 1; i++) {
             ledgerDirsManager.addToFilledDirs(BookieImpl.getCurrentDirectory(new File(ledgerDirs[i])));
@@ -328,8 +329,9 @@ public class CreateNewLogTest {
 
         entryLogManager.createNewLog(ledgerId);
         DefaultEntryLogger.BufferedLogChannel newLogChannel = entryLogManager.getCurrentLogForLedger(ledgerId);
-        Assert.assertEquals("Directory of newly created BufferedLogChannel file", nonFilledLedgerDir.getAbsolutePath(),
-                newLogChannel.getLogFile().getParentFile().getAbsolutePath());
+        assertEquals(nonFilledLedgerDir.getAbsolutePath(),
+                newLogChannel.getLogFile().getParentFile().getAbsolutePath(),
+                "Directory of newly created BufferedLogChannel file");
 
         ledgerDirsManager.addToFilledDirs(BookieImpl.getCurrentDirectory(new File(ledgerDirs[numDirs - 1])));
 
@@ -342,7 +344,7 @@ public class CreateNewLogTest {
      * ledgerDir with least number of current active entrylogs
      */
     @Test
-    public void testLedgerDirsUniformityDuringCreation() throws Exception {
+    void ledgerDirsUniformityDuringCreation() throws Exception {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
 
         // Creating a new configuration with a number of ledger directories.
@@ -362,22 +364,25 @@ public class CreateNewLogTest {
 
         int numberOfLedgersCreated = ledgerDirs.length;
 
-        Assert.assertEquals("Highest frequency of entrylogs per ledgerdir", 1,
-                highestFrequencyOfEntryLogsPerLedgerDir(entrylogManager.getCopyOfCurrentLogs()));
+        assertEquals(1,
+                highestFrequencyOfEntryLogsPerLedgerDir(entrylogManager.getCopyOfCurrentLogs()),
+                "Highest frequency of entrylogs per ledgerdir");
 
         long newLedgerId = numberOfLedgersCreated;
         entrylogManager.createNewLog(newLedgerId);
         numberOfLedgersCreated++;
 
-        Assert.assertEquals("Highest frequency of entrylogs per ledgerdir", 2,
-                highestFrequencyOfEntryLogsPerLedgerDir(entrylogManager.getCopyOfCurrentLogs()));
+        assertEquals(2,
+                highestFrequencyOfEntryLogsPerLedgerDir(entrylogManager.getCopyOfCurrentLogs()),
+                "Highest frequency of entrylogs per ledgerdir");
 
         for (long i = numberOfLedgersCreated; i < 2 * ledgerDirs.length; i++) {
             entrylogManager.createNewLog(i);
         }
 
-        Assert.assertEquals("Highest frequency of entrylogs per ledgerdir", 2,
-                highestFrequencyOfEntryLogsPerLedgerDir(entrylogManager.getCopyOfCurrentLogs()));
+        assertEquals(2,
+                highestFrequencyOfEntryLogsPerLedgerDir(entrylogManager.getCopyOfCurrentLogs()),
+                "Highest frequency of entrylogs per ledgerdir");
     }
 
 
@@ -398,12 +403,12 @@ public class CreateNewLogTest {
     }
 
     @Test
-    public void testConcurrentCreateNewLogWithEntryLogFilePreAllocationEnabled() throws Exception {
+    void concurrentCreateNewLogWithEntryLogFilePreAllocationEnabled() throws Exception {
         testConcurrentCreateNewLog(true);
     }
 
     @Test
-    public void testConcurrentCreateNewLogWithEntryLogFilePreAllocationDisabled() throws Exception {
+    void concurrentCreateNewLogWithEntryLogFilePreAllocationDisabled() throws Exception {
         testConcurrentCreateNewLog(false);
     }
 
@@ -422,9 +427,10 @@ public class CreateNewLogTest {
         // set same thread executor for entryLoggerAllocator's allocatorExecutor
         setSameThreadExecutorForEntryLoggerAllocator(el.getEntryLoggerAllocator());
 
-        Assert.assertEquals("previousAllocatedEntryLogId after initialization", -1,
-                el.getPreviousAllocatedEntryLogId());
-        Assert.assertEquals("leastUnflushedLogId after initialization", 0, el.getLeastUnflushedLogId());
+        assertEquals(-1,
+                el.getPreviousAllocatedEntryLogId(),
+                "previousAllocatedEntryLogId after initialization");
+        assertEquals(0, el.getLeastUnflushedLogId(), "leastUnflushedLogId after initialization");
         int createNewLogNumOfTimes = 10;
         AtomicBoolean receivedException = new AtomicBoolean(false);
 
@@ -437,22 +443,22 @@ public class CreateNewLogTest {
             }
         });
 
-        Assert.assertFalse("There shouldn't be any exceptions while creating newlog", receivedException.get());
+        assertFalse(receivedException.get(), "There shouldn't be any exceptions while creating newlog");
         int expectedPreviousAllocatedEntryLogId = createNewLogNumOfTimes - 1;
         if (entryLogFilePreAllocationEnabled) {
             expectedPreviousAllocatedEntryLogId = createNewLogNumOfTimes;
         }
 
-        Assert.assertEquals(
-                "previousAllocatedEntryLogId after " + createNewLogNumOfTimes
-                + " number of times createNewLog is called",
-                expectedPreviousAllocatedEntryLogId, el.getPreviousAllocatedEntryLogId());
-        Assert.assertEquals("Number of RotatedLogChannels", createNewLogNumOfTimes - 1,
-                entryLogManager.getRotatedLogChannels().size());
+        assertEquals(
+                expectedPreviousAllocatedEntryLogId, el.getPreviousAllocatedEntryLogId(), "previousAllocatedEntryLogId after " + createNewLogNumOfTimes
+                + " number of times createNewLog is called");
+        assertEquals(createNewLogNumOfTimes - 1,
+                entryLogManager.getRotatedLogChannels().size(),
+                "Number of RotatedLogChannels");
     }
 
     @Test
-    public void testCreateNewLogWithGaps() throws Exception {
+    void createNewLogWithGaps() throws Exception {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
 
         // Creating a new configuration with a number of
@@ -466,7 +472,7 @@ public class CreateNewLogTest {
         EntryLogManagerBase entryLogManagerBase = (EntryLogManagerBase) el.getEntryLogManager();
         entryLogManagerBase.createNewLog(0L);
 
-        Assert.assertEquals("previousAllocatedEntryLogId after initialization", 0, el.getPreviousAllocatedEntryLogId());
+        assertEquals(0, el.getPreviousAllocatedEntryLogId(), "previousAllocatedEntryLogId after initialization");
 
         // Extracted from createNewLog()
         String logFileName = Long.toHexString(1) + ".log";
@@ -476,8 +482,9 @@ public class CreateNewLogTest {
         newLogFile.createNewFile();
 
         entryLogManagerBase.createNewLog(0L);
-        Assert.assertEquals("previousAllocatedEntryLogId since entrylogid 1 is already taken", 2,
-                el.getPreviousAllocatedEntryLogId());
+        assertEquals(2,
+                el.getPreviousAllocatedEntryLogId(),
+                "previousAllocatedEntryLogId since entrylogid 1 is already taken");
 
         // Extracted from createNewLog()
         logFileName = Long.toHexString(3) + ".log";
@@ -487,12 +494,13 @@ public class CreateNewLogTest {
         newLogFile.createNewFile();
 
         entryLogManagerBase.createNewLog(0L);
-        Assert.assertEquals("previousAllocatedEntryLogId since entrylogid 3 is already taken", 4,
-                el.getPreviousAllocatedEntryLogId());
+        assertEquals(4,
+                el.getPreviousAllocatedEntryLogId(),
+                "previousAllocatedEntryLogId since entrylogid 3 is already taken");
     }
 
     @Test
-    public void testCreateNewLogAndCompactionLog() throws Exception {
+    void createNewLogAndCompactionLog() throws Exception {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
 
         // Creating a new configuration with a number of
@@ -519,14 +527,15 @@ public class CreateNewLogTest {
             }
         });
 
-        Assert.assertFalse("There shouldn't be any exceptions while creating newlog", receivedException.get());
-        Assert.assertEquals(
-                "previousAllocatedEntryLogId after 2 times createNewLog is called", 2,
-                el.getPreviousAllocatedEntryLogId());
+        assertFalse(receivedException.get(), "There shouldn't be any exceptions while creating newlog");
+        assertEquals(
+                2,
+                el.getPreviousAllocatedEntryLogId(),
+                "previousAllocatedEntryLogId after 2 times createNewLog is called");
     }
 
     @Test
-    public void testLastIdCompatibleBetweenDefaultAndDirectEntryLogger() throws Exception {
+    void lastIdCompatibleBetweenDefaultAndDirectEntryLogger() throws Exception {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
 
         // Creating a new configuration with a number of
@@ -542,7 +551,7 @@ public class CreateNewLogTest {
             entryLogManagerBase.createNewLog(i);
         }
 
-        Assert.assertEquals(9, el.getPreviousAllocatedEntryLogId());
+        assertEquals(9, el.getPreviousAllocatedEntryLogId());
 
         //Mock half ledgerDirs lastId is 3.
         for (int i = 0; i < ledgerDirsManager.getAllLedgerDirs().size() / 2; i++) {
@@ -552,7 +561,7 @@ public class CreateNewLogTest {
         }
 
         el = new DefaultEntryLogger(conf, ledgerDirsManager);
-        Assert.assertEquals(9, el.getPreviousAllocatedEntryLogId());
+        assertEquals(9, el.getPreviousAllocatedEntryLogId());
 
         //Mock all ledgerDirs lastId is 3.
         for (int i = 0; i < ledgerDirsManager.getAllLedgerDirs().size(); i++) {
@@ -562,14 +571,14 @@ public class CreateNewLogTest {
         }
 
         el = new DefaultEntryLogger(conf, ledgerDirsManager);
-        Assert.assertEquals(9, el.getPreviousAllocatedEntryLogId());
+        assertEquals(9, el.getPreviousAllocatedEntryLogId());
     }
 
     /*
      * In this testcase entrylogs for ledgers are tried to create concurrently.
      */
     @Test
-    public void testConcurrentEntryLogCreations() throws Exception {
+    void concurrentEntryLogCreations() throws Exception {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
 
         // Creating a new configuration with a number of ledger directories.
@@ -609,18 +618,20 @@ public class CreateNewLogTest {
 
         startLatch.countDown();
         createdLatch.await(20, TimeUnit.SECONDS);
-        Assert.assertEquals("Created EntryLogs", numOfLedgers * numOfThreadsForSameLedger, createdEntryLogs.get());
-        Assert.assertEquals("Active currentlogs size", numOfLedgers, entrylogManager.getCopyOfCurrentLogs().size());
-        Assert.assertEquals("Rotated entrylogs size", (numOfThreadsForSameLedger - 1) * numOfLedgers,
-                entrylogManager.getRotatedLogChannels().size());
+        assertEquals(numOfLedgers * numOfThreadsForSameLedger, createdEntryLogs.get(), "Created EntryLogs");
+        assertEquals(numOfLedgers, entrylogManager.getCopyOfCurrentLogs().size(), "Active currentlogs size");
+        assertEquals((numOfThreadsForSameLedger - 1) * numOfLedgers,
+                entrylogManager.getRotatedLogChannels().size(),
+                "Rotated entrylogs size");
         /*
          * EntryLogFilePreAllocation is Enabled so
          * getPreviousAllocatedEntryLogId would be (numOfLedgers *
          * numOfThreadsForSameLedger) instead of (numOfLedgers *
          * numOfThreadsForSameLedger - 1)
          */
-        Assert.assertEquals("PreviousAllocatedEntryLogId", numOfLedgers * numOfThreadsForSameLedger,
-                entryLogger.getPreviousAllocatedEntryLogId());
+        assertEquals(numOfLedgers * numOfThreadsForSameLedger,
+                entryLogger.getPreviousAllocatedEntryLogId(),
+                "PreviousAllocatedEntryLogId");
     }
 
     /*
@@ -628,7 +639,7 @@ public class CreateNewLogTest {
      * validated.
      */
     @Test
-    public void testEntryLogManagerMetrics() throws Exception {
+    void entryLogManagerMetrics() throws Exception {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         TestStatsProvider statsProvider = new TestStatsProvider();
         TestStatsLogger statsLogger = statsProvider.getStatsLogger(BookKeeperServerStats.ENTRYLOGGER_SCOPE);
@@ -661,14 +672,17 @@ public class CreateNewLogTest {
         TestOpStatsLogger entryLogsPerLedger = (TestOpStatsLogger) statsLogger
                 .getOpStatsLogger(BookKeeperServerStats.ENTRYLOGS_PER_LEDGER);
         // initially all the counters should be 0
-        Assert.assertEquals("NUM_OF_WRITE_ACTIVE_LEDGERS", 0, numOfWriteActiveLedgers.get().intValue());
-        Assert.assertEquals("NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_EXPIRY", 0,
-                numOfWriteLedgersRemovedCacheExpiry.get().intValue());
-        Assert.assertEquals("NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_MAXSIZE", 0,
-                numOfWriteLedgersRemovedCacheMaxSize.get().intValue());
-        Assert.assertEquals("NUM_LEDGERS_HAVING_MULTIPLE_ENTRYLOGS", 0,
-                numLedgersHavingMultipleEntrylogs.get().intValue());
-        Assert.assertEquals("ENTRYLOGS_PER_LEDGER SuccessCount", 0, entryLogsPerLedger.getSuccessCount());
+        assertEquals(0, numOfWriteActiveLedgers.get().intValue(), "NUM_OF_WRITE_ACTIVE_LEDGERS");
+        assertEquals(0,
+                numOfWriteLedgersRemovedCacheExpiry.get().intValue(),
+                "NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_EXPIRY");
+        assertEquals(0,
+                numOfWriteLedgersRemovedCacheMaxSize.get().intValue(),
+                "NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_MAXSIZE");
+        assertEquals(0,
+                numLedgersHavingMultipleEntrylogs.get().intValue(),
+                "NUM_LEDGERS_HAVING_MULTIPLE_ENTRYLOGS");
+        assertEquals(0, entryLogsPerLedger.getSuccessCount(), "ENTRYLOGS_PER_LEDGER SuccessCount");
 
         // lid-1 : 3 entrylogs, lid-2 : 2 entrylogs, lid-3 : 1 entrylog
         int numOfEntrylogsForLedger1 = 3;
@@ -677,25 +691,30 @@ public class CreateNewLogTest {
         createNewLogs(entrylogManager, 2L, numOfEntrylogsForLedger2);
         createNewLogs(entrylogManager, 3L, 1);
 
-        Assert.assertEquals("NUM_OF_WRITE_ACTIVE_LEDGERS", 3, numOfWriteActiveLedgers.get().intValue());
-        Assert.assertEquals("NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_EXPIRY", 0,
-                numOfWriteLedgersRemovedCacheExpiry.get().intValue());
-        Assert.assertEquals("NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_MAXSIZE", 0,
-                numOfWriteLedgersRemovedCacheMaxSize.get().intValue());
-        Assert.assertEquals("NUM_LEDGERS_HAVING_MULTIPLE_ENTRYLOGS", 2,
-                numLedgersHavingMultipleEntrylogs.get().intValue());
-        Assert.assertEquals("ENTRYLOGS_PER_LEDGER SuccessCount", 0, entryLogsPerLedger.getSuccessCount());
+        assertEquals(3, numOfWriteActiveLedgers.get().intValue(), "NUM_OF_WRITE_ACTIVE_LEDGERS");
+        assertEquals(0,
+                numOfWriteLedgersRemovedCacheExpiry.get().intValue(),
+                "NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_EXPIRY");
+        assertEquals(0,
+                numOfWriteLedgersRemovedCacheMaxSize.get().intValue(),
+                "NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_MAXSIZE");
+        assertEquals(2,
+                numLedgersHavingMultipleEntrylogs.get().intValue(),
+                "NUM_LEDGERS_HAVING_MULTIPLE_ENTRYLOGS");
+        assertEquals(0, entryLogsPerLedger.getSuccessCount(), "ENTRYLOGS_PER_LEDGER SuccessCount");
 
         /*
          * since entrylog for lid-4 is created and entrylogmap cachesize is 3,
          * lid-1 will be removed from entrylogmap cache
          */
         createNewLogs(entrylogManager, 4L, 1);
-        Assert.assertEquals("NUM_OF_WRITE_ACTIVE_LEDGERS", maximumNumberOfActiveEntryLogs,
-                numOfWriteActiveLedgers.get().intValue());
-        Assert.assertEquals("NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_MAXSIZE", 1,
-                numOfWriteLedgersRemovedCacheMaxSize.get().intValue());
-        Assert.assertEquals("ENTRYLOGS_PER_LEDGER SuccessCount", 0, entryLogsPerLedger.getSuccessCount());
+        assertEquals(maximumNumberOfActiveEntryLogs,
+                numOfWriteActiveLedgers.get().intValue(),
+                "NUM_OF_WRITE_ACTIVE_LEDGERS");
+        assertEquals(1,
+                numOfWriteLedgersRemovedCacheMaxSize.get().intValue(),
+                "NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_MAXSIZE");
+        assertEquals(0, entryLogsPerLedger.getSuccessCount(), "ENTRYLOGS_PER_LEDGER SuccessCount");
 
         /*
          * entrylog for lid-5, lid-6, lid-7 are created. Since
@@ -706,29 +725,32 @@ public class CreateNewLogTest {
         createNewLogs(entrylogManager, 5L, 1);
         createNewLogs(entrylogManager, 6L, 1);
         createNewLogs(entrylogManager, 7L, 1);
-        Assert.assertEquals("NUM_OF_WRITE_ACTIVE_LEDGERS", maximumNumberOfActiveEntryLogs,
-                numOfWriteActiveLedgers.get().intValue());
-        Assert.assertEquals("NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_MAXSIZE", 4,
-                numOfWriteLedgersRemovedCacheMaxSize.get().intValue());
-        Assert.assertEquals("ENTRYLOGS_PER_LEDGER SuccessCount", 1, entryLogsPerLedger.getSuccessCount());
-        Assert.assertTrue("ENTRYLOGS_PER_LEDGER average value",
-                Double.compare(numOfEntrylogsForLedger1, entryLogsPerLedger.getSuccessAverage()) == 0);
+        assertEquals(maximumNumberOfActiveEntryLogs,
+                numOfWriteActiveLedgers.get().intValue(),
+                "NUM_OF_WRITE_ACTIVE_LEDGERS");
+        assertEquals(4,
+                numOfWriteLedgersRemovedCacheMaxSize.get().intValue(),
+                "NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_MAXSIZE");
+        assertEquals(1, entryLogsPerLedger.getSuccessCount(), "ENTRYLOGS_PER_LEDGER SuccessCount");
+        assertEquals(0, Double.compare(numOfEntrylogsForLedger1, entryLogsPerLedger.getSuccessAverage()), "ENTRYLOGS_PER_LEDGER average value");
 
         /*
          * entrylog for new lid-8 is created so one more entry from countermap
          * should be removed.
          */
         createNewLogs(entrylogManager, 8L, 4);
-        Assert.assertEquals("NUM_OF_WRITE_ACTIVE_LEDGERS", maximumNumberOfActiveEntryLogs,
-                numOfWriteActiveLedgers.get().intValue());
-        Assert.assertEquals("NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_MAXSIZE", 5,
-                numOfWriteLedgersRemovedCacheMaxSize.get().intValue());
-        Assert.assertEquals("NUM_LEDGERS_HAVING_MULTIPLE_ENTRYLOGS", 3,
-                numLedgersHavingMultipleEntrylogs.get().intValue());
-        Assert.assertEquals("ENTRYLOGS_PER_LEDGER SuccessCount", 2, entryLogsPerLedger.getSuccessCount());
-        Assert.assertTrue("ENTRYLOGS_PER_LEDGER average value",
-                Double.compare((numOfEntrylogsForLedger1 + numOfEntrylogsForLedger2) / 2.0,
-                        entryLogsPerLedger.getSuccessAverage()) == 0);
+        assertEquals(maximumNumberOfActiveEntryLogs,
+                numOfWriteActiveLedgers.get().intValue(),
+                "NUM_OF_WRITE_ACTIVE_LEDGERS");
+        assertEquals(5,
+                numOfWriteLedgersRemovedCacheMaxSize.get().intValue(),
+                "NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_MAXSIZE");
+        assertEquals(3,
+                numLedgersHavingMultipleEntrylogs.get().intValue(),
+                "NUM_LEDGERS_HAVING_MULTIPLE_ENTRYLOGS");
+        assertEquals(2, entryLogsPerLedger.getSuccessCount(), "ENTRYLOGS_PER_LEDGER SuccessCount");
+        assertEquals(0, Double.compare((numOfEntrylogsForLedger1 + numOfEntrylogsForLedger2) / 2.0,
+                entryLogsPerLedger.getSuccessAverage()), "ENTRYLOGS_PER_LEDGER average value");
 
         /*
          * lid-3 is still in countermap. So when new entrylogs are created for
@@ -739,13 +761,16 @@ public class CreateNewLogTest {
          * - 3l should be updated to 5.
          */
         createNewLogs(entrylogManager, 3L, 4);
-        Assert.assertEquals("NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_MAXSIZE", 6,
-                numOfWriteLedgersRemovedCacheMaxSize.get().intValue());
-        Assert.assertEquals("NUM_LEDGERS_HAVING_MULTIPLE_ENTRYLOGS", 4,
-                numLedgersHavingMultipleEntrylogs.get().intValue());
-        Assert.assertEquals("Numofentrylogs for ledger: 3l", 5,
-                entrylogManager.entryLogsPerLedgerCounter.getCounterMap().get(3L).intValue());
-        Assert.assertEquals("ENTRYLOGS_PER_LEDGER SuccessCount", 2, entryLogsPerLedger.getSuccessCount());
+        assertEquals(6,
+                numOfWriteLedgersRemovedCacheMaxSize.get().intValue(),
+                "NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_MAXSIZE");
+        assertEquals(4,
+                numLedgersHavingMultipleEntrylogs.get().intValue(),
+                "NUM_LEDGERS_HAVING_MULTIPLE_ENTRYLOGS");
+        assertEquals(5,
+                entrylogManager.entryLogsPerLedgerCounter.getCounterMap().get(3L).intValue(),
+                "Numofentrylogs for ledger: 3l");
+        assertEquals(2, entryLogsPerLedger.getSuccessCount(), "ENTRYLOGS_PER_LEDGER SuccessCount");
     }
 
     /*
@@ -753,7 +778,7 @@ public class CreateNewLogTest {
      * validated.
      */
     @Test
-    public void testEntryLogManagerMetricsFromExpiryAspect() throws Exception {
+    void entryLogManagerMetricsFromExpiryAspect() throws Exception {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         TestStatsProvider statsProvider = new TestStatsProvider();
         TestStatsLogger statsLogger = statsProvider.getStatsLogger(BookKeeperServerStats.ENTRYLOGGER_SCOPE);
@@ -784,25 +809,27 @@ public class CreateNewLogTest {
 
         int numOfEntrylogsForLedger1 = 3;
         createNewLogs(entrylogManager, 1L, numOfEntrylogsForLedger1);
-        Assert.assertEquals("ENTRYLOGS_PER_LEDGER SuccessCount", 0, entryLogsPerLedger.getSuccessCount());
-        Assert.assertEquals("NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_EXPIRY", 0,
-                numOfWriteLedgersRemovedCacheExpiry.get().intValue());
+        assertEquals(0, entryLogsPerLedger.getSuccessCount(), "ENTRYLOGS_PER_LEDGER SuccessCount");
+        assertEquals(0,
+                numOfWriteLedgersRemovedCacheExpiry.get().intValue(),
+                "NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_EXPIRY");
 
         Thread.sleep(entrylogMapAccessExpiryTimeInSeconds * 1000 + 100);
         entrylogManager.doEntryLogMapCleanup();
         entrylogManager.entryLogsPerLedgerCounter.doCounterMapCleanup();
-        Assert.assertEquals("NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_EXPIRY", 1,
-                numOfWriteLedgersRemovedCacheExpiry.get().intValue());
-        Assert.assertEquals("ENTRYLOGS_PER_LEDGER SuccessCount", 0, entryLogsPerLedger.getSuccessCount());
+        assertEquals(1,
+                numOfWriteLedgersRemovedCacheExpiry.get().intValue(),
+                "NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_EXPIRY");
+        assertEquals(0, entryLogsPerLedger.getSuccessCount(), "ENTRYLOGS_PER_LEDGER SuccessCount");
 
         Thread.sleep(entrylogMapAccessExpiryTimeInSeconds * 1000 + 100);
         entrylogManager.doEntryLogMapCleanup();
         entrylogManager.entryLogsPerLedgerCounter.doCounterMapCleanup();
-        Assert.assertEquals("NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_EXPIRY", 1,
-                numOfWriteLedgersRemovedCacheExpiry.get().intValue());
-        Assert.assertEquals("ENTRYLOGS_PER_LEDGER SuccessCount", 1, entryLogsPerLedger.getSuccessCount());
-        Assert.assertTrue("ENTRYLOGS_PER_LEDGER average value",
-                Double.compare(numOfEntrylogsForLedger1, entryLogsPerLedger.getSuccessAverage()) == 0);
+        assertEquals(1,
+                numOfWriteLedgersRemovedCacheExpiry.get().intValue(),
+                "NUM_OF_WRITE_LEDGERS_REMOVED_CACHE_EXPIRY");
+        assertEquals(1, entryLogsPerLedger.getSuccessCount(), "ENTRYLOGS_PER_LEDGER SuccessCount");
+        assertEquals(0, Double.compare(numOfEntrylogsForLedger1, entryLogsPerLedger.getSuccessAverage()), "ENTRYLOGS_PER_LEDGER average value");
     }
 
     private static void createNewLogs(EntryLogManagerForEntryLogPerLedger entrylogManager, long ledgerId,
@@ -813,7 +840,7 @@ public class CreateNewLogTest {
     }
 
     @Test
-    public void testLockConsistency() throws Exception {
+    void lockConsistency() throws Exception {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
 
         conf.setLedgerDirNames(ledgerDirs);
@@ -856,9 +883,9 @@ public class CreateNewLogTest {
         long firstLedgerId = 100L;
         AtomicBoolean newLogCreated = new AtomicBoolean(false);
 
-        Assert.assertFalse("EntryLogManager cacheMap should not contain entry for firstLedgerId",
-                entryLogManager.getCacheAsMap().containsKey(firstLedgerId));
-        Assert.assertEquals("Value of the count should be 0", 0, count.get());
+        assertFalse(entryLogManager.getCacheAsMap().containsKey(firstLedgerId),
+                "EntryLogManager cacheMap should not contain entry for firstLedgerId");
+        assertEquals(0, count.get(), "Value of the count should be 0");
         /*
          * In a new thread, create newlog for 'firstLedgerId' and then set
          * 'newLogCreated' to true. Since this is the first createNewLog call,
@@ -890,7 +917,7 @@ public class CreateNewLogTest {
          * after waitign for 2 secs.
          */
         Thread.sleep(2000);
-        Assert.assertFalse("New log shouldn't have created", newLogCreated.get());
+        assertFalse(newLogCreated.get(), "New log shouldn't have created");
 
         /*
          * create MaximumNumberOfActiveEntryLogs of entrylogs and do cache
@@ -900,8 +927,8 @@ public class CreateNewLogTest {
             entryLogManager.createNewLog(firstLedgerId + i);
         }
         entryLogManager.doEntryLogMapCleanup();
-        Assert.assertFalse("Entry for that ledger shouldn't be there",
-                entryLogManager.getCacheAsMap().containsKey(firstLedgerId));
+        assertFalse(entryLogManager.getCacheAsMap().containsKey(firstLedgerId),
+                "Entry for that ledger shouldn't be there");
 
         /*
          * now countdown the latch, so that the other thread can make progress
@@ -923,7 +950,8 @@ public class CreateNewLogTest {
          * as we got earlier.
          */
         Lock lockForThatLedgerAfterRemoval = entryLogManager.getLock(firstLedgerId);
-        Assert.assertEquals("For a given ledger lock should be the same before and after removal", firstLedgersLock,
-                lockForThatLedgerAfterRemoval);
+        assertEquals(firstLedgersLock,
+                lockForThatLedgerAfterRemoval,
+                "For a given ledger lock should be the same before and after removal");
     }
 }

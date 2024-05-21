@@ -20,7 +20,7 @@
  */
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.netty.buffer.Unpooled;
 import io.netty.util.ReferenceCounted;
@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.bookkeeper.proto.MockBookieClient;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.util.ByteBufList;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +46,7 @@ public class TestPendingReadLacOp extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testPendingReadLacOpMissingExplicitLAC() throws Exception {
+    void pendingReadLacOpMissingExplicitLAC() throws Exception {
         LedgerHandle lh = bkc.createLedger(3, 3, 2, BookKeeper.DigestType.CRC32, pwd);
         lh.append(data);
         lh.append(data);
@@ -86,7 +86,7 @@ public class TestPendingReadLacOp extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testPendingReadLacOpMissingLAC() throws Exception {
+    void pendingReadLacOpMissingLAC() throws Exception {
         LedgerHandle lh = bkc.createLedger(3, 3, 2, BookKeeper.DigestType.MAC, pwd);
         lh.append(data);
         lh.append(data);
@@ -114,6 +114,6 @@ public class TestPendingReadLacOp extends BookKeeperClusterTestCase {
             }
         };
         pro.initiate();
-        assertEquals(result.get().longValue(), 1);
+        assertEquals(1, result.get().longValue());
     }
 }

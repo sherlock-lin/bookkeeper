@@ -18,8 +18,8 @@
  */
 package org.apache.bookkeeper.proto;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
@@ -45,21 +45,21 @@ import org.apache.bookkeeper.common.concurrent.FutureUtils;
 import org.apache.bookkeeper.proto.BookieProtocol.ReadRequest;
 import org.apache.bookkeeper.proto.BookieProtocol.Response;
 import org.apache.bookkeeper.stats.NullStatsLogger;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test {@link ReadEntryProcessor}.
  */
-public class ReadEntryProcessorTest {
+class ReadEntryProcessorTest {
 
     private Channel channel;
     private BookieRequestHandler requestHandler;
     private BookieRequestProcessor requestProcessor;
     private Bookie bookie;
 
-    @Before
-    public void setup() throws IOException, BookieException {
+    @BeforeEach
+    void setup() throws IOException, BookieException {
         channel = mock(Channel.class);
         when(channel.isOpen()).thenReturn(true);
 
@@ -82,12 +82,12 @@ public class ReadEntryProcessorTest {
     }
 
     @Test
-    public void testSuccessfulAsynchronousFenceRequest() throws Exception {
+    void successfulAsynchronousFenceRequest() throws Exception {
         testAsynchronousRequest(true, BookieProtocol.EOK);
     }
 
     @Test
-    public void testFailedAsynchronousFenceRequest() throws Exception {
+    void failedAsynchronousFenceRequest() throws Exception {
         testAsynchronousRequest(false, BookieProtocol.EIO);
     }
 
@@ -127,12 +127,12 @@ public class ReadEntryProcessorTest {
     }
 
     @Test
-    public void testSuccessfulSynchronousFenceRequest() throws Exception {
+    void successfulSynchronousFenceRequest() throws Exception {
         testSynchronousRequest(true, BookieProtocol.EOK);
     }
 
     @Test
-    public void testFailedSynchronousFenceRequest() throws Exception {
+    void failedSynchronousFenceRequest() throws Exception {
         testSynchronousRequest(false, BookieProtocol.EIO);
     }
 
@@ -168,7 +168,7 @@ public class ReadEntryProcessorTest {
     }
 
     @Test
-    public void testNonFenceRequest() throws Exception {
+    void nonFenceRequest() throws Exception {
         ChannelPromise promise = new DefaultChannelPromise(channel);
         AtomicReference<Object> writtenObject = new AtomicReference<>();
         CountDownLatch latch = new CountDownLatch(1);

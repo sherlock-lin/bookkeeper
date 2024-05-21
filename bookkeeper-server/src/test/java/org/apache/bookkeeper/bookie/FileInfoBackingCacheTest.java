@@ -20,6 +20,11 @@
  */
 package org.apache.bookkeeper.bookie;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalNotification;
@@ -45,10 +50,10 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.bookkeeper.bookie.FileInfoBackingCache.CachedFileInfo;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Tests for FileInfoBackingCache.
@@ -65,24 +70,25 @@ public class FileInfoBackingCacheTest {
         baseDir = File.createTempFile("foo", "bar");
     }
 
-    @Before
-    public void setup() throws Exception {
-        Assert.assertTrue(baseDir.delete());
-        Assert.assertTrue(baseDir.mkdirs());
+    @BeforeEach
+    void setup() throws Exception {
+        assertTrue(baseDir.delete());
+        assertTrue(baseDir.mkdirs());
         baseDir.deleteOnExit();
 
         executor = Executors.newCachedThreadPool(threadFactory);
     }
 
-    @After
-    public void tearDown() throws Exception {
+    @AfterEach
+    void tearDown() throws Exception {
         if (executor != null) {
             executor.shutdown();
         }
     }
 
-    @Test(timeout = 30000)
-    public void basicTest() throws Exception {
+    @Test
+    @Timeout(value = 30000, unit = TimeUnit.MILLISECONDS)
+    void basicTest() throws Exception {
         FileInfoBackingCache cache = new FileInfoBackingCache(
                 (ledgerId, createIfNotFound) -> {
                     File f = new File(baseDir, String.valueOf(ledgerId));
@@ -90,41 +96,45 @@ public class FileInfoBackingCacheTest {
                     return f;
                 }, FileInfo.CURRENT_HEADER_VERSION);
         CachedFileInfo fi = cache.loadFileInfo(1, masterKey);
-        Assert.assertEquals(fi.getRefCount(), 1);
+        assertEquals(1, fi.getRefCount());
         CachedFileInfo fi2 = cache.loadFileInfo(2, masterKey);
-        Assert.assertEquals(fi2.getRefCount(), 1);
+        assertEquals(1, fi2.getRefCount());
         CachedFileInfo fi3 = cache.loadFileInfo(1, null);
-        Assert.assertEquals(fi, fi3);
-        Assert.assertEquals(fi3.getRefCount(), 2);
+        assertEquals(fi, fi3);
+        assertEquals(2, fi3.getRefCount());
 
         // check that it expires correctly
         fi.release();
         fi3.release();
 
-        Assert.assertEquals(fi.getRefCount(), FileInfoBackingCache.DEAD_REF);
+        assertEquals(FileInfoBackingCache.DEAD_REF, fi.getRefCount());
         CachedFileInfo fi4 = cache.loadFileInfo(1, null);
-        Assert.assertFalse(fi4 == fi);
-        Assert.assertEquals(fi.getRefCount(), FileInfoBackingCache.DEAD_REF);
-        Assert.assertEquals(fi4.getRefCount(), 1);
-        Assert.assertEquals(fi.getLf(), fi4.getLf());
+        assertFalse(fi4 == fi);
+        assertEquals(FileInfoBackingCache.DEAD_REF, fi.getRefCount());
+        assertEquals(1, fi4.getRefCount());
+        assertEquals(fi.getLf(), fi4.getLf());
     }
 
-    @Test(expected = IOException.class, timeout = 30000)
-    public void testNoKey() throws Exception {
-        FileInfoBackingCache cache = new FileInfoBackingCache(
-                (ledgerId, createIfNotFound) -> {
-                    Assert.assertFalse(createIfNotFound);
-                    throw new Bookie.NoLedgerException(ledgerId);
-                }, FileInfo.CURRENT_HEADER_VERSION);
-        cache.loadFileInfo(1, null);
+    @Test
+    @Timeout(value = 30000, unit = TimeUnit.MILLISECONDS)
+    void noKey() throws Exception {
+        assertThrows(IOException.class, () -> {
+            FileInfoBackingCache cache = new FileInfoBackingCache(
+                    (ledgerId, createIfNotFound) -> {
+                        assertFalse(createIfNotFound);
+                        throw new Bookie.NoLedgerException(ledgerId);
+                    }, FileInfo.CURRENT_HEADER_VERSION);
+            cache.loadFileInfo(1, null);
+        });
     }
 
     /**
      * Of course this can't prove they don't exist, but
      * try to shake them out none the less.
      */
-    @Test(timeout = 30000)
-    public void testForDeadlocks() throws Exception {
+    @Test
+    @Timeout(value = 30000, unit = TimeUnit.MILLISECONDS)
+    void forDeadlocks() throws Exception {
         int numRunners = 20;
         int maxLedgerId = 10;
         AtomicBoolean done = new AtomicBoolean(false);
@@ -145,7 +155,7 @@ public class FileInfoBackingCacheTest {
                             while (!done.get()) {
                                 if (r.nextBoolean() && fileInfos.size() < 5) { // take a reference
                                     CachedFileInfo fi = cache.loadFileInfo(r.nextInt(maxLedgerId), masterKey);
-                                    Assert.assertFalse(fi.isClosed());
+                                    assertFalse(fi.isClosed());
                                     allFileInfos.add(fi);
                                     fileInfos.add(fi);
                                 } else { // release a reference
@@ -156,7 +166,7 @@ public class FileInfoBackingCacheTest {
                                 }
                             }
                             for (CachedFileInfo fi : fileInfos) {
-                                Assert.assertFalse(fi.isClosed());
+                                assertFalse(fi.isClosed());
                                 fi.release();
                             }
                             return allFileInfos;
@@ -173,20 +183,21 @@ public class FileInfoBackingCacheTest {
 
         for (Future<Set<CachedFileInfo>> f : futures) {
             for (CachedFileInfo fi : f.get()) {
-                Assert.assertTrue(fi.isClosed());
-                Assert.assertEquals(FileInfoBackingCache.DEAD_REF, fi.getRefCount());
+                assertTrue(fi.isClosed());
+                assertEquals(FileInfoBackingCache.DEAD_REF, fi.getRefCount());
             }
         }
 
         // try to load all ledgers again.
         // They should be loaded fresh (i.e. this load should be only reference)
         for (int i = 0; i < maxLedgerId; i++) {
-            Assert.assertEquals(1, cache.loadFileInfo(i, masterKey).getRefCount());
+            assertEquals(1, cache.loadFileInfo(i, masterKey).getRefCount());
         }
     }
 
-    @Test(timeout = 30000)
-    public void testRefCountRace() throws Exception {
+    @Test
+    @Timeout(value = 30000, unit = TimeUnit.MILLISECONDS)
+    void refCountRace() throws Exception {
         AtomicBoolean done = new AtomicBoolean(false);
         FileInfoBackingCache cache = new FileInfoBackingCache(
                 (ledgerId, createIfNotFound) -> {
@@ -202,7 +213,7 @@ public class FileInfoBackingCacheTest {
                             Set<CachedFileInfo> allFileInfos = new HashSet<>();
                             while (!done.get()) {
                                 CachedFileInfo fi = cache.loadFileInfo(1, masterKey);
-                                Assert.assertFalse(fi.isClosed());
+                                assertFalse(fi.isClosed());
                                 allFileInfos.add(fi);
                                 fi.release();
                             }
@@ -220,8 +231,8 @@ public class FileInfoBackingCacheTest {
 
         for (Future<Set<CachedFileInfo>> f : futures) {
             for (CachedFileInfo fi : f.get()) {
-                Assert.assertTrue(fi.isClosed());
-                Assert.assertEquals(FileInfoBackingCache.DEAD_REF, fi.getRefCount());
+                assertTrue(fi.isClosed());
+                assertEquals(FileInfoBackingCache.DEAD_REF, fi.getRefCount());
             }
         }
     }
@@ -230,8 +241,9 @@ public class FileInfoBackingCacheTest {
         notification.getValue().release();
     }
 
-    @Test(timeout = 30000)
-    public void testRaceGuavaEvictAndReleaseBeforeRetain() throws Exception {
+    @Test
+    @Timeout(value = 30000, unit = TimeUnit.MILLISECONDS)
+    void raceGuavaEvictAndReleaseBeforeRetain() throws Exception {
         AtomicBoolean done = new AtomicBoolean(false);
         Random random = new SecureRandom();
         FileInfoBackingCache cache = new FileInfoBackingCache(
@@ -261,7 +273,7 @@ public class FileInfoBackingCacheTest {
                                     Thread.sleep(random.nextInt(100));
                                 } while (!fi.tryRetain());
 
-                                Assert.assertFalse(fi.isClosed());
+                                assertFalse(fi.isClosed());
                                 fi.release();
                             }
                             return allFileInfos;
@@ -279,8 +291,8 @@ public class FileInfoBackingCacheTest {
 
         for (Future<Set<CachedFileInfo>> f : futures) {
             for (CachedFileInfo fi : f.get()) {
-                Assert.assertTrue(fi.isClosed());
-                Assert.assertEquals(FileInfoBackingCache.DEAD_REF, fi.getRefCount());
+                assertTrue(fi.isClosed());
+                assertEquals(FileInfoBackingCache.DEAD_REF, fi.getRefCount());
             }
         }
 

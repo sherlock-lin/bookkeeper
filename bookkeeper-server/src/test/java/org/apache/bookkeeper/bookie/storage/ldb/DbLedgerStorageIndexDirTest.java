@@ -20,9 +20,10 @@
  */
 package org.apache.bookkeeper.bookie.storage.ldb;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
@@ -38,9 +39,9 @@ import org.apache.bookkeeper.bookie.TestBookieImpl;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.conf.TestBKConfiguration;
 import org.apache.bookkeeper.proto.BookieProtocol;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test for {@link DbLedgerStorage}.
@@ -53,8 +54,8 @@ public class DbLedgerStorageIndexDirTest {
     private static final String LOCATION_INDEX_SUB_PATH = "locations";
     private static final String METADATA_INDEX_SUB_PATH = "ledgers";
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    void setup() throws Exception {
         tmpLedgerDir = File.createTempFile("ledgerDir", ".dir");
         tmpLedgerDir.delete();
         tmpLedgerDir.mkdir();
@@ -81,8 +82,8 @@ public class DbLedgerStorageIndexDirTest {
         storage = (DbLedgerStorage) bookie.getLedgerStorage();
     }
 
-    @After
-    public void teardown() throws Exception {
+    @AfterEach
+    void teardown() throws Exception {
         storage.shutdown();
         tmpLedgerDir.delete();
         tmpIndexDir.delete();
@@ -126,27 +127,27 @@ public class DbLedgerStorageIndexDirTest {
     }
 
     @Test
-    public void checkIndexNotExistsInLedgerDirStructure() {
+    void checkIndexNotExistsInLedgerDirStructure() {
         // old logic bugfix
-        assertEquals(false, hasIndexStructure(tmpLedgerDir));
+        assertFalse(hasIndexStructure(tmpLedgerDir));
     }
 
     @Test
-    public void checkIndexDirectoryStructure() {
+    void checkIndexDirectoryStructure() {
         // index new logic
-        assertEquals(true, hasIndexStructure(tmpIndexDir));
+        assertTrue(hasIndexStructure(tmpIndexDir));
     }
 
     @Test
-    public void simpleRegressionTest() throws Exception {
-        assertEquals(false, storage.ledgerExists(3));
+    void simpleRegressionTest() throws Exception {
+        assertFalse(storage.ledgerExists(3));
         try {
             storage.isFenced(3);
             fail("should have failed");
         } catch (Bookie.NoLedgerException nle) {
             // OK
         }
-        assertEquals(false, storage.ledgerExists(3));
+        assertFalse(storage.ledgerExists(3));
         try {
             storage.setFenced(3);
             fail("should have failed");
@@ -162,14 +163,14 @@ public class DbLedgerStorageIndexDirTest {
         }
         // setting the same key is NOOP
         storage.setMasterKey(3, "key".getBytes());
-        assertEquals(true, storage.ledgerExists(3));
-        assertEquals(true, storage.setFenced(3));
-        assertEquals(true, storage.isFenced(3));
-        assertEquals(false, storage.setFenced(3));
+        assertTrue(storage.ledgerExists(3));
+        assertTrue(storage.setFenced(3));
+        assertTrue(storage.isFenced(3));
+        assertFalse(storage.setFenced(3));
 
         storage.setMasterKey(4, "key".getBytes());
-        assertEquals(false, storage.isFenced(4));
-        assertEquals(true, storage.ledgerExists(4));
+        assertFalse(storage.isFenced(4));
+        assertTrue(storage.ledgerExists(4));
 
         assertEquals("key", new String(storage.readMasterKey(4)));
 
@@ -184,11 +185,11 @@ public class DbLedgerStorageIndexDirTest {
         entry.writeLong(0); // lac
         entry.writeBytes("entry-1".getBytes());
 
-        assertEquals(false, ((DbLedgerStorage) storage).isFlushRequired());
+        assertFalse(((DbLedgerStorage) storage).isFlushRequired());
 
         assertEquals(1, storage.addEntry(entry));
 
-        assertEquals(true, ((DbLedgerStorage) storage).isFlushRequired());
+        assertTrue(((DbLedgerStorage) storage).isFlushRequired());
 
         // Read from write cache
         assertTrue(storage.entryExists(4, 1));
@@ -197,7 +198,7 @@ public class DbLedgerStorageIndexDirTest {
 
         storage.flush();
 
-        assertEquals(false, ((DbLedgerStorage) storage).isFlushRequired());
+        assertFalse(((DbLedgerStorage) storage).isFlushRequired());
 
         // Read from db
         assertTrue(storage.entryExists(4, 1));
@@ -246,9 +247,9 @@ public class DbLedgerStorageIndexDirTest {
         assertEquals(3, storage.getLastAddConfirmed(4));
 
         // Delete
-        assertEquals(true, storage.ledgerExists(4));
+        assertTrue(storage.ledgerExists(4));
         storage.deleteLedger(4);
-        assertEquals(false, storage.ledgerExists(4));
+        assertFalse(storage.ledgerExists(4));
 
         // remove entries for ledger 4 from cache
         storage.flush();

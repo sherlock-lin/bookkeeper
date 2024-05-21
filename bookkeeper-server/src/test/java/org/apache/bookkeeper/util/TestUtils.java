@@ -21,6 +21,8 @@
 
 package org.apache.bookkeeper.util;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
@@ -34,7 +36,6 @@ import org.apache.bookkeeper.client.LedgerHandle;
 import org.apache.bookkeeper.client.api.ReadHandle;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.commons.io.FileUtils;
-import org.junit.Assert;
 
 /**
  * Test utilities.
@@ -111,7 +112,7 @@ public final class TestUtils {
         for (int i = 0; i < iterations && !predicate.getAsBoolean(); i++) {
             Thread.sleep(100);
         }
-        Assert.assertTrue(description, predicate.getAsBoolean());
+        assertTrue(predicate.getAsBoolean(), description);
     }
 
     public static int countNumOfFiles(File[] folderNames, String... extensions) {

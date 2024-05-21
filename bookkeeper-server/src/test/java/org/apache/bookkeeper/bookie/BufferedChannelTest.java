@@ -21,6 +21,8 @@
 
 package org.apache.bookkeeper.bookie;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
@@ -28,8 +30,7 @@ import java.io.File;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.util.Random;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for BufferedChannel.
@@ -41,32 +42,32 @@ public class BufferedChannelTest {
     private static final int INTERNAL_BUFFER_READ_CAPACITY = 512;
 
     @Test
-    public void testBufferedChannelWithNoBoundOnUnpersistedBytes() throws Exception {
+    void bufferedChannelWithNoBoundOnUnpersistedBytes() throws Exception {
         testBufferedChannel(5000, 30, 0, false, false);
     }
 
     @Test
-    public void testBufferedChannelWithBoundOnUnpersistedBytes() throws Exception {
+    void bufferedChannelWithBoundOnUnpersistedBytes() throws Exception {
         testBufferedChannel(5000, 30, 5000 * 28, false, false);
     }
 
     @Test
-    public void testBufferedChannelWithBoundOnUnpersistedBytesAndFlush() throws Exception {
+    void bufferedChannelWithBoundOnUnpersistedBytesAndFlush() throws Exception {
         testBufferedChannel(5000, 30, 5000 * 28, true, false);
     }
 
     @Test
-    public void testBufferedChannelFlushNoForceWrite() throws Exception {
+    void bufferedChannelFlushNoForceWrite() throws Exception {
         testBufferedChannel(5000, 30, 0, true, false);
     }
 
     @Test
-    public void testBufferedChannelForceWriteNoFlush() throws Exception {
+    void bufferedChannelForceWriteNoFlush() throws Exception {
         testBufferedChannel(5000, 30, 0, false, true);
     }
 
     @Test
-    public void testBufferedChannelFlushForceWrite() throws Exception {
+    void bufferedChannelFlushForceWrite() throws Exception {
         testBufferedChannel(5000, 30, 0, true, true);
     }
 
@@ -120,7 +121,7 @@ public class BufferedChannelTest {
         }
 
         if (unpersistedBytesBound > 0) {
-            Assert.assertEquals("Unpersisted bytes", expectedNumOfUnpersistedBytes, logChannel.getUnpersistedBytes());
+            assertEquals(expectedNumOfUnpersistedBytes, logChannel.getUnpersistedBytes(), "Unpersisted bytes");
         }
         logChannel.close();
         fileChannel.close();

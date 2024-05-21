@@ -18,8 +18,8 @@
 
 package org.apache.bookkeeper.server.http.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doAnswer;
@@ -34,25 +34,25 @@ import org.apache.bookkeeper.http.HttpServer.StatusCode;
 import org.apache.bookkeeper.http.service.HttpServiceRequest;
 import org.apache.bookkeeper.http.service.HttpServiceResponse;
 import org.apache.bookkeeper.stats.StatsProvider;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test {@link MetricsService}.
  */
-public class MetricsServiceTest {
+class MetricsServiceTest {
 
     private StatsProvider mockStatsProvider;
     private MetricsService service;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         this.mockStatsProvider = mock(StatsProvider.class);
         this.service = new MetricsService(new ServerConfiguration(), mockStatsProvider);
     }
 
     @Test
-    public void testForbiddenMethods() throws Exception {
+    void forbiddenMethods() throws Exception {
         HttpServiceRequest request = new HttpServiceRequest().setMethod(Method.PUT);
         HttpServiceResponse response = service.handle(request);
         assertEquals(StatusCode.FORBIDDEN.getValue(), response.getStatusCode());
@@ -63,7 +63,7 @@ public class MetricsServiceTest {
     }
 
     @Test
-    public void testNullStatsProvider() throws Exception {
+    void nullStatsProvider() throws Exception {
         service = new MetricsService(new ServerConfiguration(), null);
         HttpServiceRequest request = new HttpServiceRequest().setMethod(Method.GET);
         HttpServiceResponse response = service.handle(request);
@@ -76,7 +76,7 @@ public class MetricsServiceTest {
     }
 
     @Test
-    public void testWriteMetrics() throws Exception {
+    void writeMetrics() throws Exception {
         String content = "test-metrics";
 
         doAnswer(invocationOnMock -> {
@@ -94,7 +94,7 @@ public class MetricsServiceTest {
     }
 
     @Test
-    public void testWriteMetricsException() throws Exception {
+    void writeMetricsException() throws Exception {
         doThrow(new IOException("write-metrics-exception"))
             .when(mockStatsProvider).writeAllMetrics(any(Writer.class));
 
@@ -108,7 +108,7 @@ public class MetricsServiceTest {
     }
 
     @Test
-    public void testWriteMetricsUnimplemented() throws Exception {
+    void writeMetricsUnimplemented() throws Exception {
         mockStatsProvider = mock(StatsProvider.class, CALLS_REAL_METHODS);
         service = new MetricsService(new ServerConfiguration(), mockStatsProvider);
 

@@ -19,6 +19,10 @@
 
 package org.apache.bookkeeper.bookie.datainteg;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -28,13 +32,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.server.conf.BookieConfiguration;
 import org.apache.bookkeeper.stats.NullStatsLogger;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test for DataIntegrityService.
  */
-public class DataIntegrityServiceTest {
+class DataIntegrityServiceTest {
     private static DataIntegrityService newLowIntervalService(DataIntegrityCheck check) {
         return new DataIntegrityService(
                 new BookieConfiguration(new ServerConfiguration()),
@@ -51,7 +54,7 @@ public class DataIntegrityServiceTest {
     }
 
     @Test
-    public void testFullCheckRunsIfRequested() throws Exception {
+    void fullCheckRunsIfRequested() throws Exception {
         CompletableFuture<Void> promise = new CompletableFuture<>();
         MockDataIntegrityCheck check = new MockDataIntegrityCheck() {
                 @Override
@@ -75,7 +78,7 @@ public class DataIntegrityServiceTest {
     }
 
     @Test
-    public void testFullCheckDoesntRunIfNotRequested() throws Exception {
+    void fullCheckDoesntRunIfNotRequested() throws Exception {
         CompletableFuture<Void> promise = new CompletableFuture<>();
         MockDataIntegrityCheck check = new MockDataIntegrityCheck() {
                 @Override
@@ -97,7 +100,7 @@ public class DataIntegrityServiceTest {
                 // it's waiting to run or not running, but it
                 // should be the latter on any modern machine
                 promise.get(100, TimeUnit.MILLISECONDS);
-                Assert.fail("Shouldn't have run");
+                fail("Shouldn't have run");
             } catch (TimeoutException te) {
                 // expected
             }
@@ -107,7 +110,7 @@ public class DataIntegrityServiceTest {
     }
 
     @Test
-    public void testFullCheckRunsMultipleTimes() throws Exception {
+    void fullCheckRunsMultipleTimes() throws Exception {
         AtomicInteger count = new AtomicInteger(0);
         CompletableFuture<Void> promise = new CompletableFuture<>();
         MockDataIntegrityCheck check = new MockDataIntegrityCheck() {
@@ -134,7 +137,7 @@ public class DataIntegrityServiceTest {
     }
 
     @Test
-    public void testRunDontRunThenRunAgain() throws Exception {
+    void runDontRunThenRunAgain() throws Exception {
         AtomicBoolean needsFullCheck = new AtomicBoolean(true);
         Semaphore semaphore = new Semaphore(1);
         semaphore.acquire(); // increment the count, can only be released by a check
@@ -153,13 +156,13 @@ public class DataIntegrityServiceTest {
         try {
             service.start();
 
-            Assert.assertTrue("Check should have run",
-                              semaphore.tryAcquire(10, TimeUnit.SECONDS));
-            Assert.assertFalse("Check shouldn't run again",
-                               semaphore.tryAcquire(100, TimeUnit.MILLISECONDS));
+            assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS),
+                              "Check should have run");
+            assertFalse(semaphore.tryAcquire(100, TimeUnit.MILLISECONDS),
+                               "Check shouldn't run again");
             needsFullCheck.set(true);
-            Assert.assertTrue("Check should run again",
-                              semaphore.tryAcquire(10, TimeUnit.SECONDS));
+            assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS),
+                              "Check should run again");
         } finally {
             service.stop();
         }

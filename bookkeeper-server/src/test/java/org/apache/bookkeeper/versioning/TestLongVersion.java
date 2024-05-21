@@ -17,42 +17,44 @@
  */
 package org.apache.bookkeeper.versioning;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import org.apache.bookkeeper.versioning.Version.Occurred;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test long version.
  */
-public class TestLongVersion {
+class TestLongVersion {
 
     @Test
-    public void testNullIntVersion() {
+    void nullIntVersion() {
         LongVersion longVersion = new LongVersion(99);
         try {
             longVersion.compare(null);
-            Assert.fail("Should fail comparing with null version.");
+            fail("Should fail comparing with null version.");
         } catch (NullPointerException npe) {
         }
     }
 
     @Test
-    public void testInvalidVersion() {
+    void invalidVersion() {
         LongVersion longVersion = new LongVersion(99);
         try {
             longVersion.compare(v -> Occurred.AFTER);
-            Assert.fail("Should not reach here!");
+            fail("Should not reach here!");
         } catch (IllegalArgumentException iae) {
         }
     }
 
     @Test
-    public void testCompare() {
+    void compare() {
         LongVersion iv = new LongVersion(99);
-        Assert.assertEquals(Occurred.AFTER, iv.compare(new LongVersion(98)));
-        Assert.assertEquals(Occurred.BEFORE, iv.compare(new LongVersion(100)));
-        Assert.assertEquals(Occurred.CONCURRENTLY, iv.compare(new LongVersion(99)));
-        Assert.assertEquals(Occurred.CONCURRENTLY, iv.compare(Version.ANY));
-        Assert.assertEquals(Occurred.AFTER, iv.compare(Version.NEW));
+        assertEquals(Occurred.AFTER, iv.compare(new LongVersion(98)));
+        assertEquals(Occurred.BEFORE, iv.compare(new LongVersion(100)));
+        assertEquals(Occurred.CONCURRENTLY, iv.compare(new LongVersion(99)));
+        assertEquals(Occurred.CONCURRENTLY, iv.compare(Version.ANY));
+        assertEquals(Occurred.AFTER, iv.compare(Version.NEW));
     }
 }

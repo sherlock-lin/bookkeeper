@@ -21,7 +21,7 @@
 
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.util.Collection;
@@ -33,7 +33,7 @@ import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.net.BookieSocketAddress;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.util.PortManager;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for when the setAdvertisedAddress is specified.
@@ -57,7 +57,7 @@ public class AdvertisedAddressTest extends BookKeeperClusterTestCase {
      * Test starting bookie with clean state.
      */
     @Test
-    public void testSetAdvertisedAddress() throws Exception {
+    void setAdvertisedAddress() throws Exception {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         conf.setJournalDirName(newDirectory(false))
             .setLedgerDirNames(new String[] { newDirectory(false) })
@@ -89,7 +89,7 @@ public class AdvertisedAddressTest extends BookKeeperClusterTestCase {
      * When advertised address is specified, it should override the use.
      */
     @Test
-    public void testBothUseHostnameAndAdvertisedAddress() throws Exception {
+    void bothUseHostnameAndAdvertisedAddress() throws Exception {
         ServerConfiguration conf = new ServerConfiguration().setBookiePort(bookiePort);
 
         conf.setAdvertisedAddress("10.0.0.1");
@@ -106,7 +106,7 @@ public class AdvertisedAddressTest extends BookKeeperClusterTestCase {
      * Test starting bookie with a bookieId.
      */
     @Test
-    public void testSetBookieId() throws Exception {
+    void setBookieId() throws Exception {
         String uuid = UUID.randomUUID().toString();
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         conf.setJournalDirName(newDirectory(false))

@@ -21,8 +21,10 @@
 
 package org.apache.bookkeeper.verifier;
 
+import java.util.concurrent.TimeUnit;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test for BookKeeperVerifier.
@@ -35,8 +37,9 @@ public class BookkeeperVerifierTest extends BookKeeperClusterTestCase {
     /**
      * Simple test to verify that the verifier works against a local cluster.
      */
-    @Test(timeout = 30000)
-    public void testBasic() throws Exception {
+    @Test
+    @Timeout(value = 30000, unit = TimeUnit.MILLISECONDS)
+    void basic() throws Exception {
         DirectBookkeeperDriver driver = new DirectBookkeeperDriver(bkc);
         BookkeeperVerifier verifier = new BookkeeperVerifier(
                 driver,

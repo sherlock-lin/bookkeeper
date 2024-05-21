@@ -20,18 +20,21 @@
  */
 package org.apache.bookkeeper.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.nio.ByteBuffer;
 import java.util.Random;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Testcases for ZeroBuffer.
  */
-public class TestZeroBuffer {
+class TestZeroBuffer {
 
     @Test
-    public void testPut() {
+    void put() {
         ByteBuffer testBuffer;
         byte[] testBufferArray;
         Random rand = new Random();
@@ -40,70 +43,68 @@ public class TestZeroBuffer {
         testBuffer = ByteBuffer.allocate(5);
         testBufferArray = testBuffer.array();
         testBufferArray[4] = 7;
-        Assert.assertFalse("Test1 - It is supposed to contain non-zero byte", isFilledWithZeros(testBufferArray, 0, 5));
+        assertFalse(isFilledWithZeros(testBufferArray, 0, 5), "Test1 - It is supposed to contain non-zero byte");
         ZeroBuffer.put(testBuffer);
-        Assert.assertTrue("Test1 - After calling, ZeroBuffer.put There aren't supposed to be non-zero bytes",
-                isFilledWithZeros(testBufferArray, 0, 5));
+        assertTrue(isFilledWithZeros(testBufferArray, 0, 5),
+                "Test1 - After calling, ZeroBuffer.put There aren't supposed to be non-zero bytes");
 
         // Test2 - trying ZeroBuffer.put on 64*1024 sized TestBuffer
         testBuffer = ByteBuffer.allocate(64 * 1024);
         testBufferArray = testBuffer.array();
         rand.nextBytes(testBufferArray);
-        Assert.assertFalse("Test2 - It is supposed to contain random non-zero bytes",
-                isFilledWithZeros(testBufferArray, 0, 64 * 1024));
+        assertFalse(isFilledWithZeros(testBufferArray, 0, 64 * 1024),
+                "Test2 - It is supposed to contain random non-zero bytes");
         ZeroBuffer.put(testBuffer);
-        Assert.assertTrue("Test2 - After calling, ZeroBuffer.put There aren't supposed to be non-zero bytes",
-                isFilledWithZeros(testBufferArray, 0, 64 * 1024));
+        assertTrue(isFilledWithZeros(testBufferArray, 0, 64 * 1024),
+                "Test2 - After calling, ZeroBuffer.put There aren't supposed to be non-zero bytes");
 
         // Test3 - trying ZeroBuffer.put on portion (64*1024) of large sized
         // TestBuffer (256*1024)
         testBuffer = ByteBuffer.allocate(256 * 1024);
         testBufferArray = testBuffer.array();
         rand.nextBytes(testBufferArray);
-        Assert.assertFalse("Test3 - It is supposed to contain random non-zero bytes",
-                isFilledWithZeros(testBufferArray, 64 * 1024, 64 * 1024));
+        assertFalse(isFilledWithZeros(testBufferArray, 64 * 1024, 64 * 1024),
+                "Test3 - It is supposed to contain random non-zero bytes");
         testBuffer.position(64 * 1024);
         ZeroBuffer.put(testBuffer, 64 * 1024);
-        Assert.assertTrue(
-                "Test3 - After calling, ZeroBuffer.put There aren't supposed to be non-zero bytes "
-                + "in the particular section", isFilledWithZeros(testBufferArray, 64 * 1024, 64 * 1024));
-        Assert.assertFalse("Test3 - After calling, ZeroBuffer.put other sections shouldnt be touched",
-                isFilledWithZeros(testBufferArray, 0, 64 * 1024));
-        Assert.assertFalse("Test3 - After calling, ZeroBuffer.put other sections shouldnt be touched",
-                isFilledWithZeros(testBufferArray, 128 * 1024, 128 * 1024));
+        assertTrue(
+                isFilledWithZeros(testBufferArray, 64 * 1024, 64 * 1024), "Test3 - After calling, ZeroBuffer.put There aren't supposed to be non-zero bytes "
+                + "in the particular section");
+        assertFalse(isFilledWithZeros(testBufferArray, 0, 64 * 1024),
+                "Test3 - After calling, ZeroBuffer.put other sections shouldnt be touched");
+        assertFalse(isFilledWithZeros(testBufferArray, 128 * 1024, 128 * 1024),
+                "Test3 - After calling, ZeroBuffer.put other sections shouldnt be touched");
     }
 
     @Test
-    public void testReadOnlyBuffer() {
+    void readOnlyBuffer() {
         ByteBuffer testReadOnlyBuffer;
         byte[] testBufferArray;
 
         // Test1 - trying ZeroBuffer.readOnlyBuffer for small size
         testReadOnlyBuffer = ZeroBuffer.readOnlyBuffer(5);
-        Assert.assertTrue(
-                "Test1 - ReadOnlyBuffer should have remaining 5 bytes but it has " + testReadOnlyBuffer.remaining(),
-                testReadOnlyBuffer.remaining() == 5);
+        assertEquals(5, testReadOnlyBuffer.remaining(), "Test1 - ReadOnlyBuffer should have remaining 5 bytes but it has " + testReadOnlyBuffer.remaining());
         testBufferArray = new byte[5];
         testReadOnlyBuffer.get(testBufferArray);
-        Assert.assertTrue("Test1 - supposed to contain only zero bytes", isFilledWithZeros(testBufferArray, 0, 5));
+        assertTrue(isFilledWithZeros(testBufferArray, 0, 5), "Test1 - supposed to contain only zero bytes");
 
         // Test2 - trying ZeroBuffer.readOnlyBuffer for 64*1024
         testReadOnlyBuffer = ZeroBuffer.readOnlyBuffer(64 * 1024);
-        Assert.assertTrue("Test2 - ReadOnlyBuffer should have remaining 64*1024 bytes but it has "
-                + testReadOnlyBuffer.remaining(), testReadOnlyBuffer.remaining() == 64 * 1024);
+        assertEquals(testReadOnlyBuffer.remaining(), 64 * 1024, "Test2 - ReadOnlyBuffer should have remaining 64*1024 bytes but it has "
+                + testReadOnlyBuffer.remaining());
         testBufferArray = new byte[64 * 1024];
         testReadOnlyBuffer.get(testBufferArray);
-        Assert.assertTrue("Test2 - supposed to contain only zero bytes",
-                isFilledWithZeros(testBufferArray, 0, 64 * 1024));
+        assertTrue(isFilledWithZeros(testBufferArray, 0, 64 * 1024),
+                "Test2 - supposed to contain only zero bytes");
 
         // Test3 - trying ZeroBuffer.readOnlyBuffer for > 64*1024
         testReadOnlyBuffer = ZeroBuffer.readOnlyBuffer(128 * 1024);
-        Assert.assertTrue("Test3 - ReadOnlyBuffer should have remaining 128*1024 bytes but it has "
-                + testReadOnlyBuffer.remaining(), testReadOnlyBuffer.remaining() == 128 * 1024);
+        assertEquals(testReadOnlyBuffer.remaining(), 128 * 1024, "Test3 - ReadOnlyBuffer should have remaining 128*1024 bytes but it has "
+                + testReadOnlyBuffer.remaining());
         testBufferArray = new byte[128 * 1024];
         testReadOnlyBuffer.get(testBufferArray);
-        Assert.assertTrue("Test3 - supposed to contain only zero bytes",
-                isFilledWithZeros(testBufferArray, 0, 128 * 1024));
+        assertTrue(isFilledWithZeros(testBufferArray, 0, 128 * 1024),
+                "Test3 - supposed to contain only zero bytes");
     }
 
     boolean isFilledWithZeros(byte[] byteArray, int start, int length) {

@@ -21,9 +21,9 @@
 
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -48,7 +48,7 @@ import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.util.IOUtils;
 import org.apache.bookkeeper.util.PortManager;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -204,7 +204,7 @@ public class UpgradeTest extends BookKeeperClusterTestCase {
             fail("Shouldn't have been able to start");
         } catch (IOException e) {
             // correct behaviour
-            assertTrue("wrong exception", e.getMessage().contains("upgrade needed"));
+            assertTrue(e.getMessage().contains("upgrade needed"), "wrong exception");
         }
 
         FileSystemUpgrade.upgrade(conf); // should work fine
@@ -229,7 +229,7 @@ public class UpgradeTest extends BookKeeperClusterTestCase {
             fail("Shouldn't have been able to start");
         } catch (IOException e) {
             // correct behaviour
-            assertTrue("wrong exception", e.getMessage().contains("upgrade needed"));
+            assertTrue(e.getMessage().contains("upgrade needed"), "wrong exception");
         }
 
         FileSystemUpgrade.upgrade(conf);
@@ -247,7 +247,7 @@ public class UpgradeTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testUpgradeV1toCurrent() throws Exception {
+    void upgradeV1toCurrent() throws Exception {
         File journalDir = initV1JournalDirectory(tmpDirs.createNew("bookie", "journal"));
         File ledgerDir = initV1LedgerDirectory(tmpDirs.createNew("bookie", "ledger"));
         testUpgradeProceedure(zkUtil.getZooKeeperConnectString(), journalDir.getPath(),
@@ -255,7 +255,7 @@ public class UpgradeTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testUpgradeV1toCurrentWithIndexDir() throws Exception {
+    void upgradeV1toCurrentWithIndexDir() throws Exception {
         File journalDir = initV1JournalDirectory(tmpDirs.createNew("bookie", "journal"));
         File indexDir = tmpDirs.createNew("bookie", "index");
         File ledgerDir = initV1LedgerDirectoryWithIndexDir(
@@ -265,7 +265,7 @@ public class UpgradeTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testUpgradeV2toCurrent() throws Exception {
+    void upgradeV2toCurrent() throws Exception {
         File journalDir = initV2JournalDirectory(tmpDirs.createNew("bookie", "journal"));
         File ledgerDir = initV2LedgerDirectory(tmpDirs.createNew("bookie", "ledger"));
         File indexDir = tmpDirs.createNew("bookie", "index");
@@ -274,7 +274,7 @@ public class UpgradeTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testUpgradeV2toCurrentWithIndexDir() throws Exception {
+    void upgradeV2toCurrentWithIndexDir() throws Exception {
         File journalDir = initV2JournalDirectory(tmpDirs.createNew("bookie", "journal"));
         File indexDir = tmpDirs.createNew("bookie", "index");
         File ledgerDir = initV2LedgerDirectoryWithIndexDir(
@@ -284,12 +284,12 @@ public class UpgradeTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testUpgradeCurrent() throws Exception {
+    void upgradeCurrent() throws Exception {
         testUpgradeCurrent(false);
     }
 
     @Test
-    public void testUpgradeCurrentWithIndexDir() throws Exception {
+    void upgradeCurrentWithIndexDir() throws Exception {
         testUpgradeCurrent(true);
     }
 
@@ -326,7 +326,7 @@ public class UpgradeTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testCommandLine() throws Exception {
+    void commandLine() throws Exception {
         PrintStream origerr = System.err;
         PrintStream origout = System.out;
 
@@ -341,8 +341,8 @@ public class UpgradeTest extends BookKeeperClusterTestCase {
                 FileSystemUpgrade.main(new String[] { "-u" });
                 fail("Should have failed");
             } catch (IllegalArgumentException iae) {
-                assertTrue("Wrong exception " + iae.getMessage(),
-                           iae.getMessage().contains("without configuration"));
+                assertTrue(iae.getMessage().contains("without configuration"),
+                           "Wrong exception " + iae.getMessage());
             }
             File f = IOUtils.createTempFileAndDeleteOnExit("bookie", "tmpconf");
             try {
@@ -350,8 +350,8 @@ public class UpgradeTest extends BookKeeperClusterTestCase {
                 FileSystemUpgrade.main(new String[] { "--conf", f.getPath() });
                 fail("Should have failed");
             } catch (IllegalArgumentException iae) {
-                assertTrue("Wrong exception " + iae.getMessage(),
-                           iae.getMessage().contains("Must specify -upgrade"));
+                assertTrue(iae.getMessage().contains("Must specify -upgrade"),
+                           "Wrong exception " + iae.getMessage());
             }
         } finally {
             System.setOut(origout);
@@ -360,7 +360,7 @@ public class UpgradeTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testFSUGetAllDirectories() throws Exception {
+    void fsuGetAllDirectories() throws Exception {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         final File journalDir = tmpDirs.createNew("bookie", "journal");
         final File ledgerDir1 = tmpDirs.createNew("bookie", "ledger");

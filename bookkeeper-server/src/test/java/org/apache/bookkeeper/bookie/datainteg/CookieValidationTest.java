@@ -24,6 +24,8 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -47,9 +49,8 @@ import org.apache.bookkeeper.test.TmpDirs;
 import org.apache.bookkeeper.util.BookKeeperConstants;
 import org.apache.bookkeeper.versioning.Version;
 import org.apache.bookkeeper.versioning.Versioned;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,12 +58,12 @@ import org.slf4j.LoggerFactory;
  * Test the DataIntegrityCookieValidation implementation of CookieValidation.
  */
 @SuppressWarnings("deprecation")
-public class CookieValidationTest {
+class CookieValidationTest {
     private static Logger log = LoggerFactory.getLogger(CookieValidationTest.class);
     final TmpDirs tmpDirs = new TmpDirs();
 
-    @After
-    public void cleanup() throws Exception {
+    @AfterEach
+    void cleanup() throws Exception {
         tmpDirs.cleanup();
     }
 
@@ -85,7 +86,7 @@ public class CookieValidationTest {
     }
 
     @Test
-    public void testNoZkCookieAndEmptyDirsStampsNewCookie() throws Exception {
+    void noZkCookieAndEmptyDirsStampsNewCookie() throws Exception {
         List<File> dirs = Lists.newArrayList(initializedDir(),
                                              initializedDir());
 
@@ -107,22 +108,24 @@ public class CookieValidationTest {
         }
     }
 
-    @Test(expected = BookieException.InvalidCookieException.class)
-    public void testZkCookieAndEmptyDirsRaisesErrorWithoutMissingCookieStamping() throws Exception {
-        List<File> dirs = Lists.newArrayList(initializedDir(),
-                initializedDir());
+    @Test
+    void zkCookieAndEmptyDirsRaisesErrorWithoutMissingCookieStamping() throws Exception {
+        assertThrows(BookieException.InvalidCookieException.class, () -> {
+            List<File> dirs = Lists.newArrayList(initializedDir(),
+                    initializedDir());
 
-        ServerConfiguration conf = serverConf(false);
-        BookieId bookieId = BookieImpl.getBookieId(conf);
-        MockRegistrationManager regManager = new MockRegistrationManager();
-        regManager.writeCookie(bookieId, genCookie(conf));
-        DataIntegrityCookieValidation v = new DataIntegrityCookieValidation(
-                conf, regManager, new MockDataIntegrityCheck());
-        v.checkCookies(dirs);
+            ServerConfiguration conf = serverConf(false);
+            BookieId bookieId = BookieImpl.getBookieId(conf);
+            MockRegistrationManager regManager = new MockRegistrationManager();
+            regManager.writeCookie(bookieId, genCookie(conf));
+            DataIntegrityCookieValidation v = new DataIntegrityCookieValidation(
+                    conf, regManager, new MockDataIntegrityCheck());
+            v.checkCookies(dirs);
+        });
     }
 
     @Test
-    public void testZkCookieAndEmptyDirsStampsNewCookieWithMissingCookieStamping() throws Exception {
+    void zkCookieAndEmptyDirsStampsNewCookieWithMissingCookieStamping() throws Exception {
         List<File> dirs = Lists.newArrayList(initializedDir(),
                 initializedDir());
 
@@ -145,26 +148,28 @@ public class CookieValidationTest {
         }
     }
 
-    @Test(expected = BookieException.InvalidCookieException.class)
-    public void testMissingZKCookieRaisesError() throws Exception {
-        List<File> dirs = Lists.newArrayList(initializedDir(),
-                initializedDir());
+    @Test
+    void missingZKCookieRaisesError() throws Exception {
+        assertThrows(BookieException.InvalidCookieException.class, () -> {
+            List<File> dirs = Lists.newArrayList(initializedDir(),
+                    initializedDir());
 
-        ServerConfiguration conf = serverConf(true);
+            ServerConfiguration conf = serverConf(true);
 
-        MockRegistrationManager regManager = new MockRegistrationManager();
-        DataIntegrityCookieValidation v1 = new DataIntegrityCookieValidation(
-                conf, regManager, new MockDataIntegrityCheck());
-        v1.checkCookies(dirs);
+            MockRegistrationManager regManager = new MockRegistrationManager();
+            DataIntegrityCookieValidation v1 = new DataIntegrityCookieValidation(
+                    conf, regManager, new MockDataIntegrityCheck());
+            v1.checkCookies(dirs);
 
-        MockRegistrationManager blankRegManager = new MockRegistrationManager();
-        DataIntegrityCookieValidation v2 = new DataIntegrityCookieValidation(
-                conf, blankRegManager, new MockDataIntegrityCheck());
-        v2.checkCookies(dirs);
+            MockRegistrationManager blankRegManager = new MockRegistrationManager();
+            DataIntegrityCookieValidation v2 = new DataIntegrityCookieValidation(
+                    conf, blankRegManager, new MockDataIntegrityCheck());
+            v2.checkCookies(dirs);
+        });
     }
 
     @Test
-    public void testMatchingCookiesTakesNoAction() throws Exception {
+    void matchingCookiesTakesNoAction() throws Exception {
         List<File> dirs = Lists.newArrayList(initializedDir(),
                                              initializedDir());
 
@@ -181,7 +186,7 @@ public class CookieValidationTest {
     }
 
     @Test
-    public void testEmptyDirectoryTriggersIntegrityCheck() throws Exception {
+    void emptyDirectoryTriggersIntegrityCheck() throws Exception {
         List<File> dirs = Lists.newArrayList(initializedDir(),
                                              initializedDir());
         ServerConfiguration conf = serverConf(true);
@@ -202,7 +207,7 @@ public class CookieValidationTest {
     }
 
     @Test
-    public void testErrorInIntegrityCheckPreventsStamping() throws Exception {
+    void errorInIntegrityCheckPreventsStamping() throws Exception {
         List<File> dirs = Lists.newArrayList(initializedDir(),
                                              initializedDir());
 
@@ -227,7 +232,7 @@ public class CookieValidationTest {
         dirs.add(initializedDir());
         try {
             v1.checkCookies(dirs); // stamp original cookies
-            Assert.fail("failure of data integrity should fail cookie check");
+            fail("failure of data integrity should fail cookie check");
         } catch (BookieException.InvalidCookieException e) {
             // expected
         }
@@ -237,7 +242,7 @@ public class CookieValidationTest {
         // running the check again should run data integrity again, as stamping didn't happen
         try {
             v1.checkCookies(dirs); // stamp original cookies
-            Assert.fail("failure of data integrity should fail cookie check");
+            fail("failure of data integrity should fail cookie check");
         } catch (BookieException.InvalidCookieException e) {
             // expected
         }
@@ -246,7 +251,7 @@ public class CookieValidationTest {
     }
 
     @Test
-    public void testChangingBookieIdRaisesError() throws Exception {
+    void changingBookieIdRaisesError() throws Exception {
         List<File> dirs = Lists.newArrayList(initializedDir(),
                                              initializedDir());
         ServerConfiguration conf = serverConf(true);
@@ -260,7 +265,7 @@ public class CookieValidationTest {
                 conf, regManager, new MockDataIntegrityCheck());
         try {
             v2.checkCookies(dirs); // should fail as cookie not found in ZK, but exists in dirs
-            Assert.fail("Check shouldn't have succeeded with new bookieId");
+            fail("Check shouldn't have succeeded with new bookieId");
         } catch (BookieException.InvalidCookieException ice) {
             // expected
         }
@@ -272,7 +277,7 @@ public class CookieValidationTest {
     }
 
     @Test
-    public void testMismatchLocalCookie() throws Exception {
+    void mismatchLocalCookie() throws Exception {
         List<File> dirs = Lists.newArrayList(initializedDir(),
                                              initializedDir());
 
@@ -300,27 +305,29 @@ public class CookieValidationTest {
         assertThat(afterCheck, equalTo(current));
     }
 
-    @Test(expected = BookieException.InvalidCookieException.class)
-    public void testCorruptLocalCookie() throws Exception {
-        List<File> dirs = Lists.newArrayList(initializedDir(),
-                                             initializedDir());
+    @Test
+    void corruptLocalCookie() throws Exception {
+        assertThrows(BookieException.InvalidCookieException.class, () -> {
+            List<File> dirs = Lists.newArrayList(initializedDir(),
+                    initializedDir());
 
-        ServerConfiguration conf = serverConf(true);
+            ServerConfiguration conf = serverConf(true);
 
-        MockDataIntegrityCheck dataIntegCheck = spy(new MockDataIntegrityCheck());
-        MockRegistrationManager regManager = spy(new MockRegistrationManager());
-        DataIntegrityCookieValidation v1 = new DataIntegrityCookieValidation(
-                conf, regManager, dataIntegCheck);
-        v1.checkCookies(dirs); // stamp original cookies
+            MockDataIntegrityCheck dataIntegCheck = spy(new MockDataIntegrityCheck());
+            MockRegistrationManager regManager = spy(new MockRegistrationManager());
+            DataIntegrityCookieValidation v1 = new DataIntegrityCookieValidation(
+                    conf, regManager, dataIntegCheck);
+            v1.checkCookies(dirs); // stamp original cookies
 
-        verify(dataIntegCheck, times(0)).runPreBootCheck("INVALID_COOKIE");
-        verify(regManager, times(1)).writeCookie(any(), any());
+            verify(dataIntegCheck, times(0)).runPreBootCheck("INVALID_COOKIE");
+            verify(regManager, times(1)).writeCookie(any(), any());
 
-        File cookieFile = new File(dirs.get(0), BookKeeperConstants.VERSION_FILENAME);
-        try (FileOutputStream out = new FileOutputStream(cookieFile)) {
-            out.write(0xdeadbeef);
-        }
-        v1.checkCookies(dirs); // should throw
+            File cookieFile = new File(dirs.get(0), BookKeeperConstants.VERSION_FILENAME);
+            try (FileOutputStream out = new FileOutputStream(cookieFile)) {
+                out.write(0xdeadbeef);
+            }
+            v1.checkCookies(dirs); // should throw
+        }); // should throw
     }
 }
 

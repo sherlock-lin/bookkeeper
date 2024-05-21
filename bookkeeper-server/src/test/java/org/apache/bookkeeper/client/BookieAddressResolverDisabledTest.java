@@ -32,10 +32,10 @@ import org.junit.jupiter.api.Test;
 /**
  * Unit test of {@link BookieAddressResolverDisabled}.
  */
-public class BookieAddressResolverDisabledTest {
+class BookieAddressResolverDisabledTest {
 
     @Test
-    public void testResolve() {
+    void resolve() {
         BookieAddressResolver resolver = new BookieAddressResolverDisabled();
 
         BookieSocketAddress addr1 = resolver.resolve(BookieId.parse("127.0.0.1:3181"));

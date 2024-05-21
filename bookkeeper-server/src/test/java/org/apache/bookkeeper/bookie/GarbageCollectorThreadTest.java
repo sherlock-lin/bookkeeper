@@ -30,9 +30,9 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -51,10 +51,9 @@ import org.apache.bookkeeper.slogger.Slogger;
 import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.stats.StatsLogger;
 import org.apache.bookkeeper.test.TmpDirs;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -63,7 +62,7 @@ import org.mockito.Spy;
  * Unit test for {@link GarbageCollectorThread}.
  */
 @SuppressWarnings("deprecation")
-public class GarbageCollectorThreadTest {
+class GarbageCollectorThreadTest {
     private static final Slogger slog = Slogger.CONSOLE;
 
     private final TmpDirs tmpDirs = new TmpDirs();
@@ -82,19 +81,19 @@ public class GarbageCollectorThreadTest {
     private ServerConfiguration conf = spy(new ServerConfiguration().setAllowLoopback(true));
     private CompactableLedgerStorage ledgerStorage = mock(CompactableLedgerStorage.class);
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() throws Exception {
         conf.setAllowLoopback(true);
         openMocks(this);
     }
 
-    @After
-    public void cleanup() throws Exception {
+    @AfterEach
+    void cleanup() throws Exception {
         tmpDirs.cleanup();
     }
 
     @Test
-    public void testCompactEntryLogWithException() throws Exception {
+    void compactEntryLogWithException() throws Exception {
         AbstractLogCompactor mockCompactor = mock(AbstractLogCompactor.class);
         when(mockCompactor.compact(any(EntryLogMetadata.class)))
                 .thenThrow(new RuntimeException("Unexpected compaction error"));
@@ -109,7 +108,7 @@ public class GarbageCollectorThreadTest {
     }
 
     @Test
-    public void testCalculateUsageBucket() {
+    void calculateUsageBucket() {
         // Valid range for usage is [0.0 to 1.0]
         final int numBuckets = 10;
         int[] usageBuckets = new int[numBuckets];
@@ -124,7 +123,7 @@ public class GarbageCollectorThreadTest {
         for (int item = 0; item <= items; item++) {
             double usage = ((double) item / (double) items);
             int index = mockGCThread.calculateUsageIndex(numBuckets, usage);
-            assertFalse("Boundary condition exceeded", index < 0 || index >= numBuckets);
+            assertFalse(index < 0 || index >= numBuckets, "Boundary condition exceeded");
             slog.kv("usage", usage)
                 .kv("index", index)
                 .info("Mapped usage to index");
@@ -141,18 +140,18 @@ public class GarbageCollectorThreadTest {
         for (int i = 0; i < numBuckets; i++) {
             sum += usageBuckets[i];
         }
-        Assert.assertEquals("Incorrect number of items", items + 1, sum);
+        assertEquals(items + 1, sum, "Incorrect number of items");
     }
 
     @Test
-    public void testExtractMetaFromEntryLogsLegacy() throws Exception {
+    void extractMetaFromEntryLogsLegacy() throws Exception {
         File ledgerDir = tmpDirs.createNew("testExtractMeta", "ledgers");
         testExtractMetaFromEntryLogs(
                 newLegacyEntryLogger(20000, ledgerDir), ledgerDir);
     }
 
     @Test
-    public void testExtractMetaFromEntryLogsDirect() throws Exception {
+    void extractMetaFromEntryLogsDirect() throws Exception {
         File ledgerDir = tmpDirs.createNew("testExtractMeta", "ledgers");
         testExtractMetaFromEntryLogs(
                 newDirectEntryLogger(23000, // direct header is 4kb rather than 1kb
@@ -240,7 +239,7 @@ public class GarbageCollectorThreadTest {
     }
 
     @Test
-    public void testCompactionWithFileSizeCheck() throws Exception {
+    void compactionWithFileSizeCheck() throws Exception {
         File ledgerDir = tmpDirs.createNew("testFileSize", "ledgers");
         EntryLogger entryLogger = newLegacyEntryLogger(20000, ledgerDir);
 
@@ -312,7 +311,7 @@ public class GarbageCollectorThreadTest {
     }
 
     @Test
-    public void testCompactionWithoutFileSizeCheck() throws Exception {
+    void compactionWithoutFileSizeCheck() throws Exception {
         File ledgerDir = tmpDirs.createNew("testFileSize", "ledgers");
         EntryLogger entryLogger = newLegacyEntryLogger(20000, ledgerDir);
 

@@ -22,10 +22,10 @@ package org.apache.bookkeeper.client;
 
 import static org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy.REPP_DNS_RESOLVER_CLASS;
 import static org.apache.bookkeeper.feature.SettableFeatureProvider.DISABLE_ALL;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.netty.util.HashedWheelTimer;
@@ -44,10 +44,11 @@ import org.apache.bookkeeper.net.DNSToSwitchMapping;
 import org.apache.bookkeeper.net.ScriptBasedMapping;
 import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.util.Shell;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +65,7 @@ import org.slf4j.LoggerFactory;
  *
  * <p>For now this Testsuite works only on Unix based OS.
  */
-public class TestRackawareEnsemblePlacementPolicyUsingScript {
+class TestRackawareEnsemblePlacementPolicyUsingScript {
 
     static final Logger LOG = LoggerFactory.getLogger(TestRackawareEnsemblePlacementPolicyUsingScript.class);
 
@@ -72,8 +73,8 @@ public class TestRackawareEnsemblePlacementPolicyUsingScript {
     RackawareEnsemblePlacementPolicy repp;
     ClientConfiguration conf = new ClientConfiguration();
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() throws Exception {
         conf.setProperty(REPP_DNS_RESOLVER_CLASS, ScriptBasedMapping.class.getName());
         conf.setProperty(CommonConfigurationKeys.NET_TOPOLOGY_SCRIPT_FILE_NAME_KEY,
                 "src/test/resources/networkmappingscript.sh");
@@ -87,17 +88,17 @@ public class TestRackawareEnsemblePlacementPolicyUsingScript {
                 DISABLE_ALL, NullStatsLogger.INSTANCE, BookieSocketAddress.LEGACY_BOOKIEID_RESOLVER);
     }
 
-    @After
-    public void tearDown() throws Exception {
+    @AfterEach
+    void tearDown() throws Exception {
         repp.uninitalize();
     }
 
     private void ignoreTestIfItIsWindowsOS() {
-        Assume.assumeTrue(!Shell.WINDOWS);
+        Assumptions.assumeTrue(!Shell.WINDOWS);
     }
 
     @Test
-    public void testReplaceBookieWithEnoughBookiesInSameRack() throws Exception {
+    void replaceBookieWithEnoughBookiesInSameRack() throws Exception {
         ignoreTestIfItIsWindowsOS();
         BookieSocketAddress addr1 = new BookieSocketAddress("127.0.0.1", 3181); // /1 rack
         BookieSocketAddress addr2 = new BookieSocketAddress("127.0.0.2", 3181); // /2 rack
@@ -118,7 +119,7 @@ public class TestRackawareEnsemblePlacementPolicyUsingScript {
     }
 
     @Test
-    public void testReplaceBookieWithEnoughBookiesInDifferentRack() throws Exception {
+    void replaceBookieWithEnoughBookiesInDifferentRack() throws Exception {
         ignoreTestIfItIsWindowsOS();
         BookieSocketAddress addr1 = new BookieSocketAddress("127.0.0.1", 3181); // /1 rack
         BookieSocketAddress addr2 = new BookieSocketAddress("127.0.0.2", 3181); // /2 rack
@@ -138,13 +139,13 @@ public class TestRackawareEnsemblePlacementPolicyUsingScript {
         BookieId replacedBookie = repp.replaceBookie(1, 1, 1, null, new ArrayList<>(),
                                                                 addr2.toBookieId(), excludedAddrs).getResult();
 
-        assertFalse(addr1.toBookieId().equals(replacedBookie));
+        assertNotEquals(addr1.toBookieId(), replacedBookie);
         assertTrue(addr3.toBookieId().equals(replacedBookie)
                 || addr4.toBookieId().equals(replacedBookie));
     }
 
     @Test
-    public void testReplaceBookieWithNotEnoughBookies() throws Exception {
+    void replaceBookieWithNotEnoughBookies() throws Exception {
         ignoreTestIfItIsWindowsOS();
         BookieSocketAddress addr1 = new BookieSocketAddress("127.0.0.1", 3181); // /1 rack
         BookieSocketAddress addr2 = new BookieSocketAddress("127.0.0.2", 3181); // /2 rack
@@ -180,7 +181,7 @@ public class TestRackawareEnsemblePlacementPolicyUsingScript {
      * This case adds node with non-default rack, then adds nodes with one on default rack.
      */
     @Test
-    public void testReplaceBookieWithScriptMappingError() throws Exception {
+    void replaceBookieWithScriptMappingError() throws Exception {
         ignoreTestIfItIsWindowsOS();
         BookieSocketAddress addr0 = new BookieSocketAddress("127.0.0.0", 3181); // error mapping to rack here
         BookieSocketAddress addr1 = new BookieSocketAddress("127.0.0.1", 3181); // /1 rack
@@ -204,9 +205,9 @@ public class TestRackawareEnsemblePlacementPolicyUsingScript {
         BookieId replacedBookie = repp.replaceBookie(1, 1, 1, null, new ArrayList<>(),
                                                                 addr2.toBookieId(), excludedAddrs).getResult();
 
-        assertFalse(addr1.toBookieId().equals(replacedBookie));
-        assertFalse(addr2.toBookieId().equals(replacedBookie));
-        assertTrue(addr0.toBookieId().equals(replacedBookie));
+        assertNotEquals(addr1.toBookieId(), replacedBookie);
+        assertNotEquals(addr2.toBookieId(), replacedBookie);
+        assertEquals(addr0.toBookieId(), replacedBookie);
     }
 
     /*
@@ -219,7 +220,7 @@ public class TestRackawareEnsemblePlacementPolicyUsingScript {
      * Almost the same as testReplaceBookieWithScriptMappingError but different order of addition.
      */
     @Test
-    public void testReplaceBookieWithScriptMappingError2() throws Exception {
+    void replaceBookieWithScriptMappingError2() throws Exception {
         ignoreTestIfItIsWindowsOS();
         BookieSocketAddress addr0 = new BookieSocketAddress("127.0.0.0", 3181); // error mapping to rack here
         BookieSocketAddress addr1 = new BookieSocketAddress("127.0.0.1", 3181); // /1 rack
@@ -243,13 +244,13 @@ public class TestRackawareEnsemblePlacementPolicyUsingScript {
         BookieId replacedBookie = repp.replaceBookie(1, 1, 1, null, new ArrayList<>(),
                                                                 addr2.toBookieId(), excludedAddrs).getResult();
 
-        assertFalse(addr1.toBookieId().equals(replacedBookie));
-        assertFalse(addr2.toBookieId().equals(replacedBookie));
-        assertTrue(addr0.toBookieId().equals(replacedBookie));
+        assertNotEquals(addr1.toBookieId(), replacedBookie);
+        assertNotEquals(addr2.toBookieId(), replacedBookie);
+        assertEquals(addr0.toBookieId(), replacedBookie);
     }
 
     @Test
-    public void testNewEnsembleWithSingleRack() throws Exception {
+    void newEnsembleWithSingleRack() throws Exception {
         ignoreTestIfItIsWindowsOS();
         BookieSocketAddress addr1 = new BookieSocketAddress("127.0.0.1", 3181); // /1 rack
         BookieSocketAddress addr2 = new BookieSocketAddress("127.0.1.1", 3181); // /1 rack
@@ -262,20 +263,18 @@ public class TestRackawareEnsemblePlacementPolicyUsingScript {
         addrs.add(addr3.toBookieId());
         addrs.add(addr4.toBookieId());
         repp.onClusterChanged(addrs, new HashSet<BookieId>());
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             List<BookieId> ensemble = repp.newEnsemble(3, 2, 2, null,
-                                                                  new HashSet<>()).getResult();
+                    new HashSet<>()).getResult();
             assertEquals(0, getNumCoveredWriteQuorums(ensemble, 2));
             List<BookieId> ensemble2 = repp.newEnsemble(4, 2, 2, null,
-                                                                   new HashSet<>()).getResult();
+                    new HashSet<>()).getResult();
             assertEquals(0, getNumCoveredWriteQuorums(ensemble2, 2));
-        } catch (BKNotEnoughBookiesException bnebe) {
-            fail("Should not get not enough bookies exception even there is only one rack.");
-        }
+        }, "Should not get not enough bookies exception even there is only one rack.");
     }
 
     @Test
-    public void testNewEnsembleWithMultipleRacks() throws Exception {
+    void newEnsembleWithMultipleRacks() throws Exception {
         ignoreTestIfItIsWindowsOS();
         BookieSocketAddress addr1 = new BookieSocketAddress("127.0.0.1", 3181); // /1 rack
         BookieSocketAddress addr2 = new BookieSocketAddress("127.0.0.2", 3181); // /2 rack
@@ -288,22 +287,20 @@ public class TestRackawareEnsemblePlacementPolicyUsingScript {
         addrs.add(addr3.toBookieId());
         addrs.add(addr4.toBookieId());
         repp.onClusterChanged(addrs, new HashSet<BookieId>());
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             List<BookieId> ensemble = repp.newEnsemble(3, 2, 2, null,
-                                                                  new HashSet<>()).getResult();
+                    new HashSet<>()).getResult();
             int numCovered = getNumCoveredWriteQuorums(ensemble, 2);
-            assertTrue(numCovered == 2);
+            assertEquals(2, numCovered);
             List<BookieId> ensemble2 = repp.newEnsemble(4, 2, 2, null,
-                                                                   new HashSet<>()).getResult();
+                    new HashSet<>()).getResult();
             numCovered = getNumCoveredWriteQuorums(ensemble2, 2);
-            assertTrue(numCovered == 2);
-        } catch (BKNotEnoughBookiesException bnebe) {
-            fail("Should not get not enough bookies exception");
-        }
+            assertEquals(2, numCovered);
+        }, "Should not get not enough bookies exception");
     }
 
     @Test
-    public void testNewEnsembleWithEnoughRacks() throws Exception {
+    void newEnsembleWithEnoughRacks() throws Exception {
         ignoreTestIfItIsWindowsOS();
         BookieSocketAddress addr1 = new BookieSocketAddress("127.0.0.1", 3181); // /1 rack
         BookieSocketAddress addr2 = new BookieSocketAddress("127.0.0.2", 3181); // /2 rack
@@ -324,16 +321,14 @@ public class TestRackawareEnsemblePlacementPolicyUsingScript {
         addrs.add(addr7.toBookieId());
         addrs.add(addr8.toBookieId());
         repp.onClusterChanged(addrs, new HashSet<BookieId>());
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             List<BookieId> ensemble1 = repp.newEnsemble(3, 2, 2, null,
-                                                                   new HashSet<>()).getResult();
+                    new HashSet<>()).getResult();
             assertEquals(3, getNumCoveredWriteQuorums(ensemble1, 2));
             List<BookieId> ensemble2 = repp.newEnsemble(4, 2, 2, null,
-                                                                   new HashSet<>()).getResult();
+                    new HashSet<>()).getResult();
             assertEquals(4, getNumCoveredWriteQuorums(ensemble2, 2));
-        } catch (BKNotEnoughBookiesException bnebe) {
-            fail("Should not get not enough bookies exception.");
-        }
+        }, "Should not get not enough bookies exception.");
     }
 
     /**
@@ -341,7 +336,7 @@ public class TestRackawareEnsemblePlacementPolicyUsingScript {
      */
 
     @Test
-    public void testRemoveBookieFromCluster() {
+    void removeBookieFromCluster() {
         ignoreTestIfItIsWindowsOS();
         BookieSocketAddress addr1 = new BookieSocketAddress("127.0.0.1", 3181); // /1 rack
         BookieSocketAddress addr2 = new BookieSocketAddress("127.0.0.2", 3181); // /2 rack
@@ -359,7 +354,7 @@ public class TestRackawareEnsemblePlacementPolicyUsingScript {
     }
 
     @Test
-    public void testNetworkTopologyScriptFileNameIsEmpty() throws Exception {
+    void networkTopologyScriptFileNameIsEmpty() throws Exception {
         ignoreTestIfItIsWindowsOS();
         repp.uninitalize();
 
@@ -404,7 +399,7 @@ public class TestRackawareEnsemblePlacementPolicyUsingScript {
     }
 
     @Test
-    public void testIfValidateConfFails() throws Exception {
+    void ifValidateConfFails() throws Exception {
         ignoreTestIfItIsWindowsOS();
         repp.uninitalize();
 

@@ -22,7 +22,7 @@ package org.apache.bookkeeper.test;
 
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.client.LedgerHandle;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * This unit test tests closing ledgers sequentially. It creates 4 ledgers, then
@@ -39,7 +39,7 @@ public class CloseTest extends BookKeeperClusterTestCase  {
     }
 
     @Test
-    public void testClose() throws Exception {
+    void close() throws Exception {
 
         /*
          * Create 4 ledgers.
@@ -70,7 +70,7 @@ public class CloseTest extends BookKeeperClusterTestCase  {
     }
 
     @Test
-    public void testCloseByOthers() throws Exception {
+    void closeByOthers() throws Exception {
 
         int numLedgers = 1;
         int numMsgs = 10;

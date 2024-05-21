@@ -20,9 +20,9 @@
 package org.apache.bookkeeper.client.impl;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
@@ -31,8 +31,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import org.apache.bookkeeper.client.api.LedgerEntry;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test for {@link LedgerEntriesImpl}.
@@ -63,8 +63,8 @@ public class LedgerEntriesImplTest {
         ledgerEntriesImpl = LedgerEntriesImpl.create(entryList);
     }
 
-    @After
-    public void tearDown() {
+    @AfterEach
+    void tearDown() {
         ledgerEntriesImpl.close();
 
         // References should be released after close.
@@ -86,7 +86,7 @@ public class LedgerEntriesImplTest {
     }
 
     @Test
-    public void testGetEntry() {
+    void getEntry() {
         for (int i = 0; i < entryNumber; i++) {
             LedgerEntry entry = ledgerEntriesImpl.getEntry(entryId + i);
             assertEquals(entryList.get(i).getLedgerId(),  entry.getLedgerId());
@@ -117,7 +117,7 @@ public class LedgerEntriesImplTest {
     }
 
     @Test
-    public void testIterator() {
+    void iterator() {
         Iterator<LedgerEntry> entryIterator = ledgerEntriesImpl.iterator();
         entryIterator.forEachRemaining(ledgerEntry -> assertEquals(1, ledgerEntry.getEntryBuffer().refCnt()));
     }

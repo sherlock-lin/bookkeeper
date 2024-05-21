@@ -25,9 +25,9 @@ import static org.apache.bookkeeper.bookie.UpgradeTest.initV1JournalDirectory;
 import static org.apache.bookkeeper.bookie.UpgradeTest.initV1LedgerDirectory;
 import static org.apache.bookkeeper.bookie.UpgradeTest.initV2JournalDirectory;
 import static org.apache.bookkeeper.bookie.UpgradeTest.initV2LedgerDirectory;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Sets;
 import java.io.File;
@@ -54,8 +54,10 @@ import org.apache.bookkeeper.versioning.LongVersion;
 import org.apache.bookkeeper.versioning.Version;
 import org.apache.bookkeeper.versioning.Versioned;
 import org.apache.commons.io.FileUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test cookies.
@@ -83,6 +85,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
     MetadataBookieDriver metadataBookieDriver;
     RegistrationManager rm;
 
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -93,6 +96,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
         this.rm = metadataBookieDriver.createRegistrationManager();
     }
 
+    @AfterEach
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
@@ -136,7 +140,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * Test starting bookie with clean state.
      */
     @Test
-    public void testCleanStart() throws Exception {
+    void cleanStart() throws Exception {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         conf.setJournalDirName(newDirectory(true))
             .setLedgerDirNames(new String[] { newDirectory(true) })
@@ -153,7 +157,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * will fail to start.
      */
     @Test
-    public void testBadJournalCookie() throws Exception {
+    void badJournalCookie() throws Exception {
         ServerConfiguration conf1 = TestBKConfiguration.newServerConfiguration()
             .setJournalDirName(newDirectory())
             .setLedgerDirNames(new String[] { newDirectory() })
@@ -193,7 +197,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * start.
      */
     @Test
-    public void testDirectoryMissing() throws Exception {
+    void directoryMissing() throws Exception {
         String[] ledgerDirs = new String[] {
             newDirectory(), newDirectory(), newDirectory() };
         String[] indexDirs = new String[] {
@@ -241,7 +245,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * the bookie will fail to start.
      */
     @Test
-    public void testCookieMissingOnJournalDir() throws Exception {
+    void cookieMissingOnJournalDir() throws Exception {
         String[] ledgerDirs = new String[] {
             newDirectory(), newDirectory(), newDirectory() };
         String[] indexDirs = new String[] {
@@ -272,7 +276,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * the bookie will fail to start.
      */
     @Test
-    public void testCookieMissingOnLedgerDir() throws Exception {
+    void cookieMissingOnLedgerDir() throws Exception {
         String[] ledgerDirs = new String[] {
             newDirectory(), newDirectory(), newDirectory() };
         String journalDir = newDirectory();
@@ -300,7 +304,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * the bookie will fail to start.
      */
     @Test
-    public void testCookieMissingOnIndexDir() throws Exception {
+    void cookieMissingOnIndexDir() throws Exception {
         String[] ledgerDirs = new String[] {
                 newDirectory(), newDirectory(), newDirectory() };
         String[] indexDirs = new String[] {
@@ -332,7 +336,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * to start.
      */
     @Test
-    public void testLedgerDirectoryAdded() throws Exception {
+    void ledgerDirectoryAdded() throws Exception {
         String ledgerDir0 = newDirectory();
         String indexDir0 = newDirectory();
         String journalDir = newDirectory();
@@ -363,7 +367,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * to start.
      */
     @Test
-    public void testIndexDirectoryAdded() throws Exception {
+    void indexDirectoryAdded() throws Exception {
         String ledgerDir0 = newDirectory();
         String indexDir0 = newDirectory();
         String journalDir = newDirectory();
@@ -393,7 +397,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * allowStorageExpansion option is true, the bookie should come online.
      */
     @Test
-    public void testLedgerStorageExpansionOption() throws Exception {
+    void ledgerStorageExpansionOption() throws Exception {
         String ledgerDir0 = newDirectory();
         String indexDir0 = newDirectory();
         String journalDir = newDirectory();
@@ -417,11 +421,9 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
         Set<String> configuredIndexDirs =  Sets.newHashSet(iPaths);
         conf.setIndexDirName(iPaths);
 
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             validateConfig(conf);
-        } catch (InvalidCookieException ice) {
-            fail("Should have been able to start the bookie");
-        }
+        }, "Should have been able to start the bookie");
 
         List<File> l = currentDirectoryList(conf.getLedgerDirs());
         HashSet<String> bookieLedgerDirs = Sets.newHashSet();
@@ -430,18 +432,16 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
             // dir under the ledger dir user provides
             bookieLedgerDirs.add(f.getParent());
         }
-        assertTrue("Configured ledger dirs: " + configuredLedgerDirs + " doesn't match bookie's ledger dirs: "
-                   + bookieLedgerDirs,
-                   configuredLedgerDirs.equals(bookieLedgerDirs));
+        assertEquals(configuredLedgerDirs, bookieLedgerDirs, "Configured ledger dirs: " + configuredLedgerDirs + " doesn't match bookie's ledger dirs: "
+                + bookieLedgerDirs);
 
         l = currentDirectoryList(conf.getIndexDirs());
         HashSet<String> bookieIndexDirs = Sets.newHashSet();
         for (File f : l) {
             bookieIndexDirs.add(f.getParent());
         }
-        assertTrue("Configured Index dirs: " + configuredIndexDirs + " doesn't match bookie's index dirs: "
-                   + bookieIndexDirs,
-                   configuredIndexDirs.equals(bookieIndexDirs));
+        assertEquals(configuredIndexDirs, bookieIndexDirs, "Configured Index dirs: " + configuredIndexDirs + " doesn't match bookie's index dirs: "
+                + bookieIndexDirs);
 
         // Make sure that substituting an older ledger directory
         // is not allowed.
@@ -471,7 +471,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * allowStorageExpansion option is true, the bookie should come online.
      */
     @Test
-    public void testIndexStorageExpansionOption() throws Exception {
+    void indexStorageExpansionOption() throws Exception {
         String ledgerDir0 = newDirectory();
         String indexDir0 = newDirectory();
         String journalDir = newDirectory();
@@ -490,20 +490,17 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
         Set<String> configuredIndexDirs =  Sets.newHashSet(iPaths);
         conf.setIndexDirName(iPaths);
 
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             validateConfig(conf);
-        } catch (InvalidCookieException ice) {
-            fail("Should have been able to start the bookie");
-        }
+        }, "Should have been able to start the bookie");
 
         List<File> l = currentDirectoryList(conf.getIndexDirs());
         HashSet<String> bookieIndexDirs = Sets.newHashSet();
         for (File f : l) {
             bookieIndexDirs.add(f.getParent());
         }
-        assertTrue("Configured Index dirs: " + configuredIndexDirs + " doesn't match bookie's index dirs: "
-                        + bookieIndexDirs,
-                configuredIndexDirs.equals(bookieIndexDirs));
+        assertEquals(configuredIndexDirs, bookieIndexDirs, "Configured Index dirs: " + configuredIndexDirs + " doesn't match bookie's index dirs: "
+                + bookieIndexDirs);
 
         // Make sure that substituting an older index directory
         // is not allowed.
@@ -533,7 +530,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * even when allowStorageExpansion option is true.
      */
     @Test
-    public void testNonEmptyDirAddWithStorageExpansionOption() throws Exception {
+    void nonEmptyDirAddWithStorageExpansionOption() throws Exception {
         String ledgerDir0 = newDirectory();
         String indexDir0 = newDirectory();
         String journalDir = newDirectory();
@@ -554,7 +551,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
         // create a file to make the dir non-empty
         File currentDir = BookieImpl.getCurrentDirectory(new File(lPaths[1]));
         new File(currentDir, "foo").createNewFile();
-        assertTrue(currentDir.list().length == 1);
+        assertEquals(1, currentDir.list().length);
 
         try {
             validateConfig(conf);
@@ -570,7 +567,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
         // create a dir to make it non-empty
         currentDir = BookieImpl.getCurrentDirectory(new File(iPaths[1]));
         new File(currentDir, "bar").mkdirs();
-        assertTrue(currentDir.list().length == 1);
+        assertEquals(1, currentDir.list().length);
 
         try {
             validateConfig(conf);
@@ -585,7 +582,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * are emptied, the bookie will fail to start.
      */
     @Test
-    public void testLedgerDirectoryCleared() throws Exception {
+    void ledgerDirectoryCleared() throws Exception {
         String ledgerDir0 = newDirectory();
         String indexDir = newDirectory();
         String journalDir = newDirectory();
@@ -612,7 +609,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * are emptied, the bookie will fail to start.
      */
     @Test
-    public void testIndexDirectoryCleared() throws Exception {
+    void indexDirectoryCleared() throws Exception {
         String ledgerDir = newDirectory();
         String indexDir0 = newDirectory();
         String journalDir = newDirectory();
@@ -639,7 +636,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * the bookie will fail to start.
      */
     @Test
-    public void testBookiePortChanged() throws Exception {
+    void bookiePortChanged() throws Exception {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         conf.setJournalDirName(newDirectory())
             .setLedgerDirNames(new String[] { newDirectory() , newDirectory() })
@@ -664,7 +661,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * to start.
      */
     @Test
-    public void testNewBookieStartingWithAnotherBookiesPort() throws Exception {
+    void newBookieStartingWithAnotherBookiesPort() throws Exception {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         conf.setJournalDirName(newDirectory())
             .setLedgerDirNames(new String[] { newDirectory() , newDirectory() })
@@ -691,7 +688,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * Test Cookie verification with format.
      */
     @Test
-    public void testVerifyCookieWithFormat() throws Exception {
+    void verifyCookieWithFormat() throws Exception {
         ServerConfiguration adminConf = new ServerConfiguration();
         adminConf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
 
@@ -715,8 +712,8 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
             fail("Bookie should not start with previous instance id.");
         } catch (InvalidCookieException e) {
             assertTrue(
-                    "Bookie startup should fail because of invalid instance id",
-                    e.getMessage().contains("instanceId"));
+                    e.getMessage().contains("instanceId"),
+                    "Bookie startup should fail because of invalid instance id");
         }
 
         // Now format the Bookie and restart.
@@ -730,7 +727,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * version 2 data, that it will fail to start (it needs upgrade).
      */
     @Test
-    public void testV2data() throws Exception {
+    void v2data() throws Exception {
         File journalDir = initV2JournalDirectory(tmpDirs.createNew("bookie", "journal"));
         File ledgerDir = initV2LedgerDirectory(tmpDirs.createNew("bookie", "ledger"));
 
@@ -745,14 +742,14 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
             fail("Shouldn't have been able to start");
         } catch (IOException ioe) {
             // correct behaviour
-            assertTrue("wrong exception", ioe.getMessage().contains("upgrade needed"));
+            assertTrue(ioe.getMessage().contains("upgrade needed"), "wrong exception");
         }
         try {
             BookieImpl.checkDirectoryStructure(BookieImpl.getCurrentDirectory(ledgerDir));
             fail("Shouldn't have been able to start");
         } catch (IOException ioe) {
             // correct behaviour
-            assertTrue("wrong exception", ioe.getMessage().contains("upgrade needed"));
+            assertTrue(ioe.getMessage().contains("upgrade needed"), "wrong exception");
         }
     }
 
@@ -761,7 +758,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * version 1 data, that it will fail to start (it needs upgrade).
      */
     @Test
-    public void testV1data() throws Exception {
+    void v1data() throws Exception {
         File journalDir = initV1JournalDirectory(tmpDirs.createNew("bookie", "journal"));
         File ledgerDir = initV1LedgerDirectory(tmpDirs.createNew("bookie", "ledger"));
 
@@ -776,7 +773,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
             fail("Shouldn't have been able to start");
         } catch (IOException ioe) {
             // correct behaviour
-            assertTrue("wrong exception", ioe.getMessage().contains("upgrade needed"));
+            assertTrue(ioe.getMessage().contains("upgrade needed"), "wrong exception");
         }
 
         try {
@@ -784,7 +781,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
             fail("Shouldn't have been able to start");
         } catch (IOException ioe) {
             // correct behaviour
-            assertTrue("wrong exception", ioe.getMessage().contains("upgrade needed"));
+            assertTrue(ioe.getMessage().contains("upgrade needed"), "wrong exception");
         }
     }
 
@@ -793,7 +790,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * with ipaddress.
      */
     @Test
-    public void testRestartWithHostNameAsBookieID() throws Exception {
+    void restartWithHostNameAsBookieID() throws Exception {
         String[] ledgerDirs = new String[] { newDirectory(), newDirectory(), newDirectory() };
         String[] indexDirs = new String[] { newDirectory(), newDirectory(), newDirectory() };
         String journalDir = newDirectory();
@@ -818,7 +815,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * Test restart bookie with new advertisedAddress, which had cookie generated with ip.
      */
     @Test
-    public void testRestartWithAdvertisedAddressAsBookieID() throws Exception {
+    void restartWithAdvertisedAddressAsBookieID() throws Exception {
         String[] ledgerDirs = new String[] { newDirectory(), newDirectory(), newDirectory() };
         String[] indexDirs = new String[] { newDirectory(), newDirectory(), newDirectory() };
         String journalDir = newDirectory();
@@ -845,7 +842,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * with hostname.
      */
     @Test
-    public void testRestartWithIpAddressAsBookieID() throws Exception {
+    void restartWithIpAddressAsBookieID() throws Exception {
         String[] ledgerDirs = new String[] { newDirectory(), newDirectory(), newDirectory() };
         String[] indexDirs = new String[] { newDirectory(), newDirectory(), newDirectory() };
         String journalDir = newDirectory();
@@ -872,7 +869,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * (with useHostNameAsBookieID=true).
      */
     @Test
-    public void testV2dataWithHostNameAsBookieID() throws Exception {
+    void v2dataWithHostNameAsBookieID() throws Exception {
         File journalDir = initV2JournalDirectory(tmpDirs.createNew("bookie", "journal"));
         File ledgerDir = initV2LedgerDirectory(tmpDirs.createNew("bookie", "ledger"));
 
@@ -887,7 +884,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
             fail("Shouldn't have been able to start");
         } catch (IOException ioe) {
             // correct behaviour
-            assertTrue("wrong exception", ioe.getMessage().contains("upgrade needed"));
+            assertTrue(ioe.getMessage().contains("upgrade needed"), "wrong exception");
         }
 
         try {
@@ -895,7 +892,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
             fail("Shouldn't have been able to start");
         } catch (IOException ioe) {
             // correct behaviour
-            assertTrue("wrong exception", ioe.getMessage().contains("upgrade needed"));
+            assertTrue(ioe.getMessage().contains("upgrade needed"), "wrong exception");
         }
     }
 
@@ -903,7 +900,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * Test write cookie multiple times.
      */
     @Test
-    public void testWriteToZooKeeper() throws Exception {
+    void writeToZooKeeper() throws Exception {
         String[] ledgerDirs = new String[] { newDirectory(), newDirectory(), newDirectory() };
         String[] indexDirs = new String[] { newDirectory(), newDirectory(), newDirectory() };
         String journalDir = newDirectory();
@@ -916,25 +913,24 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
         validateConfig(conf);
         Versioned<Cookie> zkCookie = Cookie.readFromRegistrationManager(rm, conf);
         Version version1 = zkCookie.getVersion();
-        assertTrue("Invalid type expected ZkVersion type",
-            version1 instanceof LongVersion);
+        assertTrue(version1 instanceof LongVersion,
+            "Invalid type expected ZkVersion type");
         LongVersion zkVersion1 = (LongVersion) version1;
         Cookie cookie = zkCookie.getValue();
         cookie.writeToRegistrationManager(rm, conf, version1);
 
         zkCookie = Cookie.readFromRegistrationManager(rm, conf);
         Version version2 = zkCookie.getVersion();
-        assertTrue("Invalid type expected ZkVersion type", version2 instanceof LongVersion);
+        assertTrue(version2 instanceof LongVersion, "Invalid type expected ZkVersion type");
         LongVersion zkVersion2 = (LongVersion) version2;
-        assertEquals("Version mismatches!",
-            zkVersion1.getLongVersion() + 1, zkVersion2.getLongVersion());
+        assertEquals(zkVersion1.getLongVersion() + 1, zkVersion2.getLongVersion(), "Version mismatches!");
     }
 
     /**
      * Test delete cookie.
      */
     @Test
-    public void testDeleteFromZooKeeper() throws Exception {
+    void deleteFromZooKeeper() throws Exception {
         String[] ledgerDirs = new String[] { newDirectory(), newDirectory(), newDirectory() };
         String[] indexDirs = new String[] { newDirectory(), newDirectory(), newDirectory() };
         String journalDir = newDirectory();
@@ -954,7 +950,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * Tests that custom Bookie Id is properly set in the Cookie (via {@link LegacyCookieValidation}).
      */
     @Test
-    public void testBookieIdSetting() throws Exception {
+    void bookieIdSetting() throws Exception {
         final String customBookieId = "myCustomBookieId" + new Random().nextInt();
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         conf.setJournalDirName(newDirectory())
@@ -966,10 +962,10 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
         validateConfig(conf);
         Versioned<Cookie> zkCookie = Cookie.readFromRegistrationManager(rm, conf);
         Version version1 = zkCookie.getVersion();
-        assertTrue("Invalid type expected ZkVersion type", version1 instanceof LongVersion);
+        assertTrue(version1 instanceof LongVersion, "Invalid type expected ZkVersion type");
         Cookie cookie = zkCookie.getValue();
         cookie.writeToRegistrationManager(rm, conf, version1);
-        Assert.assertTrue(cookie.toString().contains(customBookieId));
+        assertTrue(cookie.toString().contains(customBookieId));
     }
 
     /**
@@ -978,7 +974,7 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
      * 2. Configure indexDirName to start bookie
      */
     @Test
-    public void testNewBookieStartingWithOldCookie() throws Exception {
+    void newBookieStartingWithOldCookie() throws Exception {
         String journalDir = newDirectory();
         String[] ledgerDirs = {newDirectory(), newDirectory()};
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
@@ -994,11 +990,8 @@ public class CookieIndexDirTest extends BookKeeperClusterTestCase {
                 .setIndexDirName(ledgerDirs)
                 .setBookiePort(bookiePort)
                 .setMetadataServiceUri(zkUtil.getMetadataServiceUri());
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             validateConfig(conf);
-        } catch (InvalidCookieException ice) {
-            // error behaviour
-            fail("Validate failed, error info: " + ice.getMessage());
-        }
+        }, "Validate failed, error info: ");
     }
 }

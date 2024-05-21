@@ -18,9 +18,9 @@
  */
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -31,29 +31,28 @@ import org.apache.bookkeeper.bookie.BookieException.Code;
 import org.apache.bookkeeper.bookie.LedgerDirsManager.NoWritableLedgerDirException;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.conf.TestBKConfiguration;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Test a single bookie at readonly mode.
  */
 public class SingleBookieInitializationTest {
 
-    @Rule
-    public final TemporaryFolder testDir = new TemporaryFolder();
+    @TempDir
+    public File testDir;
 
     private File journalDir;
     private File ledgerDir;
     private ServerConfiguration conf;
     private Bookie bookie;
 
-    @Before
-    public void setUp() throws Exception {
-        this.journalDir = testDir.newFolder("journal");
-        this.ledgerDir = testDir.newFolder("ledgers");
+    @BeforeEach
+    void setUp() throws Exception {
+        this.journalDir = newFolder(testDir, "journal");
+        this.ledgerDir = newFolder(testDir, "ledgers");
 
         this.conf = TestBKConfiguration.newServerConfiguration();
         this.conf.setJournalDirsName(new String[] { journalDir.getAbsolutePath() });
@@ -61,8 +60,8 @@ public class SingleBookieInitializationTest {
         this.conf.setMetadataServiceUri(null);
     }
 
-    @After
-    public void tearDown() throws Exception {
+    @AfterEach
+    void tearDown() throws Exception {
         if (null != this.bookie) {
             this.bookie.shutdown();
         }
@@ -82,7 +81,7 @@ public class SingleBookieInitializationTest {
     }
 
     @Test
-    public void testInitBookieNoWritableDirsButHasEnoughSpaces() throws Exception {
+    void initBookieNoWritableDirsButHasEnoughSpaces() throws Exception {
         float usage = 1.0f - ((float) ledgerDir.getUsableSpace()) / ledgerDir.getTotalSpace();
         conf.setDiskUsageThreshold(usage / 2);
         conf.setDiskUsageWarnThreshold(usage / 3);
@@ -104,7 +103,7 @@ public class SingleBookieInitializationTest {
     }
 
     @Test
-    public void testInitBookieNoWritableDirsAndNoEnoughSpaces() throws Exception {
+    void initBookieNoWritableDirsAndNoEnoughSpaces() throws Exception {
         float usage = 1.0f - ((float) ledgerDir.getUsableSpace()) / ledgerDir.getTotalSpace();
         conf.setDiskUsageThreshold(usage / 2);
         conf.setDiskUsageWarnThreshold(usage / 3);
@@ -128,6 +127,15 @@ public class SingleBookieInitializationTest {
             // expected
             assertTrue(ioe.getCause() instanceof NoWritableLedgerDirException);
         }
+    }
+
+    private static File newFolder(File root, String... subDirs) throws IOException {
+        String subFolder = String.join("/", subDirs);
+        File result = new File(root, subFolder);
+        if (!result.mkdirs()) {
+            throw new IOException("Couldn't create folders " + root);
+        }
+        return result;
     }
 
 }

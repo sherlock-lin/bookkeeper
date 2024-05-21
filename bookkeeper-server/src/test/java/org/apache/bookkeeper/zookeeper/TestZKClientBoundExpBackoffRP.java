@@ -27,22 +27,18 @@ import org.apache.bookkeeper.test.ZooKeeperCluster;
 import org.apache.bookkeeper.test.ZooKeeperClusterUtil;
 import org.apache.bookkeeper.test.ZooKeeperUtil;
 import org.apache.zookeeper.KeeperException;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 /**
  * Test zk client resiliency with BoundExponentialBackoffRetryPolicy.
  */
-@RunWith(Parameterized.class)
 public class TestZKClientBoundExpBackoffRP extends TestZooKeeperClient {
 
-    public TestZKClientBoundExpBackoffRP(Class<? extends ZooKeeperCluster> zooKeeperUtilClass,
+    public void initTestZKClientBoundExpBackoffRP(Class<? extends ZooKeeperCluster> zooKeeperUtilClass,
                                          Class<? extends RetryPolicy> retryPolicyClass)
             throws IOException, KeeperException, InterruptedException {
         super(zooKeeperUtilClass, retryPolicyClass);
     }
 
-    @Parameterized.Parameters
     public static Collection<Object[]> zooKeeperUtilClass() {
         return Arrays.asList(new Object[][] { { ZooKeeperUtil.class, BoundExponentialBackoffRetryPolicy.class },
                 { ZooKeeperClusterUtil.class, BoundExponentialBackoffRetryPolicy.class } });

@@ -21,8 +21,8 @@ package org.apache.bookkeeper.server.component;
 
 import static org.apache.bookkeeper.server.component.ServerLifecycleComponent.loadServerComponents;
 import static org.apache.bookkeeper.server.component.ServerLifecycleComponent.newComponent;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
@@ -30,12 +30,12 @@ import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.server.conf.BookieConfiguration;
 import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.stats.StatsLogger;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Manage the test server lifecycle.
  */
-public class TestServerLifecycleComponent {
+class TestServerLifecycleComponent {
 
     static class TestComponent extends ServerLifecycleComponent {
 
@@ -66,7 +66,7 @@ public class TestServerLifecycleComponent {
     }
 
     @Test
-    public void testNewComponent() throws Exception {
+    void newComponent() throws Exception {
         BookieConfiguration conf = new BookieConfiguration(new ServerConfiguration());
         StatsLogger statsLogger = NullStatsLogger.INSTANCE;
         ServerLifecycleComponent component = newComponent(
@@ -78,7 +78,7 @@ public class TestServerLifecycleComponent {
     }
 
     @Test
-    public void testLoadServerComponents() throws Exception {
+    void loadServerComponents() throws Exception {
         BookieConfiguration conf = new BookieConfiguration(new ServerConfiguration());
         StatsLogger statsLogger = NullStatsLogger.INSTANCE;
         String[] clsNames = new String[] {

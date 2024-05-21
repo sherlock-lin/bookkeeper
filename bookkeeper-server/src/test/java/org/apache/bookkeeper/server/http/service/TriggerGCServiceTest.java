@@ -18,7 +18,7 @@
  */
 package org.apache.bookkeeper.server.http.service;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
@@ -34,21 +34,21 @@ import org.apache.bookkeeper.http.HttpServer;
 import org.apache.bookkeeper.http.service.HttpServiceRequest;
 import org.apache.bookkeeper.http.service.HttpServiceResponse;
 import org.apache.bookkeeper.proto.BookieServer;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 
 /**
  * Unit test for {@link TriggerGCService}.
  */
 @Slf4j
-public class TriggerGCServiceTest {
+class TriggerGCServiceTest {
     private TriggerGCService service;
     private BookieServer mockBookieServer;
     private LedgerStorage mockLedgerStorage;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         this.mockBookieServer = mock(BookieServer.class, RETURNS_DEEP_STUBS);
         this.mockLedgerStorage = mock(DbLedgerStorage.class);
         when(mockBookieServer.getBookie().getLedgerStorage()).thenReturn(mockLedgerStorage);
@@ -59,7 +59,7 @@ public class TriggerGCServiceTest {
     }
 
     @Test
-    public void testHandleRequest() throws Exception {
+    void handleRequest() throws Exception {
 
         // test empty put body
         HttpServiceRequest request = new HttpServiceRequest();

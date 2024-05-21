@@ -22,24 +22,24 @@ package org.apache.bookkeeper.client;
 
 import static org.apache.bookkeeper.client.api.BKException.Code.WriteException;
 import static org.apache.bookkeeper.common.concurrent.FutureUtils.result;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.ByteBuffer;
 import org.apache.bookkeeper.client.api.WriteHandle;
 import org.apache.bookkeeper.conf.ClientConfiguration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test ensemble change has a max num.
  */
-public class TestMaxEnsembleChangeNum extends MockBookKeeperTestCase {
+class TestMaxEnsembleChangeNum extends MockBookKeeperTestCase {
 
     private static final byte[] password = new byte[5];
     private static final byte[] data = new byte[5];
 
     @Test
-    public void testChangeEnsembleMaxNumWithWriter() throws Exception {
+    void changeEnsembleMaxNumWithWriter() throws Exception {
         long lId;
         int numEntries = 5;
         int changeNum = 5;
@@ -55,8 +55,7 @@ public class TestMaxEnsembleChangeNum extends MockBookKeeperTestCase {
             for (int i = 0; i < numEntries; i++) {
                 writer.append(ByteBuffer.wrap(data));
             }
-            assertEquals("There should be zero ensemble change",
-                    1, getLedgerMetadata(lId).getAllEnsembles().size());
+            assertEquals(1, getLedgerMetadata(lId).getAllEnsembles().size(), "There should be zero ensemble change");
 
             simulateEnsembleChangeWithWriter(changeNum, numEntries, writer);
 
@@ -68,7 +67,7 @@ public class TestMaxEnsembleChangeNum extends MockBookKeeperTestCase {
                 writer.append(ByteBuffer.wrap(data));
                 fail("should not come to here");
             } catch (BKException exception){
-                assertEquals(exception.getCode(), WriteException);
+                assertEquals(WriteException, exception.getCode());
             }
         }
     }
@@ -85,8 +84,7 @@ public class TestMaxEnsembleChangeNum extends MockBookKeeperTestCase {
                 writer.append(ByteBuffer.wrap(data));
             }
             // ensure there is a ensemble changed
-            assertEquals("There should be one ensemble change",
-                    expectedSize + num, writer.getLedgerMetadata().getAllEnsembles().size());
+            assertEquals(expectedSize + num, writer.getLedgerMetadata().getAllEnsembles().size(), "There should be one ensemble change");
         }
     }
 }

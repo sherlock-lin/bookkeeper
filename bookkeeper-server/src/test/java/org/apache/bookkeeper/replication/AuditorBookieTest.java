@@ -20,12 +20,13 @@
  */
 package org.apache.bookkeeper.replication;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -36,7 +37,9 @@ import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.proto.BookieServer;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.zookeeper.ZooKeeper;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +61,7 @@ public class AuditorBookieTest extends BookKeeperClusterTestCase {
         super(6);
     }
 
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -67,6 +71,7 @@ public class AuditorBookieTest extends BookKeeperClusterTestCase {
             + "/underreplication/auditorelection";
     }
 
+    @AfterEach
     @Override
     public void tearDown() throws Exception {
         stopAuditorElectors();
@@ -83,7 +88,7 @@ public class AuditorBookieTest extends BookKeeperClusterTestCase {
      * auditors.
      */
     @Test
-    public void testEnsureOnlySingleAuditor() throws Exception {
+    void ensureOnlySingleAuditor() throws Exception {
         BookieServer auditor = verifyAuditor();
 
         // shutdown bookie which is not an auditor
@@ -101,8 +106,7 @@ public class AuditorBookieTest extends BookKeeperClusterTestCase {
         // grace period for the auditor re-election if any
         BookieServer newAuditor = waitForNewAuditor(auditor);
         assertSame(
-                "Auditor re-election is not happened for auditor failure!",
-                auditor, newAuditor);
+                auditor, newAuditor, "Auditor re-election is not happened for auditor failure!");
     }
 
     /**
@@ -110,7 +114,7 @@ public class AuditorBookieTest extends BookKeeperClusterTestCase {
      * take over the auditor ship.
      */
     @Test
-    public void testSuccessiveAuditorCrashes() throws Exception {
+    void successiveAuditorCrashes() throws Exception {
         BookieServer auditor = verifyAuditor();
         shutdownBookie(auditor);
 
@@ -118,8 +122,7 @@ public class AuditorBookieTest extends BookKeeperClusterTestCase {
         shutdownBookie(newAuditor1);
         BookieServer newAuditor2 = waitForNewAuditor(newAuditor1);
         assertNotSame(
-                "Auditor re-election is not happened for auditor failure!",
-                auditor, newAuditor2);
+                auditor, newAuditor2, "Auditor re-election is not happened for auditor failure!");
     }
 
     /**
@@ -127,11 +130,11 @@ public class AuditorBookieTest extends BookKeeperClusterTestCase {
      * bookie auditors.
      */
     @Test
-    public void testBookieClusterRestart() throws Exception {
+    void bookieClusterRestart() throws Exception {
         BookieServer auditor = verifyAuditor();
         for (AuditorElector auditorElector : auditorElectors.values()) {
-            assertTrue("Auditor elector is not running!", auditorElector
-                    .isRunning());
+            assertTrue(auditorElector
+                    .isRunning(), "Auditor elector is not running!");
         }
         stopBKCluster();
         stopAuditorElectors();
@@ -140,31 +143,29 @@ public class AuditorBookieTest extends BookKeeperClusterTestCase {
         startAuditorElectors();
         BookieServer newAuditor = waitForNewAuditor(auditor);
         assertNotSame(
-                "Auditor re-election is not happened for auditor failure!",
-                auditor, newAuditor);
+                auditor, newAuditor, "Auditor re-election is not happened for auditor failure!");
     }
 
     /**
      * Test the vote is deleting from the ZooKeeper during shutdown.
      */
     @Test
-    public void testShutdown() throws Exception {
+    void shutdown() throws Exception {
         BookieServer auditor = verifyAuditor();
         shutdownBookie(auditor);
 
         // waiting for new auditor
         BookieServer newAuditor = waitForNewAuditor(auditor);
         assertNotSame(
-                "Auditor re-election is not happened for auditor failure!",
-                auditor, newAuditor);
+                auditor, newAuditor, "Auditor re-election is not happened for auditor failure!");
 
         List<String> children = zkc.getChildren(electionPath, false);
         for (String child : children) {
             byte[] data = zkc.getData(electionPath + '/' + child, false, null);
             String bookieIP = new String(data);
             String addr = auditor.getBookieId().toString();
-            assertFalse("AuditorElection cleanup fails", bookieIP
-                    .contains(addr));
+            assertFalse(bookieIP
+                    .contains(addr), "AuditorElection cleanup fails");
         }
     }
 
@@ -173,7 +174,7 @@ public class AuditorBookieTest extends BookKeeperClusterTestCase {
      * re-election and should create new vote after restarting.
      */
     @Test
-    public void testRestartAuditorBookieAfterCrashing() throws Exception {
+    void restartAuditorBookieAfterCrashing() throws Exception {
         BookieServer auditor = verifyAuditor();
 
         String addr = auditor.getBookieId().toString();
@@ -193,10 +194,9 @@ public class AuditorBookieTest extends BookKeeperClusterTestCase {
         // waiting for new auditor to come
         BookieServer newAuditor = waitForNewAuditor(auditor);
         assertNotSame(
-                "Auditor re-election is not happened for auditor failure!",
-                auditor, newAuditor);
-        assertFalse("No relection after old auditor rejoins", auditor
-                .getBookieId().equals(newAuditor.getBookieId()));
+                auditor, newAuditor, "Auditor re-election is not happened for auditor failure!");
+        assertNotEquals(auditor
+                .getBookieId(), newAuditor.getBookieId(), "No relection after old auditor rejoins");
     }
 
     private void startAuditorElector(String addr) throws Exception {
@@ -226,8 +226,8 @@ public class AuditorBookieTest extends BookKeeperClusterTestCase {
 
     private BookieServer verifyAuditor() throws Exception {
         List<BookieServer> auditors = getAuditorBookie();
-        assertEquals("Multiple Bookies acting as Auditor!", 1, auditors
-                .size());
+        assertEquals(1, auditors
+                .size(), "Multiple Bookies acting as Auditor!");
         if (LOG.isDebugEnabled()) {
             LOG.debug("Bookie running as Auditor:" + auditors.get(0));
         }
@@ -237,7 +237,7 @@ public class AuditorBookieTest extends BookKeeperClusterTestCase {
     private List<BookieServer> getAuditorBookie() throws Exception {
         List<BookieServer> auditors = new LinkedList<BookieServer>();
         byte[] data = zkc.getData(electionPath, false, null);
-        assertNotNull("Auditor election failed", data);
+        assertNotNull(data, "Auditor election failed");
         for (int i = 0; i < bookieCount(); i++) {
             BookieServer bks = serverByIndex(i);
             if (new String(data).contains(bks.getBookieId() + "")) {
@@ -281,8 +281,8 @@ public class AuditorBookieTest extends BookKeeperClusterTestCase {
             retryCount--;
         }
         assertNotNull(
-                "New Auditor is not reelected after auditor crashes",
-                newAuditor);
+                newAuditor,
+                "New Auditor is not reelected after auditor crashes");
         verifyAuditor();
         return newAuditor;
     }

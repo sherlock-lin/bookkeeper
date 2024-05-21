@@ -45,18 +45,18 @@ import org.junit.jupiter.api.Test;
 /**
  * TestEntryLogIds.
  */
-public class TestEntryLogIds {
+class TestEntryLogIds {
     private static final Slogger slog = Slogger.CONSOLE;
 
     private final TmpDirs tmpDirs = new TmpDirs();
 
     @AfterEach
-    public void cleanup() throws Exception {
+    void cleanup() throws Exception {
         tmpDirs.cleanup();
     }
 
     @Test
-    public void testNoStomping() throws Exception {
+    void noStomping() throws Exception {
         File ledgerDir = tmpDirs.createNew("entryLogIds", "ledgers");
 
         int highestSoFar = -1;
@@ -97,7 +97,7 @@ public class TestEntryLogIds {
     }
 
     @Test
-    public void testNoStompingDirectStartsFirst() throws Exception {
+    void noStompingDirectStartsFirst() throws Exception {
         File ledgerDir = tmpDirs.createNew("entryLogIds", "ledgers");
 
         int highestSoFar = -1;
@@ -130,7 +130,7 @@ public class TestEntryLogIds {
     }
 
     @Test
-    public void testIdGenerator() throws Exception {
+    void idGenerator() throws Exception {
         File base = tmpDirs.createNew("entryLogIds", "ledgers");
         File ledgerDir1 = new File(base, "l1");
         File ledgerDir2 = new File(base, "l2");
@@ -176,7 +176,7 @@ public class TestEntryLogIds {
     }
 
     @Test
-    public void testMultiDirectory() throws Exception {
+    void multiDirectory() throws Exception {
         File base = tmpDirs.createNew("entryLogIds", "ledgers");
         File ledgerDir1 = new File(base, "l1");
         File ledgerDir2 = new File(base, "l2");
@@ -219,7 +219,7 @@ public class TestEntryLogIds {
     }
 
     @Test
-    public void testWrapAround() throws Exception {
+    void wrapAround() throws Exception {
         File ledgerDir = tmpDirs.createNew("entryLogIds", "ledgers");
         new EntryLogIdsImpl(newDirsManager(ledgerDir), slog);
         touchLog(ledgerDir, Integer.MAX_VALUE - 1);
@@ -230,7 +230,7 @@ public class TestEntryLogIds {
     }
 
     @Test
-    public void testCompactingLogsNotConsidered() throws Exception {
+    void compactingLogsNotConsidered() throws Exception {
         // if there is a process restart, all "compacting" logs will be deleted
         // so their IDs are safe to reuse. Even in the case of two processes acting
         // the directory concurrently, the transactional rename will prevent data
@@ -246,7 +246,7 @@ public class TestEntryLogIds {
     }
 
     @Test
-    public void testCompactedLogsConsidered() throws Exception {
+    void compactedLogsConsidered() throws Exception {
         File ledgerDir = tmpDirs.createNew("entryLogIds", "ledgers");
         new EntryLogIdsImpl(newDirsManager(ledgerDir), slog);
         touchLog(ledgerDir, 123);
@@ -259,7 +259,7 @@ public class TestEntryLogIds {
 
 
     @Test
-    public void testGapSelection() throws Exception {
+    void gapSelection() throws Exception {
         assertEquals(LedgerDirUtil.findLargestGap(Lists.newArrayList()), Pair.of(0, Integer.MAX_VALUE));
         assertEquals(LedgerDirUtil.findLargestGap(Lists.newArrayList(0)),
             Pair.of(1, Integer.MAX_VALUE));

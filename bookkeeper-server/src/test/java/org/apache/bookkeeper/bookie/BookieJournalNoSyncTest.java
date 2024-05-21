@@ -20,14 +20,14 @@
  */
 package org.apache.bookkeeper.bookie;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Enumeration;
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.client.LedgerEntry;
 import org.apache.bookkeeper.client.LedgerHandle;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test the bookie journal without sync.
@@ -41,7 +41,7 @@ public class BookieJournalNoSyncTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testWriteToJournal() throws Exception {
+    void writeToJournal() throws Exception {
         LedgerHandle lh = bkc.createLedger(1, 1, DigestType.CRC32, new byte[0]);
 
         int n = 10;

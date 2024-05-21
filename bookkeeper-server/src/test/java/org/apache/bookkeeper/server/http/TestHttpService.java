@@ -119,7 +119,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testHeartbeatService() throws Exception {
+    void heartbeatService() throws Exception {
         // test heartbeat service
         HttpEndpointService heartbeatService = bkHttpServiceProvider
           .provideHttpEndpointService(HttpServer.ApiType.HEARTBEAT);
@@ -129,7 +129,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testConfigServiceGet() throws Exception {
+    void configServiceGet() throws Exception {
         try {
             // test config service
             String testProperty = "TEST_PROPERTY";
@@ -151,7 +151,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testConfigServicePut() throws Exception {
+    void configServicePut() throws Exception {
         // test config service
         HttpEndpointService configService = bkHttpServiceProvider
           .provideHttpEndpointService(HttpServer.ApiType.SERVER_CONFIG);
@@ -190,7 +190,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testListBookiesService() throws Exception {
+    void listBookiesService() throws Exception {
         HttpEndpointService listBookiesService = bkHttpServiceProvider
           .provideHttpEndpointService(HttpServer.ApiType.LIST_BOOKIES);
 
@@ -257,7 +257,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
      * Create ledgers, then test ListLedgerService.
      */
     @Test
-    public void testListLedgerService() throws Exception {
+    void listLedgerService() throws Exception {
         BookKeeper.DigestType digestType = BookKeeper.DigestType.CRC32;
         int numLedgers = 430;
         LedgerHandle[] lh = new LedgerHandle[numLedgers];
@@ -320,7 +320,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
      * Create ledgers, then test Delete Ledger service.
      */
     @Test
-    public void testDeleteLedgerService() throws Exception {
+    void deleteLedgerService() throws Exception {
         baseConf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         BookKeeper.DigestType digestType = BookKeeper.DigestType.CRC32;
         int numLedgers = 4;
@@ -375,7 +375,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testGetLedgerMetaService() throws Exception {
+    void getLedgerMetaService() throws Exception {
         baseConf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         BookKeeper.DigestType digestType = BookKeeper.DigestType.CRC32;
         int numLedgers = 4;
@@ -424,7 +424,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testReadLedgerEntryService() throws Exception {
+    void readLedgerEntryService() throws Exception {
         BookKeeper.DigestType digestType = BookKeeper.DigestType.CRC32;
         int numLedgers = 1;
         int numMsgs = 100;
@@ -482,7 +482,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testListBookieInfoService() throws Exception {
+    void listBookieInfoService() throws Exception {
         HttpEndpointService listBookieInfoService = bkHttpServiceProvider
           .provideHttpEndpointService(HttpServer.ApiType.LIST_BOOKIE_INFO);
 
@@ -504,7 +504,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testGetLastLogMarkService() throws Exception {
+    void getLastLogMarkService() throws Exception {
         BookKeeper.DigestType digestType = BookKeeper.DigestType.CRC32;
         int numLedgers = 4;
         int numMsgs = 100;
@@ -543,7 +543,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testListDiskFilesService() throws Exception {
+    void listDiskFilesService() throws Exception {
         BookKeeper.DigestType digestType = BookKeeper.DigestType.CRC32;
         int numLedgers = 4;
         int numMsgs = 100;
@@ -587,7 +587,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testRecoveryBookieService() throws Exception {
+    void recoveryBookieService() throws Exception {
         HttpEndpointService recoveryBookieService = bkHttpServiceProvider
           .provideHttpEndpointService(HttpServer.ApiType.RECOVERY_BOOKIE);
 
@@ -631,7 +631,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testTriggerAuditService() throws Exception {
+    void triggerAuditService() throws Exception {
         startAuditorElector();
 
         HttpEndpointService triggerAuditService = bkHttpServiceProvider
@@ -652,7 +652,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testWhoIsAuditorService() throws Exception {
+    void whoIsAuditorService() throws Exception {
         // start the auditor elector and wait until auditor finishes election.
         startAuditorElector().get();
 
@@ -668,7 +668,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testListUnderReplicatedLedgerService() throws Exception {
+    void listUnderReplicatedLedgerService() throws Exception {
         runFunctionWithLedgerManagerFactory(baseConf, mFactory -> {
             try {
                 testListUnderReplicatedLedgerService(mFactory);
@@ -725,7 +725,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testLostBookieRecoveryDelayService() throws Exception {
+    void lostBookieRecoveryDelayService() throws Exception {
         HttpEndpointService lostBookieRecoveryDelayService = bkHttpServiceProvider
           .provideHttpEndpointService(HttpServer.ApiType.LOST_BOOKIE_RECOVERY_DELAY);
 
@@ -747,7 +747,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testDecommissionService() throws Exception {
+    void decommissionService() throws Exception {
         baseConf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         startAuditorElector();
 
@@ -775,7 +775,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testTriggerGCService() throws Exception {
+    void triggerGCService() throws Exception {
         baseConf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         BookKeeper.DigestType digestType = BookKeeper.DigestType.CRC32;
         int numLedgers = 4;
@@ -812,7 +812,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testGCDetailsService() throws Exception {
+    void gCDetailsService() throws Exception {
         baseConf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         BookKeeper.DigestType digestType = BookKeeper.DigestType.CRC32;
         int numLedgers = 4;
@@ -856,7 +856,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testGetBookieState() throws Exception {
+    void getBookieState() throws Exception {
         HttpEndpointService bookieStateServer = bkHttpServiceProvider
                 .provideHttpEndpointService(HttpServer.ApiType.BOOKIE_STATE);
 
@@ -872,7 +872,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testGetBookieSanity() throws Exception {
+    void getBookieSanity() throws Exception {
         HttpEndpointService bookieStateServer = bkHttpServiceProvider
                 .provideHttpEndpointService(HttpServer.ApiType.BOOKIE_SANITY);
 
@@ -893,7 +893,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testGetBookieIsReady() throws Exception {
+    void getBookieIsReady() throws Exception {
         HttpEndpointService bookieStateServer = bkHttpServiceProvider
                 .provideHttpEndpointService(HttpServer.ApiType.BOOKIE_IS_READY);
 
@@ -917,7 +917,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testGetBookieInfo() throws Exception {
+    void getBookieInfo() throws Exception {
         HttpEndpointService bookieStateServer = bkHttpServiceProvider
                 .provideHttpEndpointService(HttpServer.ApiType.BOOKIE_INFO);
 
@@ -937,7 +937,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testGetClusterInfo() throws Exception {
+    void getClusterInfo() throws Exception {
         HttpEndpointService clusterInfoServer = bkHttpServiceProvider
                 .provideHttpEndpointService(HttpServer.ApiType.CLUSTER_INFO);
 
@@ -965,7 +965,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testBookieReadOnlyState() throws Exception {
+    void bookieReadOnlyState() throws Exception {
         HttpEndpointService bookieStateServer = bkHttpServiceProvider
                 .provideHttpEndpointService(HttpServer.ApiType.BOOKIE_STATE);
         HttpEndpointService bookieReadOnlyService = bkHttpServiceProvider
@@ -1073,7 +1073,7 @@ public class TestHttpService extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testSuspendCompaction() throws Exception {
+    void suspendCompaction() throws Exception {
         HttpEndpointService suspendCompactionService = bkHttpServiceProvider
                 .provideHttpEndpointService(HttpServer.ApiType.SUSPEND_GC_COMPACTION);
 
@@ -1101,8 +1101,8 @@ public class TestHttpService extends BookKeeperClusterTestCase {
                 response3.getBody(),
                 Map.class
         );
-        assertEquals(responseMap.get("isMajorGcSuspended"), "false");
-        assertEquals(responseMap.get("isMinorGcSuspended"), "false");
+        assertEquals("false", responseMap.get("isMajorGcSuspended"));
+        assertEquals("false", responseMap.get("isMinorGcSuspended"));
 
 
         //2, PUT, with body, should success
@@ -1120,8 +1120,8 @@ public class TestHttpService extends BookKeeperClusterTestCase {
                 response5.getBody(),
                 Map.class
         );
-        assertEquals(responseMap5.get("isMajorGcSuspended"), "true");
-        assertEquals(responseMap5.get("isMinorGcSuspended"), "true");
+        assertEquals("true", responseMap5.get("isMajorGcSuspended"));
+        assertEquals("true", responseMap5.get("isMinorGcSuspended"));
 
 
         //2, PUT, with body, should success
@@ -1139,12 +1139,12 @@ public class TestHttpService extends BookKeeperClusterTestCase {
                 response7.getBody(),
                 Map.class
         );
-        assertEquals(responseMap7.get("isMajorGcSuspended"), "false");
-        assertEquals(responseMap7.get("isMinorGcSuspended"), "false");
+        assertEquals("false", responseMap7.get("isMajorGcSuspended"));
+        assertEquals("false", responseMap7.get("isMinorGcSuspended"));
     }
 
     @Test
-    public void testTriggerEntryLocationCompactService() throws Exception {
+    void triggerEntryLocationCompactService() throws Exception {
         BookieServer bookieServer = serverByIndex(numberOfBookies - 1);
         LedgerStorage spyLedgerStorage = spy(bookieServer.getBookie().getLedgerStorage());
         List<String> dbLocationPath = Lists.newArrayList("/data1/bookkeeper/ledgers/current/locations",

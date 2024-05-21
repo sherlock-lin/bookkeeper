@@ -17,9 +17,9 @@
  */
 package org.apache.bookkeeper.replication;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -41,9 +41,9 @@ import org.apache.bookkeeper.replication.ReplicationException.BKAuditException;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.util.ZkUtils;
 import org.apache.zookeeper.KeeperException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +81,7 @@ public class BookieLedgerIndexTest extends BookKeeperClusterTestCase {
         baseClientConf.setLedgerManagerFactoryClassName(ledgerManagerFactory);
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         super.setUp();
         baseConf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
@@ -98,7 +98,7 @@ public class BookieLedgerIndexTest extends BookKeeperClusterTestCase {
         ledgerManager = newLedgerManagerFactory.newLedgerManager();
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         super.tearDown();
         if (null != newLedgerManagerFactory) {
@@ -116,7 +116,7 @@ public class BookieLedgerIndexTest extends BookKeeperClusterTestCase {
      * ledgers.
      */
     @Test
-    public void testSimpleBookieLedgerMapping() throws Exception {
+    void simpleBookieLedgerMapping() throws Exception {
 
         for (int i = 0; i < numberOfLedgers; i++) {
             createAndAddEntriesToLedger().close();
@@ -128,15 +128,17 @@ public class BookieLedgerIndexTest extends BookKeeperClusterTestCase {
         Map<String, Set<Long>> bookieToLedgerIndex = bookieLedgerIndex
                 .getBookieToLedgerIndex();
 
-        assertEquals("Missed few bookies in the bookie-ledger mapping!", 3,
-                bookieToLedgerIndex.size());
+        assertEquals(3,
+                bookieToLedgerIndex.size(),
+                "Missed few bookies in the bookie-ledger mapping!");
         Collection<Set<Long>> bk2ledgerEntry = bookieToLedgerIndex.values();
         for (Set<Long> ledgers : bk2ledgerEntry) {
-            assertEquals("Missed few ledgers in the bookie-ledger mapping!", 3,
-                    ledgers.size());
+            assertEquals(3,
+                    ledgers.size(),
+                    "Missed few ledgers in the bookie-ledger mapping!");
             for (Long ledgerId : ledgers) {
-                assertTrue("Unknown ledger-bookie mapping", ledgerList
-                        .contains(ledgerId));
+                assertTrue(ledgerList
+                        .contains(ledgerId), "Unknown ledger-bookie mapping");
             }
         }
     }
@@ -146,7 +148,7 @@ public class BookieLedgerIndexTest extends BookKeeperClusterTestCase {
      */
     @SuppressWarnings("deprecation")
     @Test
-    public void testWithoutZookeeper() throws Exception {
+    void withoutZookeeper() throws Exception {
         // This test case is for ledger metadata that stored in ZooKeeper. As
         // far as MSLedgerManagerFactory, ledger metadata are stored in other
         // storage. So this test is not suitable for MSLedgerManagerFactory.
@@ -173,7 +175,7 @@ public class BookieLedgerIndexTest extends BookKeeperClusterTestCase {
      * Verify indexing with multiple ensemble reformation.
      */
     @Test
-    public void testEnsembleReformation() throws Exception {
+    void ensembleReformation() throws Exception {
         try {
             LedgerHandle lh1 = createAndAddEntriesToLedger();
             LedgerHandle lh2 = createAndAddEntriesToLedger();
@@ -197,16 +199,18 @@ public class BookieLedgerIndexTest extends BookKeeperClusterTestCase {
 
             Map<String, Set<Long>> bookieToLedgerIndex = bookieLedgerIndex
                     .getBookieToLedgerIndex();
-            assertEquals("Missed few bookies in the bookie-ledger mapping!", 4,
-                    bookieToLedgerIndex.size());
+            assertEquals(4,
+                    bookieToLedgerIndex.size(),
+                    "Missed few bookies in the bookie-ledger mapping!");
             Collection<Set<Long>> bk2ledgerEntry = bookieToLedgerIndex.values();
             for (Set<Long> ledgers : bk2ledgerEntry) {
                 assertEquals(
-                        "Missed few ledgers in the bookie-ledger mapping!", 2,
-                        ledgers.size());
+                        2,
+                        ledgers.size(),
+                        "Missed few ledgers in the bookie-ledger mapping!");
                 for (Long ledgerNode : ledgers) {
-                    assertTrue("Unknown ledger-bookie mapping", ledgerList
-                            .contains(ledgerNode));
+                    assertTrue(ledgerList
+                            .contains(ledgerNode), "Unknown ledger-bookie mapping");
                 }
             }
         } catch (BKException e) {

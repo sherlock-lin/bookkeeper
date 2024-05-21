@@ -20,37 +20,41 @@
  */
 package org.apache.bookkeeper.util.collections;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.Optional;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test for SynchronizedHashMultiMap.
  */
-public class SynchronizedHashMultiMapTest {
+class SynchronizedHashMultiMapTest {
     @Test
-    public void testGetAnyKey() {
+    void getAnyKey() {
         SynchronizedHashMultiMap<Integer, Integer> map = new SynchronizedHashMultiMap<>();
-        Assert.assertFalse(map.getAnyKey().isPresent());
+        assertFalse(map.getAnyKey().isPresent());
 
         map.put(1, 2);
-        Assert.assertEquals(map.getAnyKey().get(), Integer.valueOf(1));
+        assertEquals(map.getAnyKey().get(), Integer.valueOf(1));
 
         map.put(1, 3);
-        Assert.assertEquals(map.getAnyKey().get(), Integer.valueOf(1));
+        assertEquals(map.getAnyKey().get(), Integer.valueOf(1));
 
         map.put(2, 4);
         int res = map.getAnyKey().get();
-        Assert.assertTrue(res == 1 || res == 2);
+        assertTrue(res == 1 || res == 2);
 
         map.removeIf((k, v) -> k == 1);
-        Assert.assertEquals(map.getAnyKey().get(), Integer.valueOf(2));
+        assertEquals(map.getAnyKey().get(), Integer.valueOf(2));
     }
 
     @Test
-    public void testRemoveAny() {
+    void removeAny() {
         SynchronizedHashMultiMap<Integer, Integer> map = new SynchronizedHashMultiMap<>();
-        Assert.assertFalse(map.removeAny(1).isPresent());
+        assertFalse(map.removeAny(1).isPresent());
 
         map.put(1, 2);
         map.put(1, 3);
@@ -59,40 +63,40 @@ public class SynchronizedHashMultiMapTest {
 
         Optional<Integer> v = map.removeAny(1);
         int firstVal = v.get();
-        Assert.assertTrue(firstVal == 2 || firstVal == 3);
+        assertTrue(firstVal == 2 || firstVal == 3);
 
         v = map.removeAny(1);
         int secondVal = v.get();
-        Assert.assertTrue(secondVal == 2 || secondVal == 3);
-        Assert.assertNotEquals(secondVal, firstVal);
+        assertTrue(secondVal == 2 || secondVal == 3);
+        assertNotEquals(secondVal, firstVal);
 
         v = map.removeAny(2);
-        Assert.assertTrue(v.isPresent());
-        Assert.assertEquals(v.get(), Integer.valueOf(4));
+        assertTrue(v.isPresent());
+        assertEquals(v.get(), Integer.valueOf(4));
 
-        Assert.assertFalse(map.removeAny(1).isPresent());
-        Assert.assertFalse(map.removeAny(2).isPresent());
-        Assert.assertFalse(map.removeAny(3).isPresent());
+        assertFalse(map.removeAny(1).isPresent());
+        assertFalse(map.removeAny(2).isPresent());
+        assertFalse(map.removeAny(3).isPresent());
     }
 
     @Test
-    public void testRemoveIf() {
+    void removeIf() {
         SynchronizedHashMultiMap<Integer, Integer> map = new SynchronizedHashMultiMap<>();
-        Assert.assertEquals(map.removeIf((k, v) -> true), 0);
+        assertEquals(0, map.removeIf((k, v) -> true));
 
         map.put(1, 2);
         map.put(1, 3);
         map.put(2, 4);
         map.put(2, 4);
 
-        Assert.assertEquals(map.removeIf((k, v) -> v == 4), 1);
-        Assert.assertEquals(map.removeIf((k, v) -> k == 1), 2);
+        assertEquals(1, map.removeIf((k, v) -> v == 4));
+        assertEquals(2, map.removeIf((k, v) -> k == 1));
 
         map.put(1, 2);
         map.put(1, 3);
         map.put(2, 4);
 
-        Assert.assertEquals(map.removeIf((k, v) -> false), 0);
-        Assert.assertEquals(map.removeIf((k, v) -> true), 3);
+        assertEquals(0, map.removeIf((k, v) -> false));
+        assertEquals(3, map.removeIf((k, v) -> true));
     }
 }

@@ -18,7 +18,7 @@
 
 package org.apache.bookkeeper.server.http.service;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,8 +28,8 @@ import org.apache.bookkeeper.http.HttpServer;
 import org.apache.bookkeeper.http.service.HttpServiceRequest;
 import org.apache.bookkeeper.http.service.HttpServiceResponse;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link AutoRecoveryStatusService}.
@@ -42,14 +42,14 @@ public class AutoRecoveryStatusServiceTest extends BookKeeperClusterTestCase {
     }
 
     @Override
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         super.setUp();
         autoRecoveryStatusService = new AutoRecoveryStatusService(baseConf);
     }
 
     @Test
-    public void testGetStatus() throws Exception {
+    void getStatus() throws Exception {
         HttpServiceRequest request = new HttpServiceRequest(null, HttpServer.Method.GET, null);
         HttpServiceResponse response = autoRecoveryStatusService.handle(request);
         assertEquals(HttpServer.StatusCode.OK.getValue(), response.getStatusCode());
@@ -58,7 +58,7 @@ public class AutoRecoveryStatusServiceTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testEnableStatus() throws Exception {
+    void enableStatus() throws Exception {
         Map<String, String> params = ImmutableMap.of("enabled", "true");
         HttpServiceRequest request = new HttpServiceRequest(null, HttpServer.Method.PUT, params);
         HttpServiceResponse response = autoRecoveryStatusService.handle(request);
@@ -74,7 +74,7 @@ public class AutoRecoveryStatusServiceTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testDisableStatus() throws Exception {
+    void disableStatus() throws Exception {
         Map<String, String> params = ImmutableMap.of("enabled", "false");
         HttpServiceRequest request = new HttpServiceRequest(null, HttpServer.Method.PUT, params);
         HttpServiceResponse response = autoRecoveryStatusService.handle(request);
@@ -90,7 +90,7 @@ public class AutoRecoveryStatusServiceTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testInvalidParams() throws Exception {
+    void invalidParams() throws Exception {
         Map<String, String> params = ImmutableMap.of("enable", "false");
         HttpServiceRequest request = new HttpServiceRequest(null, HttpServer.Method.PUT, params);
         HttpServiceResponse response = autoRecoveryStatusService.handle(request);
@@ -98,7 +98,7 @@ public class AutoRecoveryStatusServiceTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testInvalidMethod() throws Exception {
+    void invalidMethod() throws Exception {
         HttpServiceRequest request = new HttpServiceRequest(null, HttpServer.Method.POST, null);
         HttpServiceResponse response = autoRecoveryStatusService.handle(request);
         assertEquals(HttpServer.StatusCode.NOT_FOUND.getValue(), response.getStatusCode());

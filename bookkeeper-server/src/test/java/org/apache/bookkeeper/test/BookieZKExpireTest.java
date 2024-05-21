@@ -57,7 +57,7 @@ public class BookieZKExpireTest extends BookKeeperClusterTestCase {
     @Test
     @SuppressWarnings("deprecation")
     @EnabledForJreRange(max = JRE.JAVA_17)
-    public void testBookieServerZKRequestTimeoutBehaviour() throws Exception {
+    void bookieServerZKRequestTimeoutBehaviour() throws Exception {
         // 6000 is minimum due to default tick time
         System.setProperty("zookeeper.request.timeout", "6000");
         baseConf.setZkTimeout(24000);

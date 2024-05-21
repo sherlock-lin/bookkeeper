@@ -20,12 +20,12 @@
  */
 package org.apache.bookkeeper.bookie;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -50,17 +50,18 @@ import org.apache.bookkeeper.test.TestStatsProvider;
 import org.apache.bookkeeper.util.DiskChecker;
 import org.apache.bookkeeper.util.IOUtils;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Test LedgerDirsManager.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class LedgerDirsManagerTest {
 
     ServerConfiguration conf;
@@ -87,8 +88,8 @@ public class LedgerDirsManagerTest {
         return dir;
     }
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() throws Exception {
         executorsMockedStatic = mockStatic(Executors.class);
 
         File tmpDir = createTempDir("bkTest", ".dir");
@@ -117,8 +118,8 @@ public class LedgerDirsManagerTest {
         ledgerMonitor.init();
     }
 
-    @After
-    public void tearDown() throws Exception {
+    @AfterEach
+    void tearDown() throws Exception {
         executorsMockedStatic.close();
         ledgerMonitor.shutdown();
         for (File dir : tempDirs) {
@@ -128,17 +129,15 @@ public class LedgerDirsManagerTest {
     }
 
     @Test
-    public void testGetWritableDir() throws Exception {
-        try {
+    void getWritableDir() throws Exception {
+        Assertions.assertDoesNotThrow(() -> {
             List<File> writeDirs = dirsManager.getWritableLedgerDirs();
-            assertTrue("Must have a writable ledgerDir", writeDirs.size() > 0);
-        } catch (NoWritableLedgerDirException nwlde) {
-            fail("We should have a writable ledgerDir");
-        }
+            assertTrue(writeDirs.size() > 0, "Must have a writable ledgerDir");
+        }, "We should have a writable ledgerDir");
     }
 
     @Test
-    public void testPickWritableDirExclusive() throws Exception {
+    void pickWritableDirExclusive() throws Exception {
         try {
             dirsManager.pickRandomWritableDir(curDir);
             fail("Should not reach here due to there is no writable ledger dir.");
@@ -149,20 +148,19 @@ public class LedgerDirsManagerTest {
     }
 
     @Test
-    public void testNoWritableDir() throws Exception {
+    void noWritableDir() throws Exception {
         try {
             dirsManager.addToFilledDirs(curDir);
             dirsManager.pickRandomWritableDir();
             fail("Should not reach here due to there is no writable ledger dir.");
         } catch (NoWritableLedgerDirException nwlde) {
             // expected to fail with no writable ledger dir
-            assertEquals("Should got NoWritableLedgerDirException w/ 'All ledger directories are non writable'.",
-                         "All ledger directories are non writable", nwlde.getMessage());
+            assertEquals("All ledger directories are non writable", nwlde.getMessage(), "Should got NoWritableLedgerDirException w/ 'All ledger directories are non writable'.");
         }
     }
 
     @Test
-    public void testGetWritableDirForLog() throws Exception {
+    void getWritableDirForLog() throws Exception {
         List<File> writeDirs;
         try {
             dirsManager.addToFilledDirs(curDir);
@@ -171,17 +169,15 @@ public class LedgerDirsManagerTest {
         } catch (NoWritableLedgerDirException nwlde) {
             // expected to fail with no writable ledger dir
             // Now make sure we can get one for log
-            try {
+            Assertions.assertDoesNotThrow(() -> {
                 writeDirs = dirsManager.getWritableLedgerDirsForNewLog();
-                assertTrue("Must have a writable ledgerDir", writeDirs.size() > 0);
-            } catch (NoWritableLedgerDirException e) {
-                fail("We should have a writeble ledgerDir");
-            }
+                assertTrue(writeDirs.size() > 0, "Must have a writable ledgerDir");
+            }, "We should have a writeble ledgerDir");
         }
     }
 
     @Test
-    public void testGetWritableDirForLogNoEnoughDiskSpace() throws Exception {
+    void getWritableDirForLogNoEnoughDiskSpace() throws Exception {
         conf.setMinUsableSizeForEntryLogCreation(curDir.getUsableSpace() + 1024);
         dirsManager = new LedgerDirsManager(conf, conf.getLedgerDirs(),
             new DiskChecker(conf.getDiskUsageThreshold(), conf.getDiskUsageWarnThreshold()), statsLogger);
@@ -202,12 +198,12 @@ public class LedgerDirsManagerTest {
     }
 
     @Test
-    public void testLedgerDirsMonitorDuringTransition() throws Exception {
+    void ledgerDirsMonitorDuringTransition() throws Exception {
         testLedgerDirsMonitorDuringTransition(true);
     }
 
     @Test
-    public void testHighPriorityWritesDisallowedDuringTransition() throws Exception {
+    void highPriorityWritesDisallowedDuringTransition() throws Exception {
         testLedgerDirsMonitorDuringTransition(false);
     }
 
@@ -242,7 +238,7 @@ public class LedgerDirsManagerTest {
     }
 
     @Test
-    public void testIsReadOnlyModeOnAnyDiskFullEnabled() throws Exception {
+    void isReadOnlyModeOnAnyDiskFullEnabled() throws Exception {
         testAnyLedgerFullTransitToReadOnly(true);
         testAnyLedgerFullTransitToReadOnly(false);
     }
@@ -312,7 +308,7 @@ public class LedgerDirsManagerTest {
     }
 
     @Test
-    public void testLedgerDirsMonitorHandlingLowWaterMark() throws Exception {
+    void ledgerDirsMonitorHandlingLowWaterMark() throws Exception {
         ledgerMonitor.shutdown();
 
         final float warn = 0.90f;
@@ -369,7 +365,7 @@ public class LedgerDirsManagerTest {
     }
 
     @Test
-    public void testLedgerDirsMonitorHandlingWithMultipleLedgerDirectories() throws Exception {
+    void ledgerDirsMonitorHandlingWithMultipleLedgerDirectories() throws Exception {
         ledgerMonitor.shutdown();
 
         final float nospace = 0.90f;
@@ -439,13 +435,13 @@ public class LedgerDirsManagerTest {
         // should goto readwrite
         setUsageAndThenVerify(curDir1, lwm - 0.17f, curDir2, nospace + 0.03f, mockDiskChecker, mockLedgerDirsListener,
                 false);
-        assertEquals("Only one LedgerDir should be writable", 1, dirsManager.getWritableLedgerDirs().size());
+        assertEquals(1, dirsManager.getWritableLedgerDirs().size(), "Only one LedgerDir should be writable");
 
         // bring both the dirs below lwm
         // should still be readwrite
         setUsageAndThenVerify(curDir1, lwm - 0.03f, curDir2, lwm - 0.02f, mockDiskChecker, mockLedgerDirsListener,
                 false);
-        assertEquals("Both the LedgerDirs should be writable", 2, dirsManager.getWritableLedgerDirs().size());
+        assertEquals(2, dirsManager.getWritableLedgerDirs().size(), "Both the LedgerDirs should be writable");
 
         // bring both the dirs above lwm but < threshold
         // should still be readwrite
@@ -454,7 +450,7 @@ public class LedgerDirsManagerTest {
     }
 
     @Test
-    public void testLedgerDirsMonitorStartReadOnly() throws Exception {
+    void ledgerDirsMonitorStartReadOnly() throws Exception {
         ledgerMonitor.shutdown();
 
         final float nospace = 0.90f;
@@ -500,7 +496,7 @@ public class LedgerDirsManagerTest {
     }
 
     @Test
-    public void testValidateLwmThreshold() {
+    void validateLwmThreshold() {
         final ServerConfiguration configuration = TestBKConfiguration.newServerConfiguration();
         // check failed because diskSpaceThreshold < diskSpaceLwmThreshold
         configuration.setDiskUsageThreshold(0.65f);

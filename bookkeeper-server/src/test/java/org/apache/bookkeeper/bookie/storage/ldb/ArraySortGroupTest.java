@@ -20,17 +20,18 @@
  */
 package org.apache.bookkeeper.bookie.storage.ldb;
 
-import static org.junit.Assert.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test for {@link ArrayGroupSort}.
  */
-public class ArraySortGroupTest {
+class ArraySortGroupTest {
 
     @Test
-    public void simple() {
+    void simple() {
         long[] data = new long[] { //
                 1, 2, 3, 4, //
                 5, 6, 3, 1, //
@@ -56,18 +57,22 @@ public class ArraySortGroupTest {
         assertArrayEquals(expectedSorted, data);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void arraySizeIsNotMultiple() {
-        ArrayGroupSort.sort(new long[] { 1, 2, 3, 4, 5 });
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void arraySizeIsShorterThanRequired() {
-        ArrayGroupSort.sort(new long[] { 1, 2 });
+    @Test
+    void arraySizeIsNotMultiple() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            ArrayGroupSort.sort(new long[]{1, 2, 3, 4, 5});
+        });
     }
 
     @Test
-    public void emptyArray() {
+    void arraySizeIsShorterThanRequired() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            ArrayGroupSort.sort(new long[]{1, 2});
+        });
+    }
+
+    @Test
+    void emptyArray() {
         long[] data = new long[] {};
 
         long[] expectedSorted = new long[] {};
@@ -78,7 +83,7 @@ public class ArraySortGroupTest {
     }
 
     @Test
-    public void singleItem() {
+    void singleItem() {
         long[] data = new long[] { 1, 2, 3, 4 };
         long[] expectedSorted = new long[] { 1, 2, 3, 4 };
 
@@ -88,7 +93,7 @@ public class ArraySortGroupTest {
     }
 
     @Test
-    public void twoItems() {
+    void twoItems() {
         long[] data = new long[] { 1, 2, 3, 4, 1, 1, 5, 5 };
         long[] expectedSorted = new long[] { 1, 1, 5, 5, 1, 2, 3, 4 };
 
@@ -98,7 +103,7 @@ public class ArraySortGroupTest {
     }
 
     @Test
-    public void threeItems() {
+    void threeItems() {
         long[] data = new long[] { 1, 2, 3, 4, 1, 1, 5, 5, 1, 0, 2, 1 };
         long[] expectedSorted = new long[] { 1, 0, 2, 1, 1, 1, 5, 5, 1, 2, 3, 4 };
 

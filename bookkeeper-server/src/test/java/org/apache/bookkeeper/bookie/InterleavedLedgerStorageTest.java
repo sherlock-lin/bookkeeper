@@ -22,9 +22,11 @@ package org.apache.bookkeeper.bookie;
 
 import static org.apache.bookkeeper.bookie.BookKeeperServerStats.BOOKIE_SCOPE;
 import static org.apache.bookkeeper.bookie.BookKeeperServerStats.STORAGE_SCRUB_PAGE_RETRIES;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -54,27 +56,23 @@ import org.apache.bookkeeper.util.EntryFormatter;
 import org.apache.bookkeeper.util.LedgerIdFormatter;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.commons.lang.mutable.MutableLong;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Test for InterleavedLedgerStorage.
  */
-@RunWith(Parameterized.class)
 public class InterleavedLedgerStorageTest {
     private static final Logger LOG = LoggerFactory.getLogger(InterleavedLedgerStorageTest.class);
 
-    @Parameterized.Parameters
     public static Iterable<Boolean> elplSetting() {
         return Arrays.asList(true, false);
     }
 
-    public InterleavedLedgerStorageTest(boolean elplSetting) {
+    public void initInterleavedLedgerStorageTest(boolean elplSetting) {
         conf.setEntryLogSizeLimit(2048);
         conf.setEntryLogPerLedgerEnabled(elplSetting);
     }
@@ -111,7 +109,7 @@ public class InterleavedLedgerStorageTest {
         }
         volatile CheckEntryListener testPoint;
 
-        public TestableDefaultEntryLogger(
+        public void initInterleavedLedgerStorageTest(
                 ServerConfiguration conf,
                 LedgerDirsManager ledgerDirsManager,
                 EntryLogListener listener,
@@ -143,8 +141,8 @@ public class InterleavedLedgerStorageTest {
     final long entriesPerWrite = 2;
     final long numOfLedgers = 5;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() throws Exception {
         File tmpDir = File.createTempFile("bkTest", ".dir");
         tmpDir.delete();
         tmpDir.mkdir();
@@ -180,44 +178,50 @@ public class InterleavedLedgerStorageTest {
         }
     }
 
-    @Test
-    public void testIndexEntryIterator() throws Exception {
+    @MethodSource("elplSetting")
+    @ParameterizedTest
+    public void indexEntryIterator(boolean elplSetting) throws Exception {
+        initInterleavedLedgerStorageTest(elplSetting);
         try (LedgerCache.PageEntriesIterable pages = interleavedStorage.getIndexEntries(0)) {
             MutableLong curEntry = new MutableLong(0);
             for (LedgerCache.PageEntries page : pages) {
                 try (LedgerEntryPage lep = page.getLEP()) {
                     lep.getEntries((entry, offset) -> {
-                        Assert.assertEquals(curEntry.longValue(), entry);
-                        Assert.assertNotEquals(0, offset);
+                        assertEquals(curEntry.longValue(), entry);
+                        assertNotEquals(0, offset);
                         curEntry.setValue(entriesPerWrite + entry);
                         return true;
                     });
                 }
             }
-            Assert.assertEquals(entriesPerWrite * numWrites, curEntry.longValue());
+            assertEquals(entriesPerWrite * numWrites, curEntry.longValue());
         }
     }
 
-    @Test
-    public void testGetListOfEntriesOfLedger() throws IOException {
+    @MethodSource("elplSetting")
+    @ParameterizedTest
+    public void getListOfEntriesOfLedger(boolean elplSetting) throws IOException {
+        initInterleavedLedgerStorageTest(elplSetting);
         for (long ledgerId = 0; ledgerId < numOfLedgers; ledgerId++) {
             OfLong entriesOfLedger = interleavedStorage.getListOfEntriesOfLedger(ledgerId);
             ArrayList<Long> arrayList = new ArrayList<Long>();
             Consumer<Long> addMethod = arrayList::add;
             entriesOfLedger.forEachRemaining(addMethod);
-            assertEquals("Number of entries", numWrites, arrayList.size());
-            assertTrue("Entries of Ledger", IntStream.range(0, arrayList.size()).allMatch(i -> {
+            assertEquals(numWrites, arrayList.size(), "Number of entries");
+            assertTrue(IntStream.range(0, arrayList.size()).allMatch(i -> {
                 return arrayList.get(i) == (i * entriesPerWrite);
-            }));
+            }), "Entries of Ledger");
         }
 
         long nonExistingLedger = 456789L;
         OfLong entriesOfLedger = interleavedStorage.getListOfEntriesOfLedger(nonExistingLedger);
-        assertFalse("There shouldn't be any entry", entriesOfLedger.hasNext());
+        assertFalse(entriesOfLedger.hasNext(), "There shouldn't be any entry");
     }
 
-    @Test
-    public void testGetListOfEntriesOfLedgerAfterFlush() throws IOException {
+    @MethodSource("elplSetting")
+    @ParameterizedTest
+    public void getListOfEntriesOfLedgerAfterFlush(boolean elplSetting) throws IOException {
+        initInterleavedLedgerStorageTest(elplSetting);
         interleavedStorage.flush();
 
         // Insert some more ledger & entries in the interleaved storage
@@ -237,15 +241,17 @@ public class InterleavedLedgerStorageTest {
             ArrayList<Long> arrayList = new ArrayList<Long>();
             Consumer<Long> addMethod = arrayList::add;
             entriesOfLedger.forEachRemaining(addMethod);
-            assertEquals("Number of entries", moreNumOfWrites, arrayList.size());
-            assertTrue("Entries of Ledger", IntStream.range(0, arrayList.size()).allMatch(i -> {
+            assertEquals(moreNumOfWrites, arrayList.size(), "Number of entries");
+            assertTrue(IntStream.range(0, arrayList.size()).allMatch(i -> {
                 return arrayList.get(i) == (i * entriesPerWrite);
-            }));
+            }), "Entries of Ledger");
         }
     }
 
-    @Test
-    public void testConsistencyCheckConcurrentGC() throws Exception {
+    @MethodSource("elplSetting")
+    @ParameterizedTest
+    public void consistencyCheckConcurrentGC(boolean elplSetting) throws Exception {
+        initInterleavedLedgerStorageTest(elplSetting);
         final long signalDone = -1;
         final List<Exception> asyncErrors = new ArrayList<>();
         final LinkedBlockingQueue<Long> toCompact = new LinkedBlockingQueue<>();
@@ -302,7 +308,7 @@ public class InterleavedLedgerStorageTest {
         for (LedgerStorage.DetectedInconsistency e: inconsistencies) {
             LOG.error("Found: {}", e);
         }
-        Assert.assertEquals(0, inconsistencies.size());
+        assertEquals(0, inconsistencies.size());
 
         toCompact.offer(signalDone);
         mutator.join();
@@ -311,26 +317,30 @@ public class InterleavedLedgerStorageTest {
         }
 
         if (!conf.isEntryLogPerLedgerEnabled()) {
-            Assert.assertNotEquals(
+            assertNotEquals(
                     0,
                     statsProvider.getCounter(BOOKIE_SCOPE + "." + STORAGE_SCRUB_PAGE_RETRIES).get().longValue());
         }
     }
 
-    @Test
-    public void testConsistencyMissingEntry() throws Exception {
+    @MethodSource("elplSetting")
+    @ParameterizedTest
+    public void consistencyMissingEntry(boolean elplSetting) throws Exception {
+        initInterleavedLedgerStorageTest(elplSetting);
         // set 1, 1 to nonsense
         interleavedStorage.ledgerCache.putEntryOffset(1, 1, 0xFFFFFFFFFFFFFFFFL);
 
         List<LedgerStorage.DetectedInconsistency> errors = interleavedStorage.localConsistencyCheck(Optional.empty());
-        Assert.assertEquals(1, errors.size());
+        assertEquals(1, errors.size());
         LedgerStorage.DetectedInconsistency inconsistency = errors.remove(0);
-        Assert.assertEquals(1, inconsistency.getEntryId());
-        Assert.assertEquals(1, inconsistency.getLedgerId());
+        assertEquals(1, inconsistency.getEntryId());
+        assertEquals(1, inconsistency.getLedgerId());
     }
 
-    @Test
-    public void testWrongEntry() throws Exception {
+    @MethodSource("elplSetting")
+    @ParameterizedTest
+    public void wrongEntry(boolean elplSetting) throws Exception {
+        initInterleavedLedgerStorageTest(elplSetting);
         // set 1, 1 to nonsense
         interleavedStorage.ledgerCache.putEntryOffset(
                 1,
@@ -338,14 +348,16 @@ public class InterleavedLedgerStorageTest {
                 interleavedStorage.ledgerCache.getEntryOffset(0, 0));
 
         List<LedgerStorage.DetectedInconsistency> errors = interleavedStorage.localConsistencyCheck(Optional.empty());
-        Assert.assertEquals(1, errors.size());
+        assertEquals(1, errors.size());
         LedgerStorage.DetectedInconsistency inconsistency = errors.remove(0);
-        Assert.assertEquals(1, inconsistency.getEntryId());
-        Assert.assertEquals(1, inconsistency.getLedgerId());
+        assertEquals(1, inconsistency.getEntryId());
+        assertEquals(1, inconsistency.getLedgerId());
     }
 
-    @Test
-    public void testShellCommands() throws Exception {
+    @MethodSource("elplSetting")
+    @ParameterizedTest
+    public void shellCommands(boolean elplSetting) throws Exception {
+        initInterleavedLedgerStorageTest(elplSetting);
         interleavedStorage.flush();
         interleavedStorage.shutdown();
         final Pattern entryPattern = Pattern.compile(
@@ -383,17 +395,17 @@ public class InterleavedLedgerStorageTest {
 
                 Matcher isFencedMatcher = isFencedPattern.matcher(s);
                 if (isFencedMatcher.matches()) {
-                    Assert.assertEquals("true", isFencedMatcher.group(1));
+                    assertEquals("true", isFencedMatcher.group(1));
                     foundFenced = true;
                     return;
                 }
             }
 
             void validate(long foundEntries) {
-                Assert.assertTrue(entries >= numWrites * entriesPerWrite);
-                Assert.assertEquals(entries, foundEntries);
-                Assert.assertTrue(foundFenced);
-                Assert.assertNotEquals(-1, size);
+                assertTrue(entries >= numWrites * entriesPerWrite);
+                assertEquals(entries, foundEntries);
+                assertTrue(foundFenced);
+                assertNotEquals(-1, size);
             }
         }
         final Metadata foundMetadata = new Metadata();
@@ -411,17 +423,17 @@ public class InterleavedLedgerStorageTest {
 
                     if (matcher.group("na") == null) {
                         String logId = matcher.group("logid");
-                        Assert.assertNotEquals(matcher.group("logid"), null);
-                        Assert.assertNotEquals(matcher.group("pos"), null);
-                        Assert.assertTrue((curEntry.get() % entriesPerWrite) == 0);
-                        Assert.assertTrue(curEntry.get() <= numWrites * entriesPerWrite);
+                        assertNotEquals(null, matcher.group("logid"));
+                        assertNotEquals(null, matcher.group("pos"));
+                        assertEquals(0, (curEntry.get() % entriesPerWrite));
+                        assertTrue(curEntry.get() <= numWrites * entriesPerWrite);
                         if (someEntryLogger.get() == -1) {
                             someEntryLogger.set(Long.parseLong(logId));
                         }
                     } else {
-                        Assert.assertEquals(matcher.group("logid"), null);
-                        Assert.assertEquals(matcher.group("pos"), null);
-                        Assert.assertTrue(((curEntry.get() % entriesPerWrite) != 0)
+                        assertNull(matcher.group("logid"));
+                        assertNull(matcher.group("pos"));
+                        assertTrue(((curEntry.get() % entriesPerWrite) != 0)
                                 || ((curEntry.get() >= (entriesPerWrite * numWrites))));
                     }
                     curEntry.incrementAndGet();
@@ -432,13 +444,13 @@ public class InterleavedLedgerStorageTest {
         };
         shell.setConf(conf);
         int res = shell.run(new String[] { "ledger", "-m", "0" });
-        Assert.assertEquals(0, res);
-        Assert.assertTrue(curEntry.get() >= numWrites * entriesPerWrite);
+        assertEquals(0, res);
+        assertTrue(curEntry.get() >= numWrites * entriesPerWrite);
         foundMetadata.validate(curEntry.get());
 
         // Should pass consistency checker
         res = shell.run(new String[] { "localconsistencycheck" });
-        Assert.assertEquals(0, res);
+        assertEquals(0, res);
 
 
         // Remove a logger
@@ -447,6 +459,6 @@ public class InterleavedLedgerStorageTest {
 
         // Should fail consistency checker
         res = shell.run(new String[] { "localconsistencycheck" });
-        Assert.assertEquals(1, res);
+        assertEquals(1, res);
     }
 }

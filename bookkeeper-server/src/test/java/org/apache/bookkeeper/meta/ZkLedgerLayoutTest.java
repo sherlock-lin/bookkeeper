@@ -21,10 +21,11 @@
 
 package org.apache.bookkeeper.meta;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -34,7 +35,7 @@ import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.util.BookKeeperConstants;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs.Ids;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test store/read/delete ledger layout operations on zookeeper.
@@ -51,7 +52,7 @@ public class ZkLedgerLayoutTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testLedgerLayout() throws Exception {
+    void ledgerLayout() throws Exception {
         ClientConfiguration conf = newClientConfiguration();
         conf.setLedgerManagerFactoryClass(HierarchicalLedgerManagerFactory.class);
         String ledgerRootPath = "/testLedgerLayout";
@@ -60,7 +61,7 @@ public class ZkLedgerLayoutTest extends BookKeeperClusterTestCase {
         zkc.create(ledgerRootPath, new byte[0],
                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
 
-        assertEquals(null, zkLayoutManager.readLedgerLayout());
+        assertNull(zkLayoutManager.readLedgerLayout());
 
         String testName = "foobar";
         int testVersion = 0xdeadbeef;
@@ -89,7 +90,7 @@ public class ZkLedgerLayoutTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testBadVersionLedgerLayout() throws Exception {
+    void badVersionLedgerLayout() throws Exception {
         ClientConfiguration conf = newClientConfiguration();
         String zkLedgersRootPath = ZKMetadataDriverBase.resolveZkLedgersRootPath(conf);
         // write bad version ledger layout
@@ -104,12 +105,12 @@ public class ZkLedgerLayoutTest extends BookKeeperClusterTestCase {
             zkLayoutManager.readLedgerLayout();
             fail("Shouldn't reach here!");
         } catch (IOException ie) {
-            assertTrue("Invalid exception", ie.getMessage().contains("version not compatible"));
+            assertTrue(ie.getMessage().contains("version not compatible"), "Invalid exception");
         }
     }
 
     @Test
-    public void testAbsentLedgerManagerLayout() throws Exception {
+    void absentLedgerManagerLayout() throws Exception {
         ClientConfiguration conf = newClientConfiguration();
         String ledgersLayout = ZKMetadataDriverBase.resolveZkLedgersRootPath(conf) + "/"
                 + BookKeeperConstants.LAYOUT_ZNODE;
@@ -125,12 +126,12 @@ public class ZkLedgerLayoutTest extends BookKeeperClusterTestCase {
             zkLayoutManager.readLedgerLayout();
             fail("Shouldn't reach here!");
         } catch (IOException ie) {
-            assertTrue("Invalid exception", ie.getMessage().contains("version absent from"));
+            assertTrue(ie.getMessage().contains("version absent from"), "Invalid exception");
         }
     }
 
     @Test
-    public void testBaseLedgerManagerLayout() throws Exception {
+    void baseLedgerManagerLayout() throws Exception {
         ClientConfiguration conf = newClientConfiguration();
         String rootPath = ZKMetadataDriverBase.resolveZkLedgersRootPath(conf);
         String ledgersLayout = rootPath + "/"
@@ -147,12 +148,12 @@ public class ZkLedgerLayoutTest extends BookKeeperClusterTestCase {
             zkLayoutManager.readLedgerLayout();
             fail("Shouldn't reach here!");
         } catch (IOException ie) {
-            assertTrue("Invalid exception", ie.getMessage().contains("Invalid Ledger Manager"));
+            assertTrue(ie.getMessage().contains("Invalid Ledger Manager"), "Invalid exception");
         }
     }
 
     @Test
-    public void testReadV1LedgerManagerLayout() throws Exception {
+    void readV1LedgerManagerLayout() throws Exception {
         ClientConfiguration conf = newClientConfiguration();
         String zkLedgersRootPath = ZKMetadataDriverBase.resolveZkLedgersRootPath(conf);
         // write v1 ledger layout
@@ -163,7 +164,7 @@ public class ZkLedgerLayoutTest extends BookKeeperClusterTestCase {
 
         LedgerLayout layout = zkLayoutManager.readLedgerLayout();
 
-        assertNotNull("Should not be null", layout);
+        assertNotNull(layout, "Should not be null");
         assertEquals(HierarchicalLedgerManagerFactory.NAME, layout.getManagerFactoryClass());
         assertEquals(HierarchicalLedgerManagerFactory.CUR_VERSION, layout.getManagerVersion());
         assertEquals(1, layout.getLayoutFormatVersion());

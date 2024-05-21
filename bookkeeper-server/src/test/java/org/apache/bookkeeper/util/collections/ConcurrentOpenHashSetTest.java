@@ -20,10 +20,11 @@
  */
 package org.apache.bookkeeper.util.collections;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -35,15 +36,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test the concurrent open HashSet class.
  */
-public class ConcurrentOpenHashSetTest {
+class ConcurrentOpenHashSetTest {
 
     @Test
-    public void testConstructor() {
+    void constructor() {
         try {
             ConcurrentOpenHashSet.<String>newBuilder()
                     .expectedItems(0)
@@ -75,7 +76,7 @@ public class ConcurrentOpenHashSetTest {
     }
 
     @Test
-    public void simpleInsertions() {
+    void simpleInsertions() {
         ConcurrentOpenHashSet<String> set = ConcurrentOpenHashSet.<String>newBuilder()
                 .expectedItems(16)
                 .build();
@@ -87,79 +88,79 @@ public class ConcurrentOpenHashSetTest {
         assertTrue(set.add("2"));
         assertTrue(set.add("3"));
 
-        assertEquals(set.size(), 3);
+        assertEquals(3, set.size());
 
         assertTrue(set.contains("1"));
-        assertEquals(set.size(), 3);
+        assertEquals(3, set.size());
 
         assertTrue(set.remove("1"));
-        assertEquals(set.size(), 2);
+        assertEquals(2, set.size());
         assertFalse(set.contains("1"));
         assertFalse(set.contains("5"));
-        assertEquals(set.size(), 2);
+        assertEquals(2, set.size());
 
         assertTrue(set.add("1"));
-        assertEquals(set.size(), 3);
+        assertEquals(3, set.size());
         assertFalse(set.add("1"));
-        assertEquals(set.size(), 3);
+        assertEquals(3, set.size());
     }
 
     @Test
-    public void testClear() {
+    void clear() {
         ConcurrentOpenHashSet<String> map = ConcurrentOpenHashSet.<String>newBuilder()
                 .expectedItems(2)
                 .concurrencyLevel(1)
                 .autoShrink(true)
                 .mapIdleFactor(0.25f)
                 .build();
-        assertTrue(map.capacity() == 4);
+        assertEquals(4, map.capacity());
 
         assertTrue(map.add("k1"));
         assertTrue(map.add("k2"));
         assertTrue(map.add("k3"));
 
-        assertTrue(map.capacity() == 8);
+        assertEquals(8, map.capacity());
         map.clear();
-        assertTrue(map.capacity() == 4);
+        assertEquals(4, map.capacity());
     }
 
     @Test
-    public void testExpandAndShrink() {
+    void expandAndShrink() {
         ConcurrentOpenHashSet<String> map = ConcurrentOpenHashSet.<String>newBuilder()
                 .expectedItems(2)
                 .concurrencyLevel(1)
                 .autoShrink(true)
                 .mapIdleFactor(0.25f)
                 .build();
-        assertTrue(map.capacity() == 4);
+        assertEquals(4, map.capacity());
 
         assertTrue(map.add("k1"));
         assertTrue(map.add("k2"));
         assertTrue(map.add("k3"));
 
         // expand hashmap
-        assertTrue(map.capacity() == 8);
+        assertEquals(8, map.capacity());
 
         assertTrue(map.remove("k1"));
         // not shrink
-        assertTrue(map.capacity() == 8);
+        assertEquals(8, map.capacity());
         assertTrue(map.remove("k2"));
         // shrink hashmap
-        assertTrue(map.capacity() == 4);
+        assertEquals(4, map.capacity());
 
         // expand hashmap
         assertTrue(map.add("k4"));
         assertTrue(map.add("k5"));
-        assertTrue(map.capacity() == 8);
+        assertEquals(8, map.capacity());
 
         //verify that the map does not keep shrinking at every remove() operation
         assertTrue(map.add("k6"));
         assertTrue(map.remove("k6"));
-        assertTrue(map.capacity() == 8);
+        assertEquals(8, map.capacity());
     }
 
     @Test
-    public void testExpandShrinkAndClear() {
+    void expandShrinkAndClear() {
         ConcurrentOpenHashSet<String> map = ConcurrentOpenHashSet.<String>newBuilder()
                 .expectedItems(2)
                 .concurrencyLevel(1)
@@ -167,40 +168,40 @@ public class ConcurrentOpenHashSetTest {
                 .mapIdleFactor(0.25f)
                 .build();
         final long initCapacity = map.capacity();
-        assertTrue(map.capacity() == 4);
+        assertEquals(4, map.capacity());
 
         assertTrue(map.add("k1"));
         assertTrue(map.add("k2"));
         assertTrue(map.add("k3"));
 
         // expand hashmap
-        assertTrue(map.capacity() == 8);
+        assertEquals(8, map.capacity());
 
         assertTrue(map.remove("k1"));
         // not shrink
-        assertTrue(map.capacity() == 8);
+        assertEquals(8, map.capacity());
         assertTrue(map.remove("k2"));
         // shrink hashmap
-        assertTrue(map.capacity() == 4);
+        assertEquals(4, map.capacity());
 
         assertTrue(map.remove("k3"));
         // Will not shrink the hashmap again because shrink capacity is less than initCapacity
         // current capacity is equal than the initial capacity
-        assertTrue(map.capacity() == initCapacity);
+        assertEquals(map.capacity(), initCapacity);
         map.clear();
         // after clear, because current capacity is equal than the initial capacity, so not shrinkToInitCapacity
-        assertTrue(map.capacity() == initCapacity);
+        assertEquals(map.capacity(), initCapacity);
     }
 
     @Test
-    public void testConcurrentExpandAndShrinkAndGet()  throws Throwable {
+    void concurrentExpandAndShrinkAndGet()  throws Throwable {
         ConcurrentOpenHashSet<String> set = ConcurrentOpenHashSet.<String>newBuilder()
                 .expectedItems(2)
                 .concurrencyLevel(1)
                 .autoShrink(true)
                 .mapIdleFactor(0.25f)
                 .build();
-        assertEquals(set.capacity(), 4);
+        assertEquals(4, set.capacity());
 
         ExecutorService executor = Executors.newCachedThreadPool();
         final int readThreads = 16;
@@ -239,12 +240,12 @@ public class ConcurrentOpenHashSetTest {
                 // expand hashmap
                 assertTrue(set.add("k2"));
                 assertTrue(set.add("k3"));
-                assertEquals(set.capacity(), 8);
+                assertEquals(8, set.capacity());
 
                 // shrink hashmap
                 assertTrue(set.remove("k2"));
                 assertTrue(set.remove("k3"));
-                assertEquals(set.capacity(), 4);
+                assertEquals(4, set.capacity());
             }
         });
 
@@ -255,7 +256,7 @@ public class ConcurrentOpenHashSetTest {
     }
 
     @Test
-    public void testReduceUnnecessaryExpansions(){
+    void reduceUnnecessaryExpansions(){
         ConcurrentOpenHashSet<String> set =
                 ConcurrentOpenHashSet.<String>newBuilder()
                         .expectedItems(2)
@@ -275,7 +276,7 @@ public class ConcurrentOpenHashSetTest {
     }
 
     @Test
-    public void testRemove() {
+    void remove() {
         ConcurrentOpenHashSet<String> set =
                 ConcurrentOpenHashSet.<String>newBuilder().build();
 
@@ -290,14 +291,14 @@ public class ConcurrentOpenHashSetTest {
     }
 
     @Test
-    public void testRehashing() {
+    void rehashing() {
         int n = 16;
         ConcurrentOpenHashSet<Integer> set = ConcurrentOpenHashSet.<Integer>newBuilder()
                 .expectedItems(n / 2)
                 .concurrencyLevel(1)
                 .build();
         assertEquals(set.capacity(), n);
-        assertEquals(set.size(), 0);
+        assertEquals(0, set.size());
 
         for (int i = 0; i < n; i++) {
             set.add(i);
@@ -308,14 +309,14 @@ public class ConcurrentOpenHashSetTest {
     }
 
     @Test
-    public void testRehashingWithDeletes() {
+    void rehashingWithDeletes() {
         int n = 16;
         ConcurrentOpenHashSet<Integer> set = ConcurrentOpenHashSet.<Integer>newBuilder()
                 .expectedItems(n / 2)
                 .concurrencyLevel(1)
                 .build();
         assertEquals(set.capacity(), n);
-        assertEquals(set.size(), 0);
+        assertEquals(0, set.size());
 
         for (int i = 0; i < n / 2; i++) {
             set.add(i);
@@ -334,7 +335,7 @@ public class ConcurrentOpenHashSetTest {
     }
 
     @Test
-    public void concurrentInsertions() throws Throwable {
+    void concurrentInsertions() throws Throwable {
         ConcurrentOpenHashSet<Long> set =
                 ConcurrentOpenHashSet.<Long>newBuilder().build();
         ExecutorService executor = Executors.newCachedThreadPool();
@@ -369,7 +370,7 @@ public class ConcurrentOpenHashSetTest {
     }
 
     @Test
-    public void concurrentInsertionsAndReads() throws Throwable {
+    void concurrentInsertionsAndReads() throws Throwable {
         ConcurrentOpenHashSet<Long> map =
                 ConcurrentOpenHashSet.<Long>newBuilder().build();
         ExecutorService executor = Executors.newCachedThreadPool();
@@ -404,7 +405,7 @@ public class ConcurrentOpenHashSetTest {
     }
 
     @Test
-    public void testIteration() {
+    void iteration() {
         ConcurrentOpenHashSet<Long> set =
                 ConcurrentOpenHashSet.<Long>newBuilder().build();
 
@@ -431,7 +432,7 @@ public class ConcurrentOpenHashSetTest {
     }
 
     @Test
-    public void testHashConflictWithDeletion() {
+    void hashConflictWithDeletion() {
         final int buckets = 16;
         ConcurrentOpenHashSet<Long> set = ConcurrentOpenHashSet.<Long>newBuilder()
                 .expectedItems(buckets)
@@ -448,27 +449,27 @@ public class ConcurrentOpenHashSetTest {
 
         assertTrue(set.add(key1));
         assertTrue(set.add(key2));
-        assertEquals(set.size(), 2);
+        assertEquals(2, set.size());
 
         assertTrue(set.remove(key1));
-        assertEquals(set.size(), 1);
+        assertEquals(1, set.size());
 
         assertTrue(set.add(key1));
-        assertEquals(set.size(), 2);
+        assertEquals(2, set.size());
 
         assertTrue(set.remove(key1));
-        assertEquals(set.size(), 1);
+        assertEquals(1, set.size());
 
         assertFalse(set.add(key2));
         assertTrue(set.contains(key2));
 
-        assertEquals(set.size(), 1);
+        assertEquals(1, set.size());
         assertTrue(set.remove(key2));
         assertTrue(set.isEmpty());
     }
 
     @Test
-    public void testEqualsObjects() {
+    void equalsObjects() {
         class T {
             int value;
 
@@ -499,8 +500,8 @@ public class ConcurrentOpenHashSetTest {
         T t2 = new T(2);
 
         assertEquals(t1, t1B);
-        assertFalse(t1.equals(t2));
-        assertFalse(t1B.equals(t2));
+        assertNotEquals(t1, t2);
+        assertNotEquals(t1B, t2);
 
         set.add(t1);
         assertTrue(set.contains(t1));

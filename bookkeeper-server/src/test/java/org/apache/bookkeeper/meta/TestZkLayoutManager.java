@@ -19,7 +19,7 @@
 package org.apache.bookkeeper.meta;
 
 import static org.apache.bookkeeper.util.BookKeeperConstants.LAYOUT_ZNODE;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test of {@link ZkLayoutManager}.
@@ -53,7 +53,7 @@ public class TestZkLayoutManager {
     }
 
     @Test
-    public void testReadLayout() throws Exception {
+    void readLayout() throws Exception {
         when(zk.getData(eq(layoutPath), eq(false), eq(null)))
             .thenReturn(layout.serialize());
 
@@ -61,7 +61,7 @@ public class TestZkLayoutManager {
     }
 
     @Test
-    public void testStoreLayout() throws Exception {
+    void storeLayout() throws Exception {
         zkLayoutManager.storeLedgerLayout(layout);
 
         verify(zk, times(1))
@@ -69,7 +69,7 @@ public class TestZkLayoutManager {
     }
 
     @Test
-    public void testDeleteLayout() throws Exception {
+    void deleteLayout() throws Exception {
         zkLayoutManager.deleteLedgerLayout();
 
         verify(zk, times(1))

@@ -20,25 +20,25 @@
  */
 package org.apache.bookkeeper.bookie.storage.ldb;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.test.TestStatsProvider;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test for {@link EntryLocationIndex}.
  */
-public class EntryLocationIndexTest {
+class EntryLocationIndexTest {
 
     private final ServerConfiguration serverConfiguration = new ServerConfiguration();
 
     @Test
-    public void deleteLedgerTest() throws Exception {
+    void deleteLedgerTest() throws Exception {
         File tmpDir = File.createTempFile("bkTest", ".dir");
         tmpDir.delete();
         tmpDir.mkdir();
@@ -80,7 +80,7 @@ public class EntryLocationIndexTest {
     }
 
     @Test
-    public void deleteBatchLedgersTest() throws Exception {
+    void deleteBatchLedgersTest() throws Exception {
         File tmpDir = File.createTempFile("bkTest", ".dir");
         tmpDir.delete();
         tmpDir.mkdir();
@@ -145,7 +145,7 @@ public class EntryLocationIndexTest {
 
     // this tests if a ledger is added after it has been deleted
     @Test
-    public void addLedgerAfterDeleteTest() throws Exception {
+    void addLedgerAfterDeleteTest() throws Exception {
         File tmpDir = File.createTempFile("bkTest", ".dir");
         tmpDir.delete();
         tmpDir.mkdir();
@@ -177,7 +177,7 @@ public class EntryLocationIndexTest {
 
     // test non exist entry
     @Test
-    public void testDeleteSpecialEntry() throws IOException {
+    void deleteSpecialEntry() throws IOException {
         File tmpDir = File.createTempFile("bkTest", ".dir");
         tmpDir.delete();
         tmpDir.mkdir();
@@ -207,7 +207,7 @@ public class EntryLocationIndexTest {
     }
 
     @Test
-    public void testEntryIndexLookupLatencyStats() throws IOException {
+    void entryIndexLookupLatencyStats() throws IOException {
         File tmpDir = File.createTempFile("bkTest", ".dir");
         tmpDir.delete();
         tmpDir.mkdir();

@@ -20,6 +20,8 @@
  */
 package org.apache.bookkeeper.bookie.storage.ldb;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -38,13 +40,12 @@ import org.apache.bookkeeper.stats.NullStatsLogger;
 import org.apache.bookkeeper.test.TmpDirs;
 import org.apache.bookkeeper.util.DiskChecker;
 import org.apache.commons.io.FileUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test for class {@link LocationsIndexRebuildOp}.
  */
-public class LedgersIndexCheckOpTest {
+class LedgersIndexCheckOpTest {
 
     CheckpointSource checkpointSource = new CheckpointSource() {
         @Override
@@ -80,7 +81,7 @@ public class LedgersIndexCheckOpTest {
     }
 
     @Test
-    public void testMultiLedgerIndexDiffDirs() throws Exception {
+    void multiLedgerIndexDiffDirs() throws Exception {
         ServerConfiguration conf = TestBKConfiguration.newServerConfiguration();
         conf.setLedgerDirNames(new String[] { newDirectory(), newDirectory() });
         conf.setIndexDirName(new String[] { newDirectory(), newDirectory() });
@@ -114,7 +115,7 @@ public class LedgersIndexCheckOpTest {
         ledgerStorage.shutdown();
 
         // ledgers index check
-        Assert.assertTrue(new LedgersIndexCheckOp(conf, true).initiate());
+        assertTrue(new LedgersIndexCheckOp(conf, true).initiate());
 
         // clean data
         List<String> toDeleted = Lists.newArrayList(conf.getLedgerDirNames());
