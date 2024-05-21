@@ -20,7 +20,7 @@
 package org.apache.bookkeeper.client.api;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -33,20 +33,22 @@ import static org.mockito.Mockito.when;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.bookkeeper.common.concurrent.FutureUtils;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestName;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Unit test for {@link WriteAdvHandle}.
  */
 public class WriteAdvHandleTest {
 
-    @Rule
-    public final TestName runtime = new TestName();
+    
+    public static String runtime;
 
     private final long entryId;
     private final WriteAdvHandle handle = mock(WriteAdvHandle.class);
@@ -66,8 +68,8 @@ public class WriteAdvHandleTest {
     }
 
     @Test
-    public void testAppendBytes() throws Exception {
-        byte[] testData = runtime.getMethodName().getBytes(UTF_8);
+    void appendBytes() throws Exception {
+        byte[] testData =  runtime.getBytes(UTF_8);
         handle.writeAsync(entryId, testData);
 
         ByteBuf buffer = entryQueue.take();
@@ -77,8 +79,8 @@ public class WriteAdvHandleTest {
     }
 
     @Test
-    public void testAppendBytes2() throws Exception {
-        byte[] testData = runtime.getMethodName().getBytes(UTF_8);
+    void appendBytes2() throws Exception {
+        byte[] testData =  runtime.getBytes(UTF_8);
         handle.writeAsync(entryId, testData, 1, testData.length / 2);
         byte[] expectedData = new byte[testData.length / 2];
         System.arraycopy(testData, 1, expectedData, 0, testData.length / 2);
@@ -90,8 +92,8 @@ public class WriteAdvHandleTest {
     }
 
     @Test
-    public void testAppendByteBuffer() throws Exception {
-        byte[] testData = runtime.getMethodName().getBytes(UTF_8);
+    void appendByteBuffer() throws Exception {
+        byte[] testData =  runtime.getBytes(UTF_8);
         handle.writeAsync(entryId, ByteBuffer.wrap(testData, 1, testData.length / 2));
         byte[] expectedData = new byte[testData.length / 2];
         System.arraycopy(testData, 1, expectedData, 0, testData.length / 2);
@@ -100,6 +102,14 @@ public class WriteAdvHandleTest {
         byte[] bufferData = ByteBufUtil.getBytes(buffer);
         assertArrayEquals(expectedData, bufferData);
         verify(handle, times(1)).writeAsync(eq(entryId), any(ByteBuf.class));
+    }
+
+    @BeforeEach
+    void setup(TestInfo testInfo) {
+        Optional<Method> testMethod = testInfo.getTestMethod();
+        if (testMethod.isPresent()) {
+            this.runtime = testMethod.get().getName();
+        }
     }
 
 }

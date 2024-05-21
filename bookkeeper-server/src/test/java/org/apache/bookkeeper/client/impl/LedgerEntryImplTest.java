@@ -20,14 +20,14 @@
 package org.apache.bookkeeper.client.impl;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.nio.ByteBuffer;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit test for {@link LedgerEntryImpl}.
@@ -54,14 +54,14 @@ public class LedgerEntryImplTest {
             dataBuf);
     }
 
-    @After
-    public void teardown() {
+    @AfterEach
+    void teardown() {
         this.entryImpl.close();
         assertEquals(0, dataBuf.refCnt());
     }
 
     @Test
-    public void testGetters() {
+    void getters() {
         assertEquals(ledgerId, entryImpl.getLedgerId());
         assertEquals(entryId, entryImpl.getEntryId());
         assertEquals(length, entryImpl.getLength());
@@ -80,7 +80,7 @@ public class LedgerEntryImplTest {
     }
 
     @Test
-    public void testSetters() {
+    void setters() {
         assertEquals(ledgerId, entryImpl.getLedgerId());
         assertEquals(entryId, entryImpl.getEntryId());
         assertEquals(length, entryImpl.getLength());
@@ -100,7 +100,7 @@ public class LedgerEntryImplTest {
     }
 
     @Test
-    public void testDuplicate() {
+    void duplicate() {
         LedgerEntryImpl duplicatedEntry = LedgerEntryImpl.duplicate(entryImpl);
 
         // the underneath buffer should have 2 entries referencing it
