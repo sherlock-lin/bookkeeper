@@ -21,42 +21,45 @@
 package org.apache.bookkeeper.client.api;
 
 import static org.apache.bookkeeper.client.api.WriteFlag.DEFERRED_SYNC;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.EnumSet;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for WriteFlag.
  */
-public class WriteFlagTest {
+class WriteFlagTest {
 
     private static final int NONE = 0;
 
     @Test
-    public void testGetWriteFlagsDeferredSync() {
+    void getWriteFlagsDeferredSync() {
         assertEquals(EnumSet.of(DEFERRED_SYNC),
                 WriteFlag.getWriteFlags(DEFERRED_SYNC.getValue()));
     }
 
     @Test
-    public void testGetWriteFlagsNone() {
+    void getWriteFlagsNone() {
         assertEquals(WriteFlag.NONE,
                 WriteFlag.getWriteFlags(NONE));
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testGetWriteFlagsValueNull() {
-        WriteFlag.getWriteFlagsValue(null);
+    @Test
+    void getWriteFlagsValueNull() {
+        assertThrows(NullPointerException.class, () -> {
+            WriteFlag.getWriteFlagsValue(null);
+        });
     }
 
     @Test
-    public void testGetWriteFlagsValueEmpty() {
+    void getWriteFlagsValueEmpty() {
         assertEquals(0, WriteFlag.getWriteFlagsValue(WriteFlag.NONE));
     }
 
     @Test
-    public void testGetWriteFlagsValueDeferredSync() {
+    void getWriteFlagsValueDeferredSync() {
         assertEquals(1, WriteFlag.getWriteFlagsValue(EnumSet.of(DEFERRED_SYNC)));
     }
 }
