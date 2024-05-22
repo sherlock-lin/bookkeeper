@@ -24,11 +24,12 @@ import static org.apache.bookkeeper.client.BookKeeperClientStats.ADD_OP;
 import static org.apache.bookkeeper.client.BookKeeperClientStats.ADD_OP_UR;
 import static org.apache.bookkeeper.client.BookKeeperClientStats.CLIENT_SCOPE;
 import static org.apache.bookkeeper.client.BookKeeperClientStats.READ_OP_DM;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Lists;
 import io.netty.buffer.AbstractByteBufAllocator;
@@ -79,35 +80,28 @@ import org.apache.bookkeeper.test.TestStatsProvider;
 import org.apache.bookkeeper.util.BookKeeperConstants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.awaitility.Awaitility;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Testing ledger write entry cases.
  */
-@RunWith(Parameterized.class)
 public class BookieWriteLedgerTest extends
     BookKeeperClusterTestCase implements AddCallback {
 
     private static final Logger LOG = LoggerFactory
             .getLogger(BookieWriteLedgerTest.class);
 
-    @Parameterized.Parameters
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
             { true, true }, { true, false }, { false, true }, { false, false }
         });
     }
-
-    @Parameterized.Parameter(0)
     public boolean useV2;
-
-    @Parameterized.Parameter(1)
     public boolean writeJournal;
 
     byte[] ledgerPassword = "aaa".getBytes();
@@ -132,8 +126,7 @@ public class BookieWriteLedgerTest extends
         }
     }
 
-    @Override
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         baseConf.setJournalWriteData(writeJournal);
         baseClientConf.setUseV2WireProtocol(useV2);
@@ -163,8 +156,10 @@ public class BookieWriteLedgerTest extends
      * Verify write when few bookie failures in last ensemble and forcing
      * ensemble reformation.
      */
-    @Test
-    public void testWithMultipleBookieFailuresInLastEnsemble() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void withMultipleBookieFailuresInLastEnsemble(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         // Create a ledger
         lh = bkc.createLedger(5, 4, digestType, ledgerPassword);
         LOG.info("Ledger ID: " + lh.getId());
@@ -205,8 +200,10 @@ public class BookieWriteLedgerTest extends
     /**
      * Verify write and Read durability stats.
      */
-    @Test
-    public void testWriteAndReadStats() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void writeAndReadStats(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         // Create a ledger
         lh = bkc.createLedger(3, 3, 2, digestType, ledgerPassword);
 
@@ -220,10 +217,10 @@ public class BookieWriteLedgerTest extends
             lh.addEntry(entry.array());
         }
         assertTrue(
-                "Stats should have captured a new writes",
                 bkc.getTestStatsProvider().getOpStatsLogger(
                         CLIENT_SCOPE + "." + ADD_OP)
-                        .getSuccessCount() > 0);
+                        .getSuccessCount() > 0,
+                "Stats should have captured a new writes");
 
         CountDownLatch sleepLatch1 = new CountDownLatch(1);
         CountDownLatch sleepLatch2 = new CountDownLatch(1);
@@ -265,10 +262,10 @@ public class BookieWriteLedgerTest extends
         }
 
         assertTrue(
-                "Stats should have captured a new UnderReplication during write",
                 bkc.getTestStatsProvider().getCounter(
                         CLIENT_SCOPE + "." + ADD_OP_UR)
-                        .get() > 0);
+                        .get() > 0,
+                "Stats should have captured a new UnderReplication during write");
 
         sleepLatch1.countDown();
         sleepLatch2.countDown();
@@ -294,17 +291,20 @@ public class BookieWriteLedgerTest extends
 
         readEntries(lh, entries1);
         assertTrue(
-                "Stats should have captured DigestMismatch on Read",
                 bkc.getTestStatsProvider().getCounter(
                         CLIENT_SCOPE + "." + READ_OP_DM)
-                        .get() > 0);
+                        .get() > 0,
+                "Stats should have captured DigestMismatch on Read");
         lh.close();
     }
+
     /**
      * Verty delayedWriteError causes ensemble changes.
      */
-    @Test
-    public void testDelayedWriteEnsembleChange() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void delayedWriteEnsembleChange(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         // Create a ledger
         lh = bkc.createLedger(3, 3, 2, digestType, ledgerPassword);
         baseClientConf.setAddEntryTimeout(1);
@@ -342,10 +342,10 @@ public class BookieWriteLedgerTest extends
         // Sleep to receive delayed error on the write directed to the sleeping bookie
         Thread.sleep(baseClientConf.getAddEntryTimeout() * 1000 * 2);
         assertTrue(
-                "Stats should have captured a new UnderReplication during write",
                 bkc.getTestStatsProvider().getCounter(
                         CLIENT_SCOPE + "." + ADD_OP_UR)
-                        .get() > 0);
+                        .get() > 0,
+                "Stats should have captured a new UnderReplication during write");
 
         i = numEntriesToWrite;
         numEntriesToWrite = numEntriesToWrite + 10;
@@ -364,18 +364,19 @@ public class BookieWriteLedgerTest extends
         // get the bookie at index-0 again, this must be different.
         BookieId bookie2 = lh.getCurrentEnsemble().get(0);
 
-        assertFalse(
-                "Delayed write error must have forced ensemble change",
-                        bookie1.equals(bookie2));
+        assertNotEquals(bookie1, bookie2, "Delayed write error must have forced ensemble change");
         lh.close();
     }
+
     /**
      * Verify the functionality Ledgers with different digests.
      *
      * @throws Exception
      */
-    @Test
-    public void testLedgerDigestTest() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void ledgerDigestTest(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         for (DigestType type: DigestType.values()) {
             lh = bkc.createLedger(5, 3, 2, type, ledgerPassword);
 
@@ -404,8 +405,10 @@ public class BookieWriteLedgerTest extends
      *
      * @throws Exception
      */
-    @Test
-    public void testLedgerCreateAdv() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void ledgerCreateAdv(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         // Create a ledger
         lh = bkc.createLedgerAdv(5, 3, 2, digestType, ledgerPassword);
         for (int i = 0; i < numEntriesToWrite; i++) {
@@ -445,8 +448,10 @@ public class BookieWriteLedgerTest extends
      *
      * @throws Exception
      */
-    @Test
-    public void testLedgerCreateAdvAndWriteNonAdv() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void ledgerCreateAdvAndWriteNonAdv(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         long ledgerId = 0xABCDEF;
         lh = bkc.createLedgerAdv(ledgerId, 3, 3, 2, digestType, ledgerPassword, null);
 
@@ -470,8 +475,11 @@ public class BookieWriteLedgerTest extends
      *
      * @throws Exception
      */
-    @Test
-    public void testNoAddEntryLedgerCreateAdv() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void noAddEntryLedgerCreateAdv(boolean useV2, boolean writeJournal) throws Exception {
+
+        initBookieWriteLedgerTest(useV2, writeJournal);
 
         ByteBuffer entry = ByteBuffer.allocate(4);
         entry.putInt(rng.nextInt(maxInt));
@@ -484,14 +492,14 @@ public class BookieWriteLedgerTest extends
             lh.addEntry(entry.array());
             fail("using LedgerHandleAdv addEntry without entryId is forbidden");
         } catch (BKException e) {
-            assertEquals(e.getCode(), BKException.Code.IllegalOpException);
+            assertEquals(BKException.Code.IllegalOpException, e.getCode());
         }
 
         try {
             lh.addEntry(entry.array(), 0, 4);
             fail("using LedgerHandleAdv addEntry without entryId is forbidden");
         } catch (BKException e) {
-            assertEquals(e.getCode(), BKException.Code.IllegalOpException);
+            assertEquals(BKException.Code.IllegalOpException, e.getCode());
         }
 
         try {
@@ -504,7 +512,7 @@ public class BookieWriteLedgerTest extends
         } catch (ExecutionException ee) {
             assertTrue(ee.getCause() instanceof BKException);
             BKException e = (BKException) ee.getCause();
-            assertEquals(e.getCode(), BKException.Code.IllegalOpException);
+            assertEquals(BKException.Code.IllegalOpException, e.getCode());
         }
 
         try {
@@ -517,7 +525,7 @@ public class BookieWriteLedgerTest extends
         } catch (ExecutionException ee) {
             assertTrue(ee.getCause() instanceof BKException);
             BKException e = (BKException) ee.getCause();
-            assertEquals(e.getCode(), BKException.Code.IllegalOpException);
+            assertEquals(BKException.Code.IllegalOpException, e.getCode());
         }
 
         try {
@@ -530,7 +538,7 @@ public class BookieWriteLedgerTest extends
         } catch (ExecutionException ee) {
             assertTrue(ee.getCause() instanceof BKException);
             BKException e = (BKException) ee.getCause();
-            assertEquals(e.getCode(), BKException.Code.IllegalOpException);
+            assertEquals(BKException.Code.IllegalOpException, e.getCode());
         }
         lh.close();
     }
@@ -542,8 +550,10 @@ public class BookieWriteLedgerTest extends
      *
      * @throws Exception
      */
-    @Test
-    public void testLedgerCreateAdvWithLedgerId() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void ledgerCreateAdvWithLedgerId(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         // Create a ledger
         long ledgerId = 0xABCDEF;
         lh = bkc.createLedgerAdv(ledgerId, 5, 3, 2, digestType, ledgerPassword, null);
@@ -585,8 +595,10 @@ public class BookieWriteLedgerTest extends
      *
      * @throws Exception
      */
-    @Test
-    public void testLedgerCreateWithCustomMetadata() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void ledgerCreateWithCustomMetadata(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         // Create a ledger
         long ledgerId;
         int maxLedgers = 10;
@@ -618,8 +630,8 @@ public class BookieWriteLedgerTest extends
             // and the customMetadata written and read should match
             lh = bkc.openLedger(ledgerId, digestType, ledgerPassword);
             Map<String, byte[]> outputCustomMetadataMap = lh.getCustomMetadata();
-            assertTrue("Can't retrieve proper Custom Data",
-                       areByteArrayValMapsEqual(inputCustomMetadataMap, outputCustomMetadataMap));
+            assertTrue(areByteArrayValMapsEqual(inputCustomMetadataMap, outputCustomMetadataMap),
+                       "Can't retrieve proper Custom Data");
             lh.close();
             bkc.deleteLedger(ledgerId);
         }
@@ -666,8 +678,10 @@ public class BookieWriteLedgerTest extends
      *
      * @throws Exception
      */
-    @Test
-    public void testLedgerHandleAdvFunctionality() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void ledgerHandleAdvFunctionality(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         // Create a ledger
         long ledgerId = 0xABCDEF;
         lh = bkc.createLedgerAdv(ledgerId, 5, 3, 2, digestType, ledgerPassword, null);
@@ -697,7 +711,7 @@ public class BookieWriteLedgerTest extends
             }
         }, latch);
         latch.await();
-        assertTrue("Returned code is expected to be OK", returnedRC[0] == BKException.Code.OK);
+        assertEquals(BKException.Code.OK, returnedRC[0], "Returned code is expected to be OK");
 
         // here addEntry is called with incorrect offset and length
         entry = ByteBuffer.allocate(4);
@@ -745,8 +759,10 @@ public class BookieWriteLedgerTest extends
      *
      * @throws Exception
      */
-    @Test
-    public void testLedgerCreateAdvWithLedgerIdInLoop() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void ledgerCreateAdvWithLedgerIdInLoop(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         int ledgerCount = 40;
 
         long maxId = 9999999999L;
@@ -800,10 +816,10 @@ public class BookieWriteLedgerTest extends
                         bkc.deleteLedger(handle.getId());
                     } catch (InterruptedException ie) {
                         Thread.currentThread().interrupt();
-                        Assert.fail("Test interrupted");
+                        fail("Test interrupted");
                     } catch (Exception ex) {
                         LOG.info("Readback failed with exception", ex);
-                        Assert.fail("Readback failed " + ex.getMessage());
+                        fail("Readback failed " + ex.getMessage());
                     }
                 });
     }
@@ -820,11 +836,14 @@ public class BookieWriteLedgerTest extends
      *
      * @throws Exception
      */
-    @Test
-    public void testLedgerCreateAdvWithLedgerIdInLoop2() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void ledgerCreateAdvWithLedgerIdInLoop2(boolean useV2, boolean writeJournal) throws Exception {
 
-        assertTrue("Here we are expecting Bookies are configured to use SortedLedgerStorage",
-                baseConf.getSortedLedgerStorageEnabled());
+        initBookieWriteLedgerTest(useV2, writeJournal);
+
+        assertTrue(baseConf.getSortedLedgerStorageEnabled(),
+                "Here we are expecting Bookies are configured to use SortedLedgerStorage");
 
         long ledgerId;
         int ledgerCount = 10;
@@ -888,9 +907,11 @@ public class BookieWriteLedgerTest extends
     /**
      * Verify asynchronous writing when few bookie failures in last ensemble.
      */
-    @Test
-    public void testAsyncWritesWithMultipleFailuresInLastEnsemble()
+    @MethodSource("data")
+    @ParameterizedTest
+    public void asyncWritesWithMultipleFailuresInLastEnsemble(boolean useV2, boolean writeJournal)
             throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         // Create ledgers
         lh = bkc.createLedger(5, 4, digestType, ledgerPassword);
         lh2 = bkc.createLedger(5, 4, digestType, ledgerPassword);
@@ -965,8 +986,10 @@ public class BookieWriteLedgerTest extends
     /**
      * Verify Advanced asynchronous writing with entryIds in reverse order.
      */
-    @Test
-    public void testLedgerCreateAdvWithAsyncWritesWithBookieFailures() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void ledgerCreateAdvWithAsyncWritesWithBookieFailures(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         // Create ledgers
         lh = bkc.createLedgerAdv(5, 3, 2, digestType, ledgerPassword);
         lh2 = bkc.createLedgerAdv(5, 3, 2, digestType, ledgerPassword);
@@ -1023,8 +1046,10 @@ public class BookieWriteLedgerTest extends
      *
      * @throws Exception
      */
-    @Test
-    public void testLedgerHandleAdvOutOfOrderWriteAndFrocedEnsembleChange() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void ledgerHandleAdvOutOfOrderWriteAndFrocedEnsembleChange(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         // Create a ledger
         long ledgerId = 0xABCDEF;
         SyncObj syncObj1 = new SyncObj();
@@ -1108,8 +1133,10 @@ public class BookieWriteLedgerTest extends
     /**
      * Verify Advanced asynchronous writing with entryIds in pseudo random order with bookie failures between writes.
      */
-    @Test
-    public void testLedgerCreateAdvWithRandomAsyncWritesWithBookieFailuresBetweenWrites() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void ledgerCreateAdvWithRandomAsyncWritesWithBookieFailuresBetweenWrites(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         // Create ledgers
         lh = bkc.createLedgerAdv(5, 3, 2, digestType, ledgerPassword);
         lh2 = bkc.createLedgerAdv(5, 3, 2, digestType, ledgerPassword);
@@ -1176,8 +1203,10 @@ public class BookieWriteLedgerTest extends
     /**
      * Verify Advanced asynchronous writing with entryIds in pseudo random order.
      */
-    @Test
-    public void testLedgerCreateAdvWithRandomAsyncWritesWithBookieFailures() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void ledgerCreateAdvWithRandomAsyncWritesWithBookieFailures(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         // Create ledgers
         lh = bkc.createLedgerAdv(5, 3, 2, digestType, ledgerPassword);
         lh2 = bkc.createLedgerAdv(5, 3, 2, digestType, ledgerPassword);
@@ -1245,8 +1274,10 @@ public class BookieWriteLedgerTest extends
      *
      * @throws Exception
      */
-    @Test
-    public void testLedgerCreateAdvWithSkipEntries() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void ledgerCreateAdvWithSkipEntries(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         long ledgerId;
         SyncObj syncObj1 = new SyncObj();
 
@@ -1291,8 +1322,10 @@ public class BookieWriteLedgerTest extends
      *
      * @throws Exception
      */
-    @Test
-    public void testLedgerCreateAdvSyncAddDuplicateEntryIds() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void ledgerCreateAdvSyncAddDuplicateEntryIds(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         // Create a ledger
         lh = bkc.createLedgerAdv(5, 3, 2, digestType, ledgerPassword);
         LOG.info("Ledger ID: " + lh.getId());
@@ -1317,7 +1350,7 @@ public class BookieWriteLedgerTest extends
             fail("Expected exception not thrown");
         } catch (BKException e) {
             // This test expects DuplicateEntryIdException
-            assertEquals(e.getCode(), BKException.Code.DuplicateEntryIdException);
+            assertEquals(BKException.Code.DuplicateEntryIdException, e.getCode());
         }
         lh.close();
     }
@@ -1328,8 +1361,10 @@ public class BookieWriteLedgerTest extends
      *
      * @throws Exception
      */
-    @Test
-    public void testLedgerCreateAdvSyncAsyncAddDuplicateEntryIds() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void ledgerCreateAdvSyncAsyncAddDuplicateEntryIds(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         long ledgerId;
         SyncObj syncObj1 = new SyncObj();
         SyncObj syncObj2 = new SyncObj();
@@ -1371,9 +1406,11 @@ public class BookieWriteLedgerTest extends
         lh.close();
     }
 
-    @Test
+    @MethodSource("data")
+    @ParameterizedTest
     @SuppressWarnings("unchecked")
-    public void testLedgerCreateAdvByteBufRefCnt() throws Exception {
+    public void ledgerCreateAdvByteBufRefCnt(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         long ledgerId = rng.nextLong();
         ledgerId &= Long.MAX_VALUE;
         if (!baseConf.getLedgerManagerFactoryClass().equals(LongHierarchicalLedgerManagerFactory.class)) {
@@ -1395,7 +1432,7 @@ public class BookieWriteLedgerTest extends
         for (AbstractByteBufAllocator alloc: allocs) {
             final ByteBuf data = alloc.buffer(10);
             data.writeBytes(("fragment0" + entryId).getBytes());
-            assertEquals("ref count on ByteBuf should be 1", 1, data.refCnt());
+            assertEquals(1, data.refCnt(), "ref count on ByteBuf should be 1");
 
             CompletableFuture<Integer> cf = new CompletableFuture<>();
             lh.asyncAddEntry(entryId, data, (rc, handle, eId, qwcLatency, ctx) -> {
@@ -1404,7 +1441,7 @@ public class BookieWriteLedgerTest extends
             }, cf);
 
             int rc = cf.get();
-            assertEquals("rc code is OK", BKException.Code.OK, rc);
+            assertEquals(BKException.Code.OK, rc, "rc code is OK");
 
             for (int i = 0; i < 10; i++) {
                 if (data.refCnt() == 0) {
@@ -1412,20 +1449,21 @@ public class BookieWriteLedgerTest extends
                 }
                 TimeUnit.MILLISECONDS.sleep(250); // recycler runs asynchronously
             }
-            assertEquals("writing entry with id " + entryId + ", ref count on ByteBuf should be 0 ",
-                    0, data.refCnt());
+            assertEquals(0, data.refCnt(), "writing entry with id " + entryId + ", ref count on ByteBuf should be 0 ");
 
             org.apache.bookkeeper.client.api.LedgerEntry e = lh.read(entryId, entryId).getEntry(entryId);
-            assertEquals("entry data is correct", "fragment0" + entryId, new String(e.getEntryBytes()));
+            assertEquals("fragment0" + entryId, new String(e.getEntryBytes()), "entry data is correct");
             entryId++;
         }
 
         bkc.deleteLedger(lh.ledgerId);
     }
 
-    @Test
+    @MethodSource("data")
+    @ParameterizedTest
     @SuppressWarnings("unchecked")
-    public void testLedgerCreateByteBufRefCnt() throws Exception {
+    public void ledgerCreateByteBufRefCnt(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         final LedgerHandle lh = bkc.createLedger(5, 3, 2, digestType, ledgerPassword, null);
 
         final List<AbstractByteBufAllocator> allocs = Lists.newArrayList(
@@ -1438,7 +1476,7 @@ public class BookieWriteLedgerTest extends
         for (AbstractByteBufAllocator alloc: allocs) {
             final ByteBuf data = alloc.buffer(10);
             data.writeBytes(("fragment0" + entryId).getBytes());
-            assertEquals("ref count on ByteBuf should be 1", 1, data.refCnt());
+            assertEquals(1, data.refCnt(), "ref count on ByteBuf should be 1");
 
             CompletableFuture<Integer> cf = new CompletableFuture<>();
             lh.asyncAddEntry(data, (rc, handle, eId, ctx) -> {
@@ -1447,7 +1485,7 @@ public class BookieWriteLedgerTest extends
             }, cf);
 
             int rc = cf.get();
-            assertEquals("rc code is OK", BKException.Code.OK, rc);
+            assertEquals(BKException.Code.OK, rc, "rc code is OK");
 
             for (int i = 0; i < 10; i++) {
                 if (data.refCnt() == 0) {
@@ -1455,19 +1493,20 @@ public class BookieWriteLedgerTest extends
                 }
                 TimeUnit.MILLISECONDS.sleep(250); // recycler runs asynchronously
             }
-            assertEquals("writing entry with id " + entryId + ", ref count on ByteBuf should be 0 ",
-                    0, data.refCnt());
+            assertEquals(0, data.refCnt(), "writing entry with id " + entryId + ", ref count on ByteBuf should be 0 ");
 
             org.apache.bookkeeper.client.api.LedgerEntry e = lh.read(entryId, entryId).getEntry(entryId);
-            assertEquals("entry data is correct", "fragment0" + entryId, new String(e.getEntryBytes()));
+            assertEquals("fragment0" + entryId, new String(e.getEntryBytes()), "entry data is correct");
             entryId++;
         }
 
         bkc.deleteLedger(lh.ledgerId);
     }
 
-    @Test
-    public void testReadLacNotSameWithMetadataLedgerReplication() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void readLacNotSameWithMetadataLedgerReplication(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
        lh = bkc.createLedger(3, 3, 2, digestType, ledgerPassword);
         for (int i = 0; i < 10; ++i) {
             ByteBuffer entry = ByteBuffer.allocate(4);
@@ -1480,11 +1519,9 @@ public class BookieWriteLedgerTest extends
         assertEquals(1, lh.getLedgerMetadata().getAllEnsembles().size());
         killBookie(ensemble.get(1));
 
-        try {
+        Assertions.assertDoesNotThrow(() -> {
             lh.ensembleChangeLoop(ensemble, Collections.singletonMap(1, ensemble.get(1)));
-        } catch (Exception e) {
-            fail();
-        }
+        });
 
         LedgerHandle lh1 = bkc.openLedgerNoRecovery(lh.ledgerId, digestType, ledgerPassword);
         assertEquals(2, lh1.getLedgerMetadata().getAllEnsembles().size());
@@ -1528,13 +1565,15 @@ public class BookieWriteLedgerTest extends
         }
     }
 
-    @Test
-    public void testLedgerMetadataTest() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void ledgerMetadataTest(boolean useV2, boolean writeJournal) throws Exception {
+        initBookieWriteLedgerTest(useV2, writeJournal);
         baseClientConf.setLedgerMetadataFormatVersion(LedgerMetadataSerDe.METADATA_FORMAT_VERSION_2);
         BookKeeperTestClient bkc = new BookKeeperTestClient(baseClientConf, new TestStatsProvider());
         // Create a ledger
         lh = bkc.createLedger(3, 3, 2, digestType, ledgerPassword);
-        assertEquals(lh.getLedgerMetadata().getMetadataFormatVersion(), LedgerMetadataSerDe.METADATA_FORMAT_VERSION_2);
+        assertEquals(LedgerMetadataSerDe.METADATA_FORMAT_VERSION_2, lh.getLedgerMetadata().getMetadataFormatVersion());
         lh.close();
     }
 
@@ -1551,21 +1590,19 @@ public class BookieWriteLedgerTest extends
                 LOG.debug("Original entry: " + origEntry);
                 LOG.debug("Retrieved entry: " + retrEntry);
             }
-            assertTrue("Checking entry " + index + " for equality", origEntry
-                    .equals(retrEntry));
+            assertEquals(origEntry, retrEntry, "Checking entry " + index + " for equality");
         }
     }
 
     private void readEntries(ReadHandle reader, List<ByteBuf> entries) throws Exception {
-        assertEquals("Not enough entries in ledger " + reader.getId(),
-                     reader.getLastAddConfirmed(), entries.size() - 1);
+        assertEquals(reader.getLastAddConfirmed(), entries.size() - 1, "Not enough entries in ledger " + reader.getId());
         try (LedgerEntries readEntries = reader.read(0, reader.getLastAddConfirmed())) {
             int i = 0;
             for (org.apache.bookkeeper.client.api.LedgerEntry e : readEntries) {
                 int entryId = i++;
                 ByteBuf origEntry = entries.get(entryId);
                 ByteBuf readEntry = e.getEntryBuffer();
-                assertEquals("Unexpected contents in " + reader.getId() + ":" + entryId, origEntry, readEntry);
+                assertEquals(origEntry, readEntry, "Unexpected contents in " + reader.getId() + ":" + entryId);
             }
         }
     }
@@ -1582,12 +1619,10 @@ public class BookieWriteLedgerTest extends
                 LOG.debug("Length of receivedData: {}", receivedData.length);
             }
             assertEquals(
-                    String.format("LedgerID: %d EntryID: %d OriginalDataLength: %d ReceivedDataLength: %d", lh.getId(),
-                            (index - 1), originalData.length, receivedData.length),
-                    originalData.length, receivedData.length);
-            Assert.assertArrayEquals(
-                    String.format("Checking LedgerID: %d EntryID: %d  for equality", lh.getId(), (index - 1)),
-                    originalData, receivedData);
+                    originalData.length, receivedData.length, String.format("LedgerID: %d EntryID: %d OriginalDataLength: %d ReceivedDataLength: %d", lh.getId(),
+                            (index - 1), originalData.length, receivedData.length));
+            assertArrayEquals(
+                    originalData, receivedData, String.format("Checking LedgerID: %d EntryID: %d  for equality", lh.getId(), (index - 1)));
         }
     }
 
@@ -1623,5 +1658,10 @@ public class BookieWriteLedgerTest extends
             return localBuf;
         }
 
+    }
+
+    public void initBookieWriteLedgerTest(boolean useV2, boolean writeJournal) {
+        this.useV2 = useV2;
+        this.writeJournal = writeJournal;
     }
 }

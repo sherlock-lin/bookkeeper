@@ -17,10 +17,10 @@
  */
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -32,16 +32,13 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Testing a generic ensemble placement policy.
  */
-@RunWith(Parameterized.class)
 public class GenericEnsemblePlacementPolicyTest extends BookKeeperClusterTestCase {
 
     private BookKeeper.DigestType digestType = BookKeeper.DigestType.CRC32;
@@ -51,13 +48,15 @@ public class GenericEnsemblePlacementPolicyTest extends BookKeeperClusterTestCas
     private static List<Map<String, byte[]>> customMetadataOnNewEnsembleStack = new ArrayList<>();
     private static List<Map<String, byte[]>> customMetadataOnReplaceBookieStack = new ArrayList<>();
 
-    @Parameters
     public static Collection<Object[]> getDiskWeightBasedPlacementEnabled() {
         return Arrays.asList(new Object[][] { { false }, { true } });
     }
 
-    public GenericEnsemblePlacementPolicyTest(boolean diskWeightBasedPlacementEnabled) {
+    public GenericEnsemblePlacementPolicyTest() {
         super(0);
+    }
+
+    public void initGenericEnsemblePlacementPolicyTest(boolean diskWeightBasedPlacementEnabled) {
         baseClientConf.setEnsemblePlacementPolicy(CustomEnsemblePlacementPolicy.class);
         baseClientConf.setDiskWeightBasedPlacementEnabled(diskWeightBasedPlacementEnabled);
     }
@@ -89,14 +88,16 @@ public class GenericEnsemblePlacementPolicyTest extends BookKeeperClusterTestCas
         }
     }
 
-    @Before
-    public void reset() {
+    @BeforeEach
+    void reset() {
         customMetadataOnNewEnsembleStack.clear();
         customMetadataOnReplaceBookieStack.clear();
     }
 
-    @Test
-    public void testNewEnsemble() throws Exception {
+    @MethodSource("getDiskWeightBasedPlacementEnabled")
+    @ParameterizedTest
+    public void newEnsemble(boolean diskWeightBasedPlacementEnabled) throws Exception {
+        initGenericEnsemblePlacementPolicyTest(diskWeightBasedPlacementEnabled);
         numBookies = 1;
         startBKCluster(zkUtil.getMetadataServiceUri());
         try {
@@ -112,8 +113,10 @@ public class GenericEnsemblePlacementPolicyTest extends BookKeeperClusterTestCas
         }
     }
 
-    @Test
-    public void testNewEnsembleWithNotEnoughtBookies() throws Exception {
+    @MethodSource("getDiskWeightBasedPlacementEnabled")
+    @ParameterizedTest
+    public void newEnsembleWithNotEnoughtBookies(boolean diskWeightBasedPlacementEnabled) throws Exception {
+        initGenericEnsemblePlacementPolicyTest(diskWeightBasedPlacementEnabled);
         numBookies = 0;
         try {
             startBKCluster(zkUtil.getMetadataServiceUri());
@@ -132,8 +135,10 @@ public class GenericEnsemblePlacementPolicyTest extends BookKeeperClusterTestCas
         }
     }
 
-    @Test
-    public void testReplaceBookie() throws Exception {
+    @MethodSource("getDiskWeightBasedPlacementEnabled")
+    @ParameterizedTest
+    public void replaceBookie(boolean diskWeightBasedPlacementEnabled) throws Exception {
+        initGenericEnsemblePlacementPolicyTest(diskWeightBasedPlacementEnabled);
         numBookies = 3;
         startBKCluster(zkUtil.getMetadataServiceUri());
         try {

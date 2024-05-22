@@ -20,8 +20,8 @@
 */
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -168,12 +168,12 @@ public class BookKeeperDiskSpaceWeightedLedgerPlacementTest extends BookKeeperCl
         for (int i = 0; i < numBookies - 2; i++) {
             double ratio1 = (double) m.get(addressByIndex(numBookies - 2))
                 / (double) m.get(addressByIndex(i));
-            assertTrue("Weigheted placement is not honored: " + Math.abs(ratio1 - multiple),
-                    Math.abs(ratio1 - multiple) < 1);
+            assertTrue(Math.abs(ratio1 - multiple) < 1,
+                    "Weigheted placement is not honored: " + Math.abs(ratio1 - multiple));
             double ratio2 = (double) m.get(addressByIndex(numBookies - 1))
                 / (double) m.get(addressByIndex(i));
-            assertTrue("Weigheted placement is not honored: " + Math.abs(ratio2 - multiple),
-                    Math.abs(ratio2 - multiple) < 1);
+            assertTrue(Math.abs(ratio2 - multiple) < 1,
+                    "Weigheted placement is not honored: " + Math.abs(ratio2 - multiple));
         }
     }
 
@@ -216,12 +216,12 @@ public class BookKeeperDiskSpaceWeightedLedgerPlacementTest extends BookKeeperCl
         for (int i = 0; i < numBookies - 2; i++) {
             double ratio1 = (double) m.get(addressByIndex(numBookies - 2))
                 / (double) m.get(addressByIndex(i));
-            assertTrue("Weigheted placement is not honored: " + Math.abs(ratio1 - multiple),
-                    Math.abs(ratio1 - multiple) < 1);
+            assertTrue(Math.abs(ratio1 - multiple) < 1,
+                    "Weigheted placement is not honored: " + Math.abs(ratio1 - multiple));
             double ratio2 = (double) m.get(addressByIndex(numBookies - 1))
                 / (double) m.get(addressByIndex(i));
-            assertTrue("Weigheted placement is not honored: " + Math.abs(ratio2 - multiple),
-            Math.abs(ratio2 - multiple) < 1);
+            assertTrue(Math.abs(ratio2 - multiple) < 1,
+            "Weigheted placement is not honored: " + Math.abs(ratio2 - multiple));
         }
 
         // Restart the bookies in such a way that the first 2 bookies go from 1MB to 3MB free space and the last
@@ -254,12 +254,12 @@ public class BookKeeperDiskSpaceWeightedLedgerPlacementTest extends BookKeeperCl
             }
             double ratio1 = (double) m.get(server1)
                 / (double) m.get(addressByIndex(i));
-            assertTrue("Weigheted placement is not honored: " + Math.abs(ratio1 - multiple),
-                    Math.abs(ratio1 - multiple) < 1);
+            assertTrue(Math.abs(ratio1 - multiple) < 1,
+                    "Weigheted placement is not honored: " + Math.abs(ratio1 - multiple));
             double ratio2 = (double) m.get(server2)
                 / (double) m.get(addressByIndex(i));
-            assertTrue("Weigheted placement is not honored: " + Math.abs(ratio2 - multiple),
-            Math.abs(ratio2 - multiple) < 1);
+            assertTrue(Math.abs(ratio2 - multiple) < 1,
+            "Weigheted placement is not honored: " + Math.abs(ratio2 - multiple));
         }
         client.close();
     }
@@ -302,12 +302,12 @@ public class BookKeeperDiskSpaceWeightedLedgerPlacementTest extends BookKeeperCl
         // since the number of ledgers is small (2000), there may be variation
         double ratio1 = (double) m.get(addressByIndex(numBookies - 2))
             / (double) m.get(addressByIndex(0));
-        assertTrue("Weigheted placement is not honored: " + Math.abs(ratio1 - multiple),
-                Math.abs(ratio1 - multiple) < 1);
+        assertTrue(Math.abs(ratio1 - multiple) < 1,
+                "Weigheted placement is not honored: " + Math.abs(ratio1 - multiple));
         double ratio2 = (double) m.get(addressByIndex(numBookies - 1))
             / (double) m.get(addressByIndex(1));
-        assertTrue("Weigheted placement is not honored: " + Math.abs(ratio2 - multiple),
-        Math.abs(ratio2 - multiple) < 1);
+        assertTrue(Math.abs(ratio2 - multiple) < 1,
+        "Weigheted placement is not honored: " + Math.abs(ratio2 - multiple));
 
         // Bring down the 2 bookies that had higher weight; after this the allocation to all
         // the remaining bookies should be uniform
@@ -331,13 +331,13 @@ public class BookKeeperDiskSpaceWeightedLedgerPlacementTest extends BookKeeperCl
                     - (double) m.get(addressByIndex(i + 1)));
             delta = (delta * 100) / (double) m.get(addressByIndex(i + 1));
             // the deviation should be less than 30%
-            assertTrue("Weigheted placement is not honored: " + delta, delta <= 30);
+            assertTrue(delta <= 30, "Weigheted placement is not honored: " + delta);
         }
         // since the following 2 bookies were down, they shouldn't ever be selected
-        assertTrue("Weigheted placement is not honored" + m.get(server1),
-                m.get(server1) == 0);
-        assertTrue("Weigheted placement is not honored" + m.get(server2),
-                m.get(server2) == 0);
+        assertTrue(m.get(server1) == 0,
+                "Weigheted placement is not honored" + m.get(server1));
+        assertTrue(m.get(server2) == 0,
+                "Weigheted placement is not honored" + m.get(server2));
 
         client.close();
     }
@@ -383,7 +383,7 @@ public class BookKeeperDiskSpaceWeightedLedgerPlacementTest extends BookKeeperCl
                     - (double) m.get(addressByIndex(i + 1)));
             delta = (delta * 100) / (double) m.get(addressByIndex(i + 1));
             // the deviation should be less than 30%
-            assertTrue("Weigheted placement is not honored: " + delta, delta <= 30);
+            assertTrue(delta <= 30, "Weigheted placement is not honored: " + delta);
         }
 
         // bring up the two dead bookies; they'll also have 3X more free space than the rest of the bookies
@@ -404,12 +404,12 @@ public class BookKeeperDiskSpaceWeightedLedgerPlacementTest extends BookKeeperCl
         for (int i = 0; i < numBookies - 2; i++) {
             double ratio1 = (double) m.get(addressByIndex(numBookies - 2))
                 / (double) m.get(addressByIndex(i));
-            assertTrue("Weigheted placement is not honored: " + Math.abs(ratio1 - multiple),
-                    Math.abs(ratio1 - multiple) < 1);
+            assertTrue(Math.abs(ratio1 - multiple) < 1,
+                    "Weigheted placement is not honored: " + Math.abs(ratio1 - multiple));
             double ratio2 = (double) m.get(addressByIndex(numBookies - 1))
                 / (double) m.get(addressByIndex(i));
-            assertTrue("Weigheted placement is not honored: " + Math.abs(ratio2 - multiple),
-                    Math.abs(ratio2 - multiple) < 1);
+            assertTrue(Math.abs(ratio2 - multiple) < 1,
+                    "Weigheted placement is not honored: " + Math.abs(ratio2 - multiple));
         }
         client.close();
     }
@@ -458,7 +458,7 @@ public class BookKeeperDiskSpaceWeightedLedgerPlacementTest extends BookKeeperCl
             double delta = Math.abs((double) m.get(addressByIndex(i))
                     - (double) m.get(addressByIndex(i + 1)));
             delta = (delta * 100) / (double) m.get(addressByIndex(i + 1));
-            assertTrue("Weigheted placement is not honored: " + delta, delta <= 30); // the deviation should be <30%
+            assertTrue(delta <= 30, "Weigheted placement is not honored: " + delta); // the deviation should be <30%
         }
 
 
@@ -486,12 +486,12 @@ public class BookKeeperDiskSpaceWeightedLedgerPlacementTest extends BookKeeperCl
         for (int i = 0; i < numBookies - 2; i++) {
             double ratio1 = (double) m.get(addressByIndex(numBookies - 2))
                 / (double) m.get(addressByIndex(i));
-            assertTrue("Weigheted placement is not honored: " + Math.abs(ratio1 - multiple),
-                    Math.abs(ratio1 - multiple) < 1);
+            assertTrue(Math.abs(ratio1 - multiple) < 1,
+                    "Weigheted placement is not honored: " + Math.abs(ratio1 - multiple));
             double ratio2 = (double) m.get(addressByIndex(lastBookieIndex()))
                 / (double) m.get(addressByIndex(i));
-            assertTrue("Weigheted placement is not honored: " + Math.abs(ratio2 - multiple),
-                    Math.abs(ratio2 - multiple) < 1);
+            assertTrue(Math.abs(ratio2 - multiple) < 1,
+                    "Weigheted placement is not honored: " + Math.abs(ratio2 - multiple));
         }
 
         client.close();

@@ -20,7 +20,8 @@
  */
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import io.netty.buffer.ByteBuf;
 import java.io.IOException;
@@ -28,15 +29,16 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.apache.bookkeeper.bookie.BookieException;
 import org.apache.bookkeeper.bookie.SortedLedgerStorage;
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,7 +95,7 @@ public class BookKeeperClientTestsWithBookieErrors extends BookKeeperClusterTest
         };
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         faultInjections.clear();
         storageFaultInjectionsMap.clear();
@@ -124,8 +126,9 @@ public class BookKeeperClientTestsWithBookieErrors extends BookKeeperClusterTest
     }
 
     // In this testcase all the bookies will return corrupt entry
-    @Test(timeout = 60000)
-    public void testBookkeeperAllDigestErrors() throws Exception {
+    @Test
+    @Timeout(value = 60000, unit = TimeUnit.MILLISECONDS)
+    void bookkeeperAllDigestErrors() throws Exception {
         ClientConfiguration conf = new ClientConfiguration().setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         BookKeeper bkc = new BookKeeper(conf);
 
@@ -155,8 +158,9 @@ public class BookKeeperClientTestsWithBookieErrors extends BookKeeperClusterTest
 
     // In this testcase first two bookies will sleep (for ReadEntryTimeout+2 secs) before returning the data,
     // and the last one will return corrupt data
-    @Test(timeout = 60000)
-    public void testBKReadFirstTimeoutThenDigestError() throws Exception {
+    @Test
+    @Timeout(value = 60000, unit = TimeUnit.MILLISECONDS)
+    void bKReadFirstTimeoutThenDigestError() throws Exception {
         ClientConfiguration conf = new ClientConfiguration().setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         BookKeeper bkc = new BookKeeper(conf);
 
@@ -185,8 +189,9 @@ public class BookKeeperClientTestsWithBookieErrors extends BookKeeperClusterTest
 
     // In this testcase first one will return corrupt data and the last two bookies will
     // sleep (for ReadEntryTimeout+2 secs) before returning the data
-    @Test(timeout = 60000)
-    public void testBKReadFirstDigestErrorThenTimeout() throws Exception {
+    @Test
+    @Timeout(value = 60000, unit = TimeUnit.MILLISECONDS)
+    void bKReadFirstDigestErrorThenTimeout() throws Exception {
         ClientConfiguration conf = new ClientConfiguration().setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         BookKeeper bkc = new BookKeeper(conf);
 
@@ -215,8 +220,9 @@ public class BookKeeperClientTestsWithBookieErrors extends BookKeeperClusterTest
 
     // In this testcase first two bookies are killed before making the readentry call
     // and the last one will return corrupt data
-    @Test(timeout = 60000)
-    public void testBKReadFirstBookiesDownThenDigestError() throws Exception {
+    @Test
+    @Timeout(value = 60000, unit = TimeUnit.MILLISECONDS)
+    void bKReadFirstBookiesDownThenDigestError() throws Exception {
         ClientConfiguration conf = new ClientConfiguration().setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         BookKeeper bkc = new BookKeeper(conf);
 
@@ -245,8 +251,9 @@ public class BookKeeperClientTestsWithBookieErrors extends BookKeeperClusterTest
     }
 
     // In this testcase all the bookies will sleep (for ReadEntryTimeout+2 secs) before returning the data
-    @Test(timeout = 60000)
-    public void testBKReadAllTimeouts() throws Exception {
+    @Test
+    @Timeout(value = 60000, unit = TimeUnit.MILLISECONDS)
+    void bKReadAllTimeouts() throws Exception {
         ClientConfiguration conf = new ClientConfiguration().setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         BookKeeper bkc = new BookKeeper(conf);
 
@@ -275,8 +282,9 @@ public class BookKeeperClientTestsWithBookieErrors extends BookKeeperClusterTest
 
     // In this testcase first two bookies will sleep (for ReadEntryTimeout+2 secs) before returning the data,
     // but the last one will return as expected
-    @Test(timeout = 60000)
-    public void testBKReadTwoBookiesTimeout() throws Exception {
+    @Test
+    @Timeout(value = 60000, unit = TimeUnit.MILLISECONDS)
+    void bKReadTwoBookiesTimeout() throws Exception {
         ClientConfiguration conf = new ClientConfiguration().setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         BookKeeper bkc = new BookKeeper(conf);
 
@@ -296,16 +304,16 @@ public class BookKeeperClientTestsWithBookieErrors extends BookKeeperClusterTest
 
         LedgerHandle rlh = bkc.openLedger(id, DigestType.CRC32, passwd);
         LedgerEntry entry = rlh.readEntries(4, 4).nextElement();
-        Assert.assertTrue("The read Entry should match with what have been written",
-                (new String(entry.getEntry())).equals("foobarfoo"));
+        assertEquals("foobarfoo", (new String(entry.getEntry())), "The read Entry should match with what have been written");
         rlh.close();
         bkc.close();
     }
 
     // In this testcase first two bookies return the corrupt data,
     // but the last one will return as expected
-    @Test(timeout = 60000)
-    public void testBKReadTwoBookiesWithDigestError() throws Exception {
+    @Test
+    @Timeout(value = 60000, unit = TimeUnit.MILLISECONDS)
+    void bKReadTwoBookiesWithDigestError() throws Exception {
         ClientConfiguration conf = new ClientConfiguration()
             .setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         BookKeeper bkc = new BookKeeper(conf);
@@ -326,8 +334,7 @@ public class BookKeeperClientTestsWithBookieErrors extends BookKeeperClusterTest
 
         LedgerHandle rlh = bkc.openLedger(id, DigestType.CRC32, passwd);
         LedgerEntry entry = rlh.readEntries(4, 4).nextElement();
-        Assert.assertTrue("The read Entry should match with what have been written",
-                (new String(entry.getEntry())).equals("foobarfoo"));
+        assertEquals("foobarfoo", (new String(entry.getEntry())), "The read Entry should match with what have been written");
         rlh.close();
         bkc.close();
     }

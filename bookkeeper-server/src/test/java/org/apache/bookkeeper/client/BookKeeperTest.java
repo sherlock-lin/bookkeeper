@@ -24,10 +24,12 @@ import static org.apache.bookkeeper.client.BookKeeperClientStats.WRITE_DELAYED_D
 import static org.apache.bookkeeper.client.BookKeeperClientStats.WRITE_TIMED_OUT_DUE_TO_NOT_ENOUGH_FAULT_DOMAINS;
 import static org.apache.bookkeeper.common.concurrent.FutureUtils.result;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -70,7 +72,6 @@ import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooKeeper.States;
 import org.apache.zookeeper.data.ACL;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
@@ -808,11 +809,9 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
                 for (Enumeration<LedgerEntry> readEntries = lh.readEntries(0, numEntries - 1);
                     readEntries.hasMoreElements();) {
                     LedgerEntry entry = readEntries.nextElement();
-                    try {
+                    assertDoesNotThrow(() -> {
                         entry.data.release();
-                    } catch (IllegalReferenceCountException ok) {
-                        fail("ByteBuf already released");
-                    }
+                    }, "ByteBuf already released");
                 }
             }
         }
@@ -829,11 +828,9 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
                 for (Enumeration<LedgerEntry> readEntries = lh.readEntries(0, numEntries - 1);
                     readEntries.hasMoreElements();) {
                     LedgerEntry entry = readEntries.nextElement();
-                    try {
+                    assertDoesNotThrow(() -> {
                         entry.data.release();
-                    } catch (IllegalReferenceCountException e) {
-                        fail("ByteBuf already released");
-                    }
+                    }, "ByteBuf already released");
                 }
             }
         }
@@ -986,7 +983,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
                     .withPassword("".getBytes())
                     .withWriteFlags(WriteFlag.DEFERRED_SYNC)
                     .execute())) {
-                Assertions.assertThrows(BKException.BKIllegalOpException.class,
+                assertThrows(BKException.BKIllegalOpException.class,
                         () -> result(wh.appendAsync("test".getBytes())));
             }
         }
@@ -1005,7 +1002,7 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
                     .withWriteFlags(WriteFlag.NONE)
                     .execute())) {
                 result(wh.appendAsync("".getBytes()));
-                Assertions.assertThrows(BKException.BKIllegalOpException.class,
+                assertThrows(BKException.BKIllegalOpException.class,
                         () -> result(wh.force()));
             }
         }
@@ -1228,8 +1225,8 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
             sleepBookie(bookieToSleep, sleepLatchCase1);
 
             assertEquals(statsLogger
-                           .getCounter(WRITE_DELAYED_DUE_TO_NOT_ENOUGH_FAULT_DOMAINS)
-                           .get()
+                    .getCounter(WRITE_DELAYED_DUE_TO_NOT_ENOUGH_FAULT_DOMAINS)
+                    .get()
                            .longValue(), 0);
 
             // Trying to write entry
@@ -1247,8 +1244,8 @@ public class BookKeeperTest extends BookKeeperClusterTestCase {
             assertEquals(0, lh.lastAddConfirmed, "Write did not succeed but should have");
 
             assertEquals(statsLogger
-                           .getCounter(WRITE_DELAYED_DUE_TO_NOT_ENOUGH_FAULT_DOMAINS)
-                           .get()
+                    .getCounter(WRITE_DELAYED_DUE_TO_NOT_ENOUGH_FAULT_DOMAINS)
+                    .get()
                            .longValue(), 1);
 
             // AddEntry thread for second scenario
