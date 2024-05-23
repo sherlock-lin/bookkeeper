@@ -614,12 +614,13 @@ public class Journal implements CheckpointSource {
     //为实现分组而对日志写入施加的最大延迟。默认为 2ms。
     private final long maxGroupWaitInNanos;
     // Threshold after which we flush any buffered journal entries
-    //对日志写入进行缓冲以实现分组的最大条目数。
+    //表示暂存在toFlush中的对象数量的阈值；
     private final long bufferedEntriesThreshold;
     // Threshold after which we flush any buffered journal writes
-    //为实现分组，日志写入时需要缓冲的最大字节数。
+    //表示待刷盘的字节数阈值；
     private final long bufferedWritesThreshold;
     // should we flush if the queue is empty
+    // 开关表示当queue为空时是否刷盘；
     private final boolean flushWhenQueueEmpty;
     // should we hint the filesystem to remove pages from cache after force write
     private final boolean removePagesFromCache;
@@ -628,6 +629,7 @@ public class Journal implements CheckpointSource {
     //所有日志写入和提交都应按照给定大小对齐。如果不对齐，将填充零，使其与给定大小对齐。
     private final int journalAlignmentSize;
     // control PageCache flush interval when syncData disabled to reduce disk io util
+    // 真实刷盘的时间间隔。
     private final long journalPageCacheFlushIntervalMSec;
     // Whether reuse journal files, it will use maxBackupJournal as the journal file pool.
     //是否复用Journal文件
@@ -648,6 +650,7 @@ public class Journal implements CheckpointSource {
 
     // journal entry queue to commit
     final BatchedBlockingQueue<QueueEntry> queue;
+    // forceWriteRequests在实际的刷盘逻辑中起到了重要作用
     BatchedBlockingQueue<ForceWriteRequest> forceWriteRequests;
 
     volatile boolean running = true;
@@ -709,7 +712,7 @@ public class Journal implements CheckpointSource {
         //强制写数据的线程
         this.forceWriteThread = new ForceWriteThread((__) -> this.interruptThread(),
                 conf.getJournalAdaptiveGroupWrites(), journalStatsLogger);
-        //为实现分组而对日志写入施加的最大延迟。默认为 2ms。
+        //提交间隔，一般超过这个时间需要刷盘。默认为 2ms。
         this.maxGroupWaitInNanos = TimeUnit.MILLISECONDS.toNanos(conf.getJournalMaxGroupWaitMSec());
         //为实现分组，日志写入时需要缓冲的最大字节数。
         this.bufferedWritesThreshold = conf.getJournalBufferedWritesThreshold();
@@ -727,7 +730,7 @@ public class Journal implements CheckpointSource {
         this.callbackTime = journalStatsLogger.getThreadScopedCounter("callback-time");
         // Unless there is a cap on the max wait (which requires group force writes)
         // we cannot skip flushing for queue empty
-        // 在队列空时触发flush一次
+        // 开关表示当queue为空时是否刷盘；
         this.flushWhenQueueEmpty = maxGroupWaitInNanos <= 0 || conf.getJournalFlushWhenQueueEmpty();
         //在强制写后，是否要将页从页缓存中进行移除
         this.removePagesFromCache = conf.getJournalRemovePagesFromCache();
@@ -1000,7 +1003,7 @@ public class Journal implements CheckpointSource {
         LOG.info("Starting journal on {}", journalDirectory);
         ThreadRegistry.register(journalThreadName, 0);
 
-        //如果配置开启了繁忙等待，则开启CPU亲和
+        //如果配置开启了繁忙等待，则开启CPU反亲和
         if (conf.isBusyWaitEnabled()) {
             try {
                 CpuAffinity.acquireCore();
@@ -1009,8 +1012,9 @@ public class Journal implements CheckpointSource {
             }
         }
 
-        //给予本地线程栈实现的对象池
+        //是个可复用的ArrayList，可以认为是个对象池；是基于本地线程栈实现的对象池
         RecyclableArrayList<QueueEntry> toFlush = entryListRecycler.newInstance();
+        //是个待刷盘对象数量的计数器，与toFlush配合使用；
         int numEntriesToFlush = 0;
         ByteBuf lenBuff = Unpooled.buffer(4);
         ByteBuf paddingBuff = Unpooled.buffer(2 * conf.getJournalAlignmentSize());
@@ -1018,7 +1022,8 @@ public class Journal implements CheckpointSource {
 
         BufferedChannel bc = null;
         JournalChannel logFile = null;
-        //强制写数据
+        //启动forceWriteThread线程，这是一个真正意义上的刷盘线程，实际的刷盘行为由forceWriteThread负责。
+        //Journal线程只是将queue中的QueueEntry对象写入相关的FileChannel 的buffer中，并不保证一定落盘
         forceWriteThread.start();
         //监听器，监听Journal创建以及刷新等操作
         Stopwatch journalCreationWatcher = Stopwatch.createUnstarted();
@@ -1031,16 +1036,22 @@ public class Journal implements CheckpointSource {
             // could only be used to measure elapsed time.
             // http://docs.oracle.com/javase/1.5.0/docs/api/java/lang/System.html#nanoTime%28%29
             long logId = journalIds.isEmpty() ? System.currentTimeMillis() : journalIds.get(journalIds.size() - 1);
+            //上次刷盘位点记录值；
             long lastFlushPosition = 0;
             boolean groupWhenTimeout = false;
 
             long dequeueStartTime = 0L;
+            //为上次刷盘时间点（毫秒单位）；
             long lastFlushTimeMs = System.currentTimeMillis();
 
             final ObjectHashSet<BookieRequestHandler> writeHandlers = new ObjectHashSet<>();
+            //localQueueEntries是可复用的定长数组；
             QueueEntry[] localQueueEntries = new QueueEntry[conf.getJournalQueueSize()];
+            //是这个定长数组中当前处理的元素索引编号，从0开始；
             int localQueueEntriesIdx = 0;
+            //代表每次从queue队列中获取的对象数量；
             int localQueueEntriesLen = 0;
+            //QueueEntry类型的临时变量
             QueueEntry qe = null;
             while (true) {
                 // new journal file to write
@@ -1066,6 +1077,7 @@ public class Journal implements CheckpointSource {
                     lastFlushPosition = bc.position();
                 }
 
+                //不断的从queue中获取一组QueueEntry对象，并逐一将其写入BufferedChannel缓冲区；
                 if (qe == null) {
                     if (dequeueStartTime != 0) {
                         journalStats.getJournalProcessTimeStats()
@@ -1078,7 +1090,7 @@ public class Journal implements CheckpointSource {
                     if (numEntriesToFlush == 0) {
                         // There are no entries pending. We can wait indefinitely until the next
                         // one is available
-                        //将队列queue中的数据都拷贝到localQueueEntries数组中
+                        //将队列queue中的QE对象都拷贝到localQueueEntries数组中
                         localQueueEntriesLen = queue.takeAll(localQueueEntries);
                     } else {
                         // There are already some entries pending. We must adjust
@@ -1097,7 +1109,6 @@ public class Journal implements CheckpointSource {
 
                     if (localQueueEntriesLen > 0) {
                         //从数组中取出第一个元素给qe，并将数组中这个元素清空，同时将下标localQueueEntriesIdx往右移动一位
-                        //localQueueEntries的数据又是哪里来的
                         qe = localQueueEntries[localQueueEntriesIdx];
                         localQueueEntries[localQueueEntriesIdx++] = null;
                     }
@@ -1201,6 +1212,7 @@ public class Journal implements CheckpointSource {
                                 || shouldRolloverJournal
                                 || (System.currentTimeMillis() - lastFlushTimeMs
                                 >= journalPageCacheFlushIntervalMSec)) {
+                            //往里面放数据，最终刷数据是从这个队列里面获取的
                             forceWriteRequests.put(createForceWriteRequest(logFile, logId, lastFlushPosition,
                                     toFlush, shouldRolloverJournal));
                             lastFlushTimeMs = System.currentTimeMillis();
@@ -1261,6 +1273,7 @@ public class Journal implements CheckpointSource {
                     ReferenceCountUtil.release(qe.entry);
                 }
 
+                //写入缓冲区后，将QE对象添加进入toFlush队列，同时调整numEntriesToFlush+1
                 toFlush.add(qe);
                 numEntriesToFlush++;
 
