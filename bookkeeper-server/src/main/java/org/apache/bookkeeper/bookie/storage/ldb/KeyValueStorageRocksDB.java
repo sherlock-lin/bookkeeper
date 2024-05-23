@@ -76,7 +76,9 @@ public class KeyValueStorageRocksDB implements KeyValueStorage {
 
     //真正存放数据的RocksDB对象
     private final RocksDB db;
+    //存放配置信息
     private RocksObject options;
+    //列族描述
     private List<ColumnFamilyDescriptor> columnFamilyDescriptors;
 
     private final WriteOptions optionSync;
@@ -158,6 +160,7 @@ public class KeyValueStorageRocksDB implements KeyValueStorage {
         final List<ColumnFamilyDescriptor> cfDescs = new ArrayList<>();
         final List<ColumnFamilyHandle> cfHandles = new ArrayList<>();
         try {
+            //从配置中读取列族信息
             OptionsUtil.loadOptionsFromFile(dbFilePath, Env.getDefault(), dbOptions, cfDescs, false);
             // Configure file path
             String logPath = conf.getString(ROCKSDB_LOG_PATH, "");

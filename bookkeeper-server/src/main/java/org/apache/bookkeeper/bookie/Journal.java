@@ -21,6 +21,10 @@
 
 package org.apache.bookkeeper.bookie;
 
+import com.carrotsearch.hppc.ObjectHashSet;
+import com.carrotsearch.hppc.procedures.ObjectProcedure;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
@@ -39,10 +43,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import com.carrotsearch.hppc.ObjectHashSet;
-import com.carrotsearch.hppc.procedures.ObjectProcedure;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Stopwatch;
 import org.apache.bookkeeper.bookie.LedgerDirsManager.NoWritableLedgerDirException;
 import org.apache.bookkeeper.bookie.stats.JournalStats;
 import org.apache.bookkeeper.common.collections.BatchedArrayBlockingQueue;
@@ -689,7 +689,7 @@ public class Journal implements CheckpointSource {
         // Adjust the journal max memory in case there are multiple journals configured.
         // 因为每个bookie可能会对应多个Journal，因此内存限制要重新计算
         long journalMaxMemory = conf.getJournalMaxMemorySizeMb() / conf.getJournalDirNames().length * 1024 * 1024;
-        //memoryLimitController专门用于控制内容使用情况
+        //memoryLimitController专门用于控制内存使用情况
         this.memoryLimitController = new MemoryLimitController(journalMaxMemory);
         //负责Ledger目录管理
         this.ledgerDirsManager = ledgerDirsManager;
