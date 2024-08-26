@@ -662,6 +662,7 @@ public class BookieImpl implements Bookie {
 
     @Override
     public synchronized void start() {
+        //启动Journal实例
         bookieThread = new BookieCriticalThread(() -> run(), "Bookie-" + conf.getBookiePort());
         bookieThread.setDaemon(true);
 
@@ -969,6 +970,7 @@ public class BookieImpl implements Bookie {
                                   boolean ackBeforeSync, WriteCallback cb, Object ctx, byte[] masterKey)
             throws IOException, BookieException, InterruptedException {
         long ledgerId = handle.getLedgerId();
+        //往Ledger中写入数据
         long entryId = handle.addEntry(entry);
 
         bookieStats.getWriteBytes().addCount(entry.readableBytes());
@@ -981,6 +983,7 @@ public class BookieImpl implements Bookie {
             if (oldValue == null) {
                 ByteBuf masterKeyEntry = createMasterKeyEntry(ledgerId, masterKey);
                 try {
+                    //往Journal中写入数据
                     getJournal(ledgerId).logAddEntry(
                             masterKeyEntry, false /* ackBeforeSync */, new NopWriteCallback(), null);
                 } finally {

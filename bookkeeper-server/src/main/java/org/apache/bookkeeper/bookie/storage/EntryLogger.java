@@ -35,7 +35,11 @@ import org.apache.bookkeeper.bookie.EntryLogMetadata;
  * log into which the entry was added, and the offset of that entry within the log.
  * The location is a long, with 32 bits each for the log ID and the offset. This
  * naturally limits the offset and thus the size of the log to Integer.MAX_VALUE.
+ *
+ * 日志记录器。将大量账本的条目按顺序写入少量日志文件，以避免大量随机写入。当添加一个条目时，会返回一个位置，其中包含添加条目的日志的ID，
+ * 以及该日志中的条目偏移量。位置是一个 long 型变量，其中有 32 位分别用于日志 ID 和偏移量。这自然地限制了偏移量和因此日志的大小为 Integer.MAX_VALUE。
  */
+//entryLogger代表着存储实际数据的组件抽象
 public interface EntryLogger extends AutoCloseable {
     long UNASSIGNED_LEDGERID = -1L;
     // log file suffix

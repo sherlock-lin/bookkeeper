@@ -530,6 +530,7 @@ public class OrderedExecutor implements ExecutorService {
      * @param r
      */
     public void executeOrdered(long orderingKey, Runnable r) {
+        //chooseThread能确同一个Ledger的写请求都由同一个线程进行处理，避免并发安全问题
         chooseThread(orderingKey).execute(r);
     }
 

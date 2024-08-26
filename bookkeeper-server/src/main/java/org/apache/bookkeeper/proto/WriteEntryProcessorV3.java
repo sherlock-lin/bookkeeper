@@ -162,6 +162,7 @@ class WriteEntryProcessorV3 extends PacketProcessorBaseV3 {
 
     @Override
     public void run() {
+        //注册事件
         requestProcessor.getRequestStats().getWriteThreadQueuedLatency()
                 .registerSuccessfulEvent(MathUtils.elapsedNanos(enqueueNanos), TimeUnit.NANOSECONDS);
         AddResponse addResponse = getAddResponse();
