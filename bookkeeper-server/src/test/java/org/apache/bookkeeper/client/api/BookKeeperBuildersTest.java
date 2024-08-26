@@ -44,7 +44,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Unit tests of builders.
  */
-class BookKeeperBuildersTest extends MockBookKeeperTestCase {
+public class BookKeeperBuildersTest extends MockBookKeeperTestCase {
 
     private static final int ensembleSize = 3;
     private static final int writeQuorumSize = 2;
@@ -56,7 +56,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     private static final EnumSet<WriteFlag> writeFlagsDeferredSync = EnumSet.of(DEFERRED_SYNC);
 
     @Test
-    void createLedger() throws Exception {
+    public void testCreateLedger() throws Exception {
         setNewGeneratedLedgerId(ledgerId);
         WriteHandle writer = newCreateLedgerOp()
             .withAckQuorumSize(ackQuorumSize)
@@ -75,7 +75,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void failEnsembleSize0() throws Exception {
+    public void failEnsembleSize0() throws Exception {
         assertThrows(BKIncorrectParameterException.class, () -> {
             result(newCreateLedgerOp()
                     .withEnsembleSize(0)
@@ -85,7 +85,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void failWriteQuorumSize0() throws Exception {
+    public void failWriteQuorumSize0() throws Exception {
         assertThrows(BKIncorrectParameterException.class, () -> {
             result(newCreateLedgerOp()
                     .withEnsembleSize(2)
@@ -96,7 +96,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void failNullWriteFlags() throws Exception {
+    public void failNullWriteFlags() throws Exception {
         assertThrows(BKIncorrectParameterException.class, () -> {
             result(newCreateLedgerOp()
                     .withWriteFlags((EnumSet<WriteFlag>) null)
@@ -106,7 +106,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void failAckQuorumSize0() throws Exception {
+    public void failAckQuorumSize0() throws Exception {
         assertThrows(BKIncorrectParameterException.class, () -> {
             result(newCreateLedgerOp()
                     .withEnsembleSize(2)
@@ -118,7 +118,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void failWriteQuorumSizeGreaterThanEnsembleSize() throws Exception {
+    public void failWriteQuorumSizeGreaterThanEnsembleSize() throws Exception {
         assertThrows(BKIncorrectParameterException.class, () -> {
             result(newCreateLedgerOp()
                     .withEnsembleSize(1)
@@ -130,7 +130,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void failAckQuorumSizeGreaterThanWriteQuorumSize() throws Exception {
+    public void failAckQuorumSizeGreaterThanWriteQuorumSize() throws Exception {
         assertThrows(BKIncorrectParameterException.class, () -> {
             result(newCreateLedgerOp()
                     .withEnsembleSize(1)
@@ -142,7 +142,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void failNoPassword() throws Exception {
+    public void failNoPassword() throws Exception {
         assertThrows(BKIncorrectParameterException.class, () -> {
             result(newCreateLedgerOp()
                     .execute());
@@ -150,7 +150,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void failPasswordNull() throws Exception {
+    public void failPasswordNull() throws Exception {
         assertThrows(BKIncorrectParameterException.class, () -> {
             result(newCreateLedgerOp()
                     .withPassword(null)
@@ -159,7 +159,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void failCustomMetadataNull() throws Exception {
+    public void failCustomMetadataNull() throws Exception {
         assertThrows(BKIncorrectParameterException.class, () -> {
             result(newCreateLedgerOp()
                     .withCustomMetadata(null)
@@ -169,7 +169,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void failDigestTypeNullAndAutodetectionTrue() throws Exception {
+    public void failDigestTypeNullAndAutodetectionTrue() throws Exception {
         assertThrows(BKIncorrectParameterException.class, () -> {
             ClientConfiguration config = new ClientConfiguration();
             config.setEnableDigestTypeAutodetection(true);
@@ -182,7 +182,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void failDigestTypeNullAndAutodetectionFalse() throws Exception {
+    public void failDigestTypeNullAndAutodetectionFalse() throws Exception {
         assertThrows(BKIncorrectParameterException.class, () -> {
             ClientConfiguration config = new ClientConfiguration();
             config.setEnableDigestTypeAutodetection(false);
@@ -196,7 +196,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void failDigestTypeNullAndBookkKeeperClosed() throws Exception {
+    public void failDigestTypeNullAndBookkKeeperClosed() throws Exception {
         assertThrows(BKClientClosedException.class, () -> {
             closeBookkeeper();
             result(newCreateLedgerOp()
@@ -207,7 +207,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void createAdvLedger() throws Exception {
+    public void createAdvLedger() throws Exception {
         setNewGeneratedLedgerId(ledgerId);
         WriteAdvHandle writer = newCreateLedgerOp()
             .withAckQuorumSize(ackQuorumSize)
@@ -227,7 +227,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void defaultWriteFlagsEmpty() throws Exception {
+    public void defaultWriteFlagsEmpty() throws Exception {
         setNewGeneratedLedgerId(ledgerId);
         WriteHandle writer = newCreateLedgerOp()
             .withAckQuorumSize(ackQuorumSize)
@@ -248,7 +248,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void createAdvLedgerWriteFlags() throws Exception {
+    public void createAdvLedgerWriteFlags() throws Exception {
         setNewGeneratedLedgerId(ledgerId);
         WriteAdvHandle writer = newCreateLedgerOp()
             .withWriteFlags(writeFlagsDeferredSync)
@@ -271,7 +271,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void createLedgerWriteFlags() throws Exception {
+    public void createLedgerWriteFlags() throws Exception {
         setNewGeneratedLedgerId(ledgerId);
         WriteHandle writer = newCreateLedgerOp()
             .withWriteFlags(writeFlagsDeferredSync)
@@ -293,7 +293,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void createLedgerWriteFlagsVarargs() throws Exception {
+    public void createLedgerWriteFlagsVarargs() throws Exception {
         setNewGeneratedLedgerId(ledgerId);
         WriteHandle writer = newCreateLedgerOp()
             .withWriteFlags(DEFERRED_SYNC)
@@ -315,7 +315,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void failCreateAdvLedgerBadFixedLedgerIdMinus1() throws Exception {
+    public void failCreateAdvLedgerBadFixedLedgerIdMinus1() throws Exception {
         assertThrows(BKIncorrectParameterException.class, () -> {
             result(newCreateLedgerOp()
                     .withPassword(password)
@@ -326,7 +326,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void failCreateAdvLedgerBadFixedLedgerIdNegative() throws Exception {
+    public void failCreateAdvLedgerBadFixedLedgerIdNegative() throws Exception {
         assertThrows(BKIncorrectParameterException.class, () -> {
             result(newCreateLedgerOp()
                     .withPassword(password)
@@ -338,14 +338,14 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void openLedgerNoId() throws Exception {
+    public void openLedgerNoId() throws Exception {
         assertThrows(BKNoSuchLedgerExistsOnMetadataServerException.class, () -> {
             result(newOpenLedgerOp().execute());
         });
     }
 
     @Test
-    void openLedgerBadId() throws Exception {
+    public void openLedgerBadId() throws Exception {
         assertThrows(BKNoSuchLedgerExistsOnMetadataServerException.class, () -> {
             result(newOpenLedgerOp()
                     .withPassword(password)
@@ -355,7 +355,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void openLedgerClientClosed() throws Exception {
+    public void openLedgerClientClosed() throws Exception {
         assertThrows(BKClientClosedException.class, () -> {
             closeBookkeeper();
             result(newOpenLedgerOp()
@@ -366,7 +366,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void deleteLedgerNoLedgerId() throws Exception {
+    public void deleteLedgerNoLedgerId() throws Exception {
         assertThrows(BKIncorrectParameterException.class, () -> {
             result(newDeleteLedgerOp()
                     .execute());
@@ -374,7 +374,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void deleteLedgerBadLedgerId() throws Exception {
+    public void deleteLedgerBadLedgerId() throws Exception {
         assertThrows(BKIncorrectParameterException.class, () -> {
             result(newDeleteLedgerOp()
                     .withLedgerId(-1)
@@ -383,7 +383,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void deleteLedger() throws Exception {
+    public void deleteLedger() throws Exception {
         LedgerMetadata ledgerMetadata = generateLedgerMetadata(ensembleSize,
             writeQuorumSize, ackQuorumSize, password, customMetadata);
         registerMockLedgerMetadata(ledgerId, ledgerMetadata);
@@ -394,7 +394,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void deleteLedgerBookKeeperClosed() throws Exception {
+    public void deleteLedgerBookKeeperClosed() throws Exception {
         assertThrows(BKClientClosedException.class, () -> {
             closeBookkeeper();
             result(newDeleteLedgerOp()
@@ -419,7 +419,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void createLedgerWithOpportunisticStriping() throws Exception {
+    public void createLedgerWithOpportunisticStriping() throws Exception {
 
         maxNumberOfAvailableBookies =  4;
         int bigEnsembleSize = 15;
@@ -448,7 +448,7 @@ class BookKeeperBuildersTest extends MockBookKeeperTestCase {
     }
 
     @Test
-    void notEnoughBookies() throws Exception {
+    public void notEnoughBookies() throws Exception {
         assertThrows(BKException.BKNotEnoughBookiesException.class, () -> {
 
             maxNumberOfAvailableBookies = 1;

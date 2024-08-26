@@ -38,7 +38,7 @@ public class LedgerMetadataTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    void getLedgerMetadata()
+    public void getLedgerMetadata()
             throws Exception {
 
         ClientConfiguration conf = new ClientConfiguration();
@@ -65,8 +65,7 @@ public class LedgerMetadataTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    void listLedgers()
-            throws Exception {
+    public void listLedgers() throws Exception {
         int numOfLedgers = 10;
 
         ClientConfiguration conf = new ClientConfiguration();

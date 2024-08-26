@@ -40,7 +40,7 @@ public class ExplicitLACWithWriteHandleAPITest extends BookKeeperClusterTestCase
     }
 
     @Test
-    void useExplicitLAC() throws Exception {
+    public void useExplicitLAC() throws Exception {
         ClientConfiguration conf = new ClientConfiguration(baseClientConf);
         conf.setExplictLacInterval(1000);
         try (BookKeeper bkc = BookKeeper
