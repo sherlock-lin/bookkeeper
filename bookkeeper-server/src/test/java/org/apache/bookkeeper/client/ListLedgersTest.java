@@ -16,15 +16,15 @@
  */
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Iterator;
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test ListLedgers.
@@ -39,8 +39,8 @@ public class ListLedgersTest extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testListLedgers()
-    throws Exception {
+    void listLedgers()
+            throws Exception {
         int numOfLedgers = 10;
 
         ClientConfiguration conf = new ClientConfiguration();
@@ -61,13 +61,12 @@ public class ListLedgersTest extends BookKeeperClusterTestCase {
             counter++;
         }
 
-        assertTrue("Wrong number of ledgers: " + numOfLedgers,
-                counter == numOfLedgers);
+        assertEquals(counter, numOfLedgers, "Wrong number of ledgers: " + numOfLedgers);
     }
 
     @Test
-    public void testEmptyList()
-    throws Exception {
+    void emptyList()
+            throws Exception {
         ClientConfiguration conf = new ClientConfiguration();
         conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
 
@@ -75,12 +74,12 @@ public class ListLedgersTest extends BookKeeperClusterTestCase {
                 getZooKeeperConnectString());
         Iterable<Long> iterable = admin.listLedgers();
 
-        assertFalse("There should be no ledger", iterable.iterator().hasNext());
+        assertFalse(iterable.iterator().hasNext(), "There should be no ledger");
     }
 
     @Test
-    public void testRemoveNotSupported()
-    throws Exception {
+    void removeNotSupported()
+            throws Exception {
         int numOfLedgers = 1;
 
         ClientConfiguration conf = new ClientConfiguration();

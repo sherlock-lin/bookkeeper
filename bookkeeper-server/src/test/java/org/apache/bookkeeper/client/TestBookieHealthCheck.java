@@ -20,12 +20,14 @@
 
 package org.apache.bookkeeper.client;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.concurrent.TimeUnit;
 import org.apache.bookkeeper.client.AsyncCallback.AddCallback;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +47,7 @@ public class TestBookieHealthCheck extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testBkQuarantine() throws Exception {
+    void bkQuarantine() throws Exception {
         LedgerHandle lh = bkc.createLedger(2, 2, 2, BookKeeper.DigestType.CRC32, new byte[] {});
 
         final int numEntries = 10;
@@ -73,27 +75,27 @@ public class TestBookieHealthCheck extends BookKeeperClusterTestCase {
         Thread.sleep(baseClientConf.getBookieHealthCheckIntervalSeconds() * 2 * 1000);
 
         // the bookie watcher should contain the bookieToQuarantine in the quarantine set
-        Assert.assertTrue(bkc.bookieWatcher.quarantinedBookies.asMap().containsKey(bookieToQuarantine));
+        assertTrue(bkc.bookieWatcher.quarantinedBookies.asMap().containsKey(bookieToQuarantine));
 
         // the bookie to be left out of the ensemble should always be the quarantined bookie
         LedgerHandle lh1 = bkc.createLedger(2, 2, 2, BookKeeper.DigestType.CRC32, new byte[] {});
         LedgerHandle lh2 = bkc.createLedger(3, 3, 3, BookKeeper.DigestType.CRC32, new byte[] {});
-        Assert.assertFalse(lh1.getLedgerMetadata().getEnsembleAt(0).contains(bookieToQuarantine));
-        Assert.assertFalse(lh2.getLedgerMetadata().getEnsembleAt(0).contains(bookieToQuarantine));
+        assertFalse(lh1.getLedgerMetadata().getEnsembleAt(0).contains(bookieToQuarantine));
+        assertFalse(lh2.getLedgerMetadata().getEnsembleAt(0).contains(bookieToQuarantine));
 
         // the quarantined bookie can still be in the ensemble if we do not have enough healthy bookies
         LedgerHandle lh3 = bkc.createLedger(4, 4, 4, BookKeeper.DigestType.CRC32, new byte[] {});
-        Assert.assertTrue(lh3.getLedgerMetadata().getEnsembleAt(0).contains(bookieToQuarantine));
+        assertTrue(lh3.getLedgerMetadata().getEnsembleAt(0).contains(bookieToQuarantine));
 
         // make sure faulty bookie is out of quarantine
         Thread.sleep(baseClientConf.getBookieQuarantineTimeSeconds() * 1000);
 
         // the bookie should not be quarantined anymore
-        Assert.assertFalse(bkc.bookieWatcher.quarantinedBookies.asMap().containsKey(bookieToQuarantine));
+        assertFalse(bkc.bookieWatcher.quarantinedBookies.asMap().containsKey(bookieToQuarantine));
     }
 
     @Test
-    public void testNoQuarantineOnBkRestart() throws Exception {
+    void noQuarantineOnBkRestart() throws Exception {
         final LedgerHandle lh = bkc.createLedger(2, 2, 2, BookKeeper.DigestType.CRC32, new byte[] {});
         final int numEntries = 20;
         BookieId bookieToRestart = lh.getLedgerMetadata().getEnsembleAt(0).get(0);
@@ -120,11 +122,11 @@ public class TestBookieHealthCheck extends BookKeeperClusterTestCase {
         Thread.sleep(baseClientConf.getBookieHealthCheckIntervalSeconds() * 2 * 1000);
 
         // the bookie watcher should not contain the bookieToRestart in the quarantine set
-        Assert.assertFalse(bkc.bookieWatcher.quarantinedBookies.asMap().containsKey(bookieToRestart));
+        assertFalse(bkc.bookieWatcher.quarantinedBookies.asMap().containsKey(bookieToRestart));
     }
 
     @Test
-    public void testNoQuarantineOnExpectedBkErrors() throws Exception {
+    void noQuarantineOnExpectedBkErrors() throws Exception {
         final LedgerHandle lh = bkc.createLedger(2, 2, 2, BookKeeper.DigestType.CRC32, new byte[] {});
         final int numEntries = 10;
         for (int i = 0; i < numEntries; i++) {
@@ -144,8 +146,8 @@ public class TestBookieHealthCheck extends BookKeeperClusterTestCase {
         Thread.sleep(baseClientConf.getBookieHealthCheckIntervalSeconds() * 2 * 1000);
 
         // the bookie watcher should not contain the bookieToRestart in the quarantine set
-        Assert.assertFalse(bkc.bookieWatcher.quarantinedBookies.asMap().containsKey(bookie1));
-        Assert.assertFalse(bkc.bookieWatcher.quarantinedBookies.asMap().containsKey(bookie2));
+        assertFalse(bkc.bookieWatcher.quarantinedBookies.asMap().containsKey(bookie1));
+        assertFalse(bkc.bookieWatcher.quarantinedBookies.asMap().containsKey(bookie2));
     }
 
 }

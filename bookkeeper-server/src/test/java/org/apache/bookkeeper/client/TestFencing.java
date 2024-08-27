@@ -20,9 +20,9 @@
  */
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
@@ -30,7 +30,7 @@ import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +53,7 @@ public class TestFencing extends BookKeeperClusterTestCase {
      * open ledger, write again (should fail).
      */
     @Test
-    public void testBasicFencing() throws Exception {
+    void basicFencing() throws Exception {
         /*
          * Create ledger.
          */
@@ -82,9 +82,8 @@ public class TestFencing extends BookKeeperClusterTestCase {
         /*
          * Check if has recovered properly.
          */
-        assertTrue("Has not recovered correctly: " + readlh.getLastAddConfirmed()
-                   + " original " + writelh.getLastAddConfirmed(),
-                   readlh.getLastAddConfirmed() == writelh.getLastAddConfirmed());
+        assertEquals(readlh.getLastAddConfirmed(), writelh.getLastAddConfirmed(), "Has not recovered correctly: " + readlh.getLastAddConfirmed()
+                + " original " + writelh.getLastAddConfirmed());
     }
 
     private static int threadCount = 0;
@@ -155,7 +154,7 @@ public class TestFencing extends BookKeeperClusterTestCase {
      * entries.
      */
     @Test
-    public void testManyOpenParallel() throws Exception {
+    void manyOpenParallel() throws Exception {
         /*
          * Create ledger.
          */
@@ -194,8 +193,8 @@ public class TestFencing extends BookKeeperClusterTestCase {
 
         for (int i = 0; i < numRecovery; i++) {
             threads[i].join();
-            assertTrue("Added confirmed is incorrect",
-                       lastConfirmed <= threads[i].getLastConfirmedEntry());
+            assertTrue(lastConfirmed <= threads[i].getLastConfirmedEntry(),
+                       "Added confirmed is incorrect");
         }
     }
 
@@ -204,7 +203,7 @@ public class TestFencing extends BookKeeperClusterTestCase {
      * doesn't fence off a ledger.
      */
     @Test
-    public void testNoRecoveryOpen() throws Exception {
+    void noRecoveryOpen() throws Exception {
         /*
          * Create ledger.
          */
@@ -237,7 +236,7 @@ public class TestFencing extends BookKeeperClusterTestCase {
 
         writelh.addEntry(tmp.getBytes());
         long numReadable2 = readlh.getLastAddConfirmed();
-        assertEquals("Number of readable entries hasn't changed", numReadable2, numReadable);
+        assertEquals(numReadable2, numReadable, "Number of readable entries hasn't changed");
         readlh.close();
 
         writelh.addEntry(tmp.getBytes());
@@ -250,7 +249,7 @@ public class TestFencing extends BookKeeperClusterTestCase {
      * Fence the ledger. Kill another bookie. Recover.
      */
     @Test
-    public void testFencingInteractionWithBookieRecovery() throws Exception {
+    void fencingInteractionWithBookieRecovery() throws Exception {
         System.setProperty("digestType", digestType.toString());
         System.setProperty("passwd", "testPasswd");
 
@@ -299,7 +298,7 @@ public class TestFencing extends BookKeeperClusterTestCase {
      * Ensure that recover doesn't reallow adding
      */
     @Test
-    public void testFencingInteractionWithBookieRecovery2() throws Exception {
+    void fencingInteractionWithBookieRecovery2() throws Exception {
         System.setProperty("digestType", digestType.toString());
         System.setProperty("passwd", "testPasswd");
 
@@ -339,7 +338,7 @@ public class TestFencing extends BookKeeperClusterTestCase {
      * Ensure that fencing proceeds even with the bookie sleeping
      */
     @Test
-    public void testFencingWithHungBookie() throws Exception {
+    void fencingWithHungBookie() throws Exception {
         LedgerHandle writelh = bkc.createLedger(digestType, "testPasswd".getBytes());
 
         String tmp = "Foobar";
@@ -372,7 +371,7 @@ public class TestFencing extends BookKeeperClusterTestCase {
      * Test that fencing doesn't work with a bad password.
      */
     @Test
-    public void testFencingBadPassword() throws Exception {
+    void fencingBadPassword() throws Exception {
         /*
          * Create ledger.
          */
@@ -399,7 +398,7 @@ public class TestFencing extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testFencingAndRestartBookies() throws Exception {
+    void fencingAndRestartBookies() throws Exception {
         LedgerHandle writelh = null;
         writelh = bkc.createLedger(digestType, "password".getBytes());
 

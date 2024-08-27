@@ -20,8 +20,8 @@
  */
 package org.apache.bookkeeper.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -29,8 +29,8 @@ import org.apache.bookkeeper.client.AsyncCallback.AddCallback;
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +51,7 @@ public class TestAddEntryQuorumTimeout extends BookKeeperClusterTestCase impleme
         this.digestType = DigestType.CRC32;
     }
 
-    @Before
+    @BeforeEach
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -77,7 +77,7 @@ public class TestAddEntryQuorumTimeout extends BookKeeperClusterTestCase impleme
     }
 
     @Test
-    public void testBasicTimeout() throws Exception {
+    void basicTimeout() throws Exception {
         BookKeeperTestClient bkc = new BookKeeperTestClient(baseClientConf);
         LedgerHandle lh = bkc.createLedger(3, 3, 3, digestType, testPasswd);
         List<BookieId> curEns = lh.getCurrentEnsemble();
@@ -101,7 +101,7 @@ public class TestAddEntryQuorumTimeout extends BookKeeperClusterTestCase impleme
     }
 
     @Test
-    public void testTimeoutWithPendingOps() throws Exception {
+    void timeoutWithPendingOps() throws Exception {
         BookKeeperTestClient bkc = new BookKeeperTestClient(baseClientConf);
         LedgerHandle lh = bkc.createLedger(3, 3, 3, digestType, testPasswd);
         List<BookieId> curEns = lh.getCurrentEnsemble();
@@ -126,7 +126,7 @@ public class TestAddEntryQuorumTimeout extends BookKeeperClusterTestCase impleme
     }
 
     @Test
-    public void testLedgerClosedAfterTimeout() throws Exception {
+    void ledgerClosedAfterTimeout() throws Exception {
         BookKeeperTestClient bkc = new BookKeeperTestClient(baseClientConf);
         LedgerHandle lh = bkc.createLedger(3, 3, 3, digestType, testPasswd);
         List<BookieId> curEns = lh.getCurrentEnsemble();

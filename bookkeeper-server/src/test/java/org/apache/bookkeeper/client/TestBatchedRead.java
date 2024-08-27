@@ -21,11 +21,11 @@
 package org.apache.bookkeeper.client;
 
 import static org.apache.bookkeeper.common.concurrent.FutureUtils.result;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Iterator;
 import java.util.List;
@@ -37,7 +37,7 @@ import org.apache.bookkeeper.client.api.LedgerEntry;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,7 +76,7 @@ public class TestBatchedRead extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testNormalRead() throws Exception {
+    void normalRead() throws Exception {
         int numEntries = 10;
         long id = getLedgerToRead(5, 5, 2, numEntries);
         LedgerHandle lh = bkc.openLedger(id, digestType, passwd);
@@ -112,7 +112,7 @@ public class TestBatchedRead extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testReadWhenEnsembleNotEqualWQ() throws Exception {
+    void readWhenEnsembleNotEqualWQ() throws Exception {
         int numEntries = 10;
         long id = getLedgerToRead(5, 2, 2, numEntries);
         LedgerHandle lh = bkc.openLedger(id, digestType, passwd);
@@ -158,7 +158,7 @@ public class TestBatchedRead extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testReadMissingEntries() throws Exception {
+    void readMissingEntries() throws Exception {
         int numEntries = 10;
 
         long id = getLedgerToRead(5, 5, 2, numEntries);
@@ -189,7 +189,7 @@ public class TestBatchedRead extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testFailRecoveryReadMissingEntryImmediately() throws Exception {
+    void failRecoveryReadMissingEntryImmediately() throws Exception {
         int numEntries = 1;
 
         long id = getLedgerToRead(5, 5, 3, numEntries);
@@ -220,7 +220,7 @@ public class TestBatchedRead extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testReadWithFailedBookies() throws Exception {
+    void readWithFailedBookies() throws Exception {
         int numEntries = 10;
 
         long id = getLedgerToRead(5, 3, 3, numEntries);
@@ -263,7 +263,7 @@ public class TestBatchedRead extends BookKeeperClusterTestCase {
     }
 
     @Test
-    public void testReadFailureWithFailedBookies() throws Exception {
+    void readFailureWithFailedBookies() throws Exception {
         int numEntries = 10;
 
         long id = getLedgerToRead(5, 3, 3, numEntries);

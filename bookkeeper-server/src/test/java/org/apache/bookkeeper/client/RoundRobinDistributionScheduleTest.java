@@ -22,39 +22,39 @@
 package org.apache.bookkeeper.client;
 
 import static org.apache.bookkeeper.client.RoundRobinDistributionSchedule.writeSetFromValues;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Test a round-robin distribution schedule.
  */
-public class RoundRobinDistributionScheduleTest {
+class RoundRobinDistributionScheduleTest {
     private static final Logger LOG = LoggerFactory.getLogger(RoundRobinDistributionScheduleTest.class);
 
     @Test
-    public void testDistributionSchedule() throws Exception {
+    void distributionSchedule() throws Exception {
         RoundRobinDistributionSchedule schedule = new RoundRobinDistributionSchedule(3, 2, 5);
 
         DistributionSchedule.WriteSet wSet = schedule.getWriteSet(1);
-        assertEquals("Write set is wrong size", wSet.size(), 3);
+        assertEquals(3, wSet.size(), "Write set is wrong size");
         DistributionSchedule.AckSet ackSet = schedule.getAckSet();
-        assertFalse("Shouldn't ack yet",
-                    ackSet.completeBookieAndCheck(wSet.get(0)));
-        assertFalse("Shouldn't ack yet",
-                    ackSet.completeBookieAndCheck(wSet.get(0)));
-        assertTrue("Should ack after 2 unique",
-                   ackSet.completeBookieAndCheck(wSet.get(2)));
-        assertTrue("Should still be acking",
-                   ackSet.completeBookieAndCheck(wSet.get(1)));
+        assertFalse(ackSet.completeBookieAndCheck(wSet.get(0)),
+                    "Shouldn't ack yet");
+        assertFalse(ackSet.completeBookieAndCheck(wSet.get(0)),
+                    "Shouldn't ack yet");
+        assertTrue(ackSet.completeBookieAndCheck(wSet.get(2)),
+                   "Should ack after 2 unique");
+        assertTrue(ackSet.completeBookieAndCheck(wSet.get(1)),
+                   "Should still be acking");
     }
 
     /**
@@ -62,7 +62,7 @@ public class RoundRobinDistributionScheduleTest {
      * heard from enough bookies that no ack quorum can exist without these bookies.
      */
     @Test
-    public void testCoverageSets() {
+    void coverageSets() {
         int errors = 0;
         for (int e = 6; e > 0; e--) {
             for (int w = e; w > 0; w--) {
@@ -71,7 +71,7 @@ public class RoundRobinDistributionScheduleTest {
                 }
             }
         }
-        assertEquals("Should be no errors", 0, errors);
+        assertEquals(0, errors, "Should be no errors");
     }
 
     /**
@@ -135,7 +135,7 @@ public class RoundRobinDistributionScheduleTest {
     }
 
     @Test
-    public void testMoveAndShift() {
+    void moveAndShift() {
         DistributionSchedule.WriteSet w = writeSetFromValues(1, 2, 3, 4, 5);
         w.moveAndShift(3, 1);
         assertEquals(w, writeSetFromValues(1, 4, 2, 3, 5));
@@ -158,7 +158,7 @@ public class RoundRobinDistributionScheduleTest {
     }
 
     @Test
-    public void testGetEntriesStripedToTheBookie() {
+    void getEntriesStripedToTheBookie() {
 
         RoundRobinDistributionSchedule schedule;
         BitSet entriesStriped;
@@ -172,10 +172,11 @@ public class RoundRobinDistributionScheduleTest {
 
         for (int bookieIndex = 0; bookieIndex < ensSize; bookieIndex++) {
             entriesStriped = schedule.getEntriesStripedToTheBookie(bookieIndex, startEntryId, lastEntryId);
-            assertEquals("Cardinality", 3, entriesStriped.cardinality());
+            assertEquals(3, entriesStriped.cardinality(), "Cardinality");
             for (int i = 0; i < entriesStriped.length(); i++) {
-                assertEquals("EntryAvailability", schedule.hasEntry((startEntryId + i), bookieIndex),
-                        entriesStriped.get(i));
+                assertEquals(schedule.hasEntry((startEntryId + i), bookieIndex),
+                        entriesStriped.get(i),
+                        "EntryAvailability");
             }
         }
 
@@ -188,17 +189,18 @@ public class RoundRobinDistributionScheduleTest {
         for (int bookieIndex = 0; bookieIndex < ensSize; bookieIndex++) {
             entriesStriped = schedule.getEntriesStripedToTheBookie(bookieIndex, startEntryId, lastEntryId);
             for (int i = 0; i < entriesStriped.length(); i++) {
-                assertEquals("EntryAvailability", schedule.hasEntry((startEntryId + i), bookieIndex),
-                        entriesStriped.get(i));
+                assertEquals(schedule.hasEntry((startEntryId + i), bookieIndex),
+                        entriesStriped.get(i),
+                        "EntryAvailability");
             }
         }
 
         schedule = new RoundRobinDistributionSchedule(2, 2, 3);
         entriesStriped = schedule.getEntriesStripedToTheBookie(2, 0, 0);
-        assertEquals("Cardinality", 0, entriesStriped.cardinality());
+        assertEquals(0, entriesStriped.cardinality(), "Cardinality");
         entriesStriped = schedule.getEntriesStripedToTheBookie(2, 3, 3);
-        assertEquals("Cardinality", 0, entriesStriped.cardinality());
+        assertEquals(0, entriesStriped.cardinality(), "Cardinality");
         entriesStriped = schedule.getEntriesStripedToTheBookie(2, 4, 4);
-        assertEquals("Cardinality", 1, entriesStriped.cardinality());
+        assertEquals(1, entriesStriped.cardinality(), "Cardinality");
     }
 }
