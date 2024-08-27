@@ -77,6 +77,8 @@ import org.apache.bookkeeper.versioning.Version;
 import org.apache.bookkeeper.versioning.Versioned;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
@@ -141,6 +143,7 @@ public abstract class MockBookKeeperTestCase {
 
     }
 
+    @BeforeEach
     @Before
     public void setup() throws Exception {
         maxNumberOfAvailableBookies = Integer.MAX_VALUE;
@@ -264,6 +267,7 @@ public abstract class MockBookKeeperTestCase {
                 UnpooledByteBufAllocator.DEFAULT, false);
     }
 
+    @AfterEach
     @After
     public void tearDown() {
         scheduler.shutdown();
@@ -484,8 +488,8 @@ public abstract class MockBookKeeperTestCase {
 
     @SuppressWarnings("unchecked")
     protected void setupBookieClientReadEntry() {
-        final Stubber stub = doAnswer(invokation -> {
-            Object[] args = invokation.getArguments();
+        final Stubber stub = doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
             BookieId bookieSocketAddress = (BookieId) args[0];
             long ledgerId = (Long) args[1];
             long entryId = (Long) args[2];
@@ -544,8 +548,8 @@ public abstract class MockBookKeeperTestCase {
 
     @SuppressWarnings("unchecked")
     protected void setupBookieClientReadLac() {
-        final Stubber stub = doAnswer(invokation -> {
-            Object[] args = invokation.getArguments();
+        final Stubber stub = doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
             BookieId bookieSocketAddress = (BookieId) args[0];
             long ledgerId = (Long) args[1];
             final BookkeeperInternalCallbacks.ReadLacCallback callback =
@@ -589,8 +593,8 @@ public abstract class MockBookKeeperTestCase {
 
     @SuppressWarnings("unchecked")
     protected void setupBookieClientAddEntry() {
-        final Stubber stub = doAnswer(invokation -> {
-            Object[] args = invokation.getArguments();
+        final Stubber stub = doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
             BookkeeperInternalCallbacks.WriteCallback callback = (BookkeeperInternalCallbacks.WriteCallback) args[5];
             BookieId bookieSocketAddress = (BookieId) args[0];
             long ledgerId = (Long) args[1];
@@ -646,8 +650,8 @@ public abstract class MockBookKeeperTestCase {
 
     @SuppressWarnings("unchecked")
     protected void setupBookieClientForceLedger() {
-        final Stubber stub = doAnswer(invokation -> {
-            Object[] args = invokation.getArguments();
+        final Stubber stub = doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
             BookieId bookieSocketAddress = (BookieId) args[0];
             long ledgerId = (Long) args[1];
             BookkeeperInternalCallbacks.ForceLedgerCallback callback =

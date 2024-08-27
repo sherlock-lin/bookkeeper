@@ -477,7 +477,7 @@ public class BookieWriteLedgerTest extends
     }
 
     /**
-     * Verify that LedgerHandleAdv cannnot handle addEntry without the entryId.
+     * Verify that LedgerHandleAdv cannot handle addEntry without the entryId.
      *
      * @throws Exception
      */

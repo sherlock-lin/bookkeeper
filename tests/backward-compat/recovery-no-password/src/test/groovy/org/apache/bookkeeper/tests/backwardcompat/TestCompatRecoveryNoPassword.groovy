@@ -18,36 +18,28 @@
 package org.apache.bookkeeper.tests.backwardcompat
 
 import com.github.dockerjava.api.DockerClient
-
 import io.netty.buffer.ByteBuf
-import org.apache.bookkeeper.net.BookieId
-
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
-
 import org.apache.bookkeeper.client.BKException
 import org.apache.bookkeeper.client.BookKeeper
 import org.apache.bookkeeper.client.BookKeeperAdmin
 import org.apache.bookkeeper.client.LedgerHandle
 import org.apache.bookkeeper.client.api.LedgerMetadata
 import org.apache.bookkeeper.conf.ClientConfiguration
+import org.apache.bookkeeper.net.BookieId
 import org.apache.bookkeeper.net.BookieSocketAddress
 import org.apache.bookkeeper.proto.BookieProtocol
 import org.apache.bookkeeper.proto.BookkeeperInternalCallbacks.ReadEntryCallback
 import org.apache.bookkeeper.tests.integration.utils.BookKeeperClusterUtils
 import org.apache.bookkeeper.tests.integration.utils.DockerUtils
 import org.apache.bookkeeper.tests.integration.utils.MavenClassLoader
-import org.apache.bookkeeper.versioning.Versioned
-
 import org.jboss.arquillian.junit.Arquillian
 import org.jboss.arquillian.test.api.ArquillianResource
-
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
-
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -64,8 +56,8 @@ class TestCompatRecoveryNoPassword {
     }
 
     private static class ReplicationVerificationCallback implements ReadEntryCallback {
-        final CountDownLatch latch;
-        final AtomicLong numSuccess;
+        final CountDownLatch latch
+        final AtomicLong numSuccess
 
         ReplicationVerificationCallback(int numRequests) {
             latch = new CountDownLatch(numRequests)
@@ -86,10 +78,10 @@ class TestCompatRecoveryNoPassword {
 
         long await() throws InterruptedException {
             if (!latch.await(60, TimeUnit.SECONDS)) {
-                LOG.warn("Didn't get all responses in verification");
-                return 0;
+                LOG.warn("Didn't get all responses in verification")
+                return 0
             } else {
-                return numSuccess.get();
+                return numSuccess.get()
             }
         }
     }
@@ -124,22 +116,21 @@ class TestCompatRecoveryNoPassword {
                 }
             }
 
-            long numSuccess = cb.await();
+            long numSuccess = cb.await()
             if (numSuccess < expectedSuccess) {
                 LOG.warn("Fragment not fully replicated ledgerId = {} startEntryId = {}"
                          + " endEntryId = {} expectedSuccess = {} gotSuccess = {}",
-                         lh.getId(), startEntryId, endEntryId, expectedSuccess, numSuccess);
-                return false;
+                         lh.getId(), startEntryId, endEntryId, expectedSuccess, numSuccess)
+                return false
             }
         }
-        return true;
+        return true
     }
 
     /**
      * Test that when we try to recover a ledger which doesn't have
      * the password stored in the configuration, we don't succeed.
      */
-    @SuppressWarnings("deprecation")
     @Test
     public void testRecoveryWithoutPasswordInMetadata() throws Exception {
         int numEntries = 10
@@ -206,7 +197,7 @@ class TestCompatRecoveryNoPassword {
             } catch (BKException bke) {
                 // correct behaviour
             } finally {
-                bka.close();
+                bka.close()
             }
 
             adminConf.setBookieRecoveryDigestType(BookKeeper.DigestType.CRC32)
@@ -219,7 +210,7 @@ class TestCompatRecoveryNoPassword {
             } catch (BKException bke) {
                 // correct behaviour
             } finally {
-                bka.close();
+                bka.close()
             }
 
             // Check that entries are still missing

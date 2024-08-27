@@ -196,7 +196,7 @@ class JournalChannel implements Closeable {
             // open an existing file to read.
             //打开之前存在的文件进行读取
             fc = channel.getFileChannel();
-            bc = null; // readonly
+            // readonly, use fileChannel directly, no need to use BufferedChannel
 
             //读取文件头部元数据，4个字节的魔数和4个字节的版本
             ByteBuffer bb = ByteBuffer.allocate(VERSION_HEADER_SIZE);
@@ -305,6 +305,8 @@ class JournalChannel implements Closeable {
     public void close() throws IOException {
         if (bc != null) {
             bc.close();
+        } else if (fc != null) {
+            fc.close();
         }
     }
 

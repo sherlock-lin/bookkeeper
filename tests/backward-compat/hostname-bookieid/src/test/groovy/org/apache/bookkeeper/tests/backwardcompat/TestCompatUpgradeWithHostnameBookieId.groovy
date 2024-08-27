@@ -18,17 +18,13 @@
 package org.apache.bookkeeper.tests.backwardcompat
 
 import com.github.dockerjava.api.DockerClient
-
 import org.apache.bookkeeper.tests.integration.utils.BookKeeperClusterUtils
 import org.apache.bookkeeper.tests.integration.utils.MavenClassLoader
-
 import org.jboss.arquillian.junit.Arquillian
 import org.jboss.arquillian.test.api.ArquillianResource
-
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
-
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -59,7 +55,7 @@ class TestCompatUpgradeWithHostnameBookieId {
     }
 
     /**
-     * Test compatability between version old version and the current version.
+     * Test compatibility between version old version and the current version.
      * - 4.1.0 server restarts with useHostNameAsBookieID=true.
      * - Write ledgers with old and new clients
      * - Read ledgers written by old clients.
