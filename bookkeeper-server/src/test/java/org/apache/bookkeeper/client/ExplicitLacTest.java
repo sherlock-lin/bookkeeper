@@ -19,9 +19,9 @@
 package org.apache.bookkeeper.client;
 
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,21 +35,25 @@ import org.apache.bookkeeper.client.api.WriteFlag;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.util.TestUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Test cases for `Explicit Lac` feature.
  */
-@RunWith(Parameterized.class)
 public class ExplicitLacTest extends BookKeeperClusterTestCase {
 
-    private final DigestType digestType;
+    private DigestType digestType;
 
-    public ExplicitLacTest(Class<? extends LedgerStorage> storageClass) {
+    public ExplicitLacTest() {
         super(1);
+    }
+
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void testExplicitLacTest(Class<? extends LedgerStorage> storageClass) {
         this.digestType = DigestType.CRC32;
         baseConf.setLedgerStorageClass(storageClass.getName());
         /*
@@ -60,7 +64,6 @@ public class ExplicitLacTest extends BookKeeperClusterTestCase {
         baseConf.setFileInfoFormatVersionToWrite(1);
     }
 
-    @Parameters
     public static Collection<Object[]> configs() {
         return Arrays.asList(new Object[][] {
             { InterleavedLedgerStorage.class },
@@ -69,8 +72,9 @@ public class ExplicitLacTest extends BookKeeperClusterTestCase {
         });
     }
 
-    @Test
-    public void testReadHandleWithNoExplicitLAC() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void readHandleWithNoExplicitLAC(Class<? extends LedgerStorage> storageClass) throws Exception {
         ClientConfiguration confWithNoExplicitLAC = new ClientConfiguration();
         confWithNoExplicitLAC.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         confWithNoExplicitLAC.setExplictLacInterval(0);
@@ -88,16 +92,15 @@ public class ExplicitLacTest extends BookKeeperClusterTestCase {
 
         LedgerHandle rlh = bkcWithNoExplicitLAC.openLedgerNoRecovery(ledgerId, digestType, "testPasswd".getBytes());
         assertTrue(
-                "Expected LAC of rlh: " + (numOfEntries - 2) + " actual LAC of rlh: " + rlh.getLastAddConfirmed(),
-                (rlh.getLastAddConfirmed() == (numOfEntries - 2)));
+                (rlh.getLastAddConfirmed() == (numOfEntries - 2)),
+                "Expected LAC of rlh: " + (numOfEntries - 2) + " actual LAC of rlh: " + rlh.getLastAddConfirmed());
 
         Enumeration<LedgerEntry> entries = rlh.readEntries(0, numOfEntries - 2);
         int entryId = 0;
         while (entries.hasMoreElements()) {
             LedgerEntry entry = entries.nextElement();
             String entryString = new String(entry.getEntry());
-            assertTrue("Expected entry String: " + ("foobar" + entryId) + " actual entry String: " + entryString,
-                    entryString.equals("foobar" + entryId));
+            assertEquals(entryString, "foobar" + entryId, "Expected entry String: " + ("foobar" + entryId) + " actual entry String: " + entryString);
             entryId++;
         }
 
@@ -108,18 +111,18 @@ public class ExplicitLacTest extends BookKeeperClusterTestCase {
         TestUtils.waitUntilLacUpdated(rlh, numOfEntries - 2);
 
         assertTrue(
-                "Expected LAC of wlh: " + (2 * numOfEntries - 1) + " actual LAC of rlh: " + wlh.getLastAddConfirmed(),
-                (wlh.getLastAddConfirmed() == (2 * numOfEntries - 1)));
+                (wlh.getLastAddConfirmed() == (2 * numOfEntries - 1)),
+                "Expected LAC of wlh: " + (2 * numOfEntries - 1) + " actual LAC of rlh: " + wlh.getLastAddConfirmed());
         assertTrue(
-                "Expected LAC of rlh: " + (numOfEntries - 2) + " actual LAC of rlh: " + rlh.getLastAddConfirmed(),
-                (rlh.getLastAddConfirmed() == (numOfEntries - 2)));
+                (rlh.getLastAddConfirmed() == (numOfEntries - 2)),
+                "Expected LAC of rlh: " + (numOfEntries - 2) + " actual LAC of rlh: " + rlh.getLastAddConfirmed());
 
         // since explicitlacflush policy is not enabled for writeledgerhandle, when we try
         // to read explicitlac for rlh, it will be reading up to the piggyback value.
         long explicitlac = rlh.readExplicitLastConfirmed();
         assertTrue(
-                "Expected Explicit LAC of rlh: " + (numOfEntries - 2) + " actual ExplicitLAC of rlh: " + explicitlac,
-                (explicitlac == (2 * numOfEntries - 2)));
+                (explicitlac == (2 * numOfEntries - 2)),
+                "Expected Explicit LAC of rlh: " + (numOfEntries - 2) + " actual ExplicitLAC of rlh: " + explicitlac);
 
         try {
             rlh.readEntries(2 * numOfEntries - 1, 2 * numOfEntries - 1);
@@ -132,8 +135,9 @@ public class ExplicitLacTest extends BookKeeperClusterTestCase {
         bkcWithNoExplicitLAC.close();
     }
 
-    @Test
-    public void testExplicitLACIsPersisted() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void explicitLACIsPersisted(Class<? extends LedgerStorage> storageClass) throws Exception {
         ClientConfiguration confWithNoExplicitLAC = new ClientConfiguration();
         confWithNoExplicitLAC.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         // enable explicitLacFlush by setting non-zero value for
@@ -150,16 +154,16 @@ public class ExplicitLacTest extends BookKeeperClusterTestCase {
         }
 
         LedgerHandle rlh = bkcWithExplicitLAC.openLedgerNoRecovery(ledgerId, digestType, "testPasswd".getBytes());
-        assertEquals("LAC of rlh", (long) numOfEntries - 2, rlh.getLastAddConfirmed());
+        assertEquals((long) numOfEntries - 2, rlh.getLastAddConfirmed(), "LAC of rlh");
 
         for (int i = numOfEntries; i < 2 * numOfEntries; i++) {
             wlh.addEntry(("foobar" + i).getBytes());
         }
 
-        assertEquals("LAC of wlh", (2 * numOfEntries - 1), wlh.getLastAddConfirmed());
-        assertEquals("LAC of rlh", (long) numOfEntries - 2, rlh.getLastAddConfirmed());
-        assertEquals("Read LAC of rlh", (2 * numOfEntries - 2), rlh.readLastAddConfirmed());
-        assertEquals("Read explicit LAC of rlh", (2 * numOfEntries - 2), rlh.readExplicitLastConfirmed());
+        assertEquals((2 * numOfEntries - 1), wlh.getLastAddConfirmed(), "LAC of wlh");
+        assertEquals((long) numOfEntries - 2, rlh.getLastAddConfirmed(), "LAC of rlh");
+        assertEquals((2 * numOfEntries - 2), rlh.readLastAddConfirmed(), "Read LAC of rlh");
+        assertEquals((2 * numOfEntries - 2), rlh.readExplicitLastConfirmed(), "Read explicit LAC of rlh");
 
         // we need to wait for atleast 2 explicitlacintervals,
         // since in writehandle for the first call
@@ -167,8 +171,9 @@ public class ExplicitLacTest extends BookKeeperClusterTestCase {
         // lh.getPiggyBackedLastAddConfirmed(),
         // so it wont make explicit writelac in the first run
         long readExplicitLastConfirmed = TestUtils.waitUntilExplicitLacUpdated(rlh, 2 * numOfEntries - 1);
-        assertEquals("Read explicit LAC of rlh after wait for explicitlacflush", (2 * numOfEntries - 1),
-                readExplicitLastConfirmed);
+        assertEquals((2 * numOfEntries - 1),
+                readExplicitLastConfirmed,
+                "Read explicit LAC of rlh after wait for explicitlacflush");
 
         // bookies have to be restarted
         restartBookies();
@@ -178,13 +183,15 @@ public class ExplicitLacTest extends BookKeeperClusterTestCase {
          * from the bookies.
          */
         LedgerHandle rlh2 = bkcWithExplicitLAC.openLedgerNoRecovery(ledgerId, digestType, "testPasswd".getBytes());
-        assertEquals("Read explicit LAC of rlh2 after bookies restart", (2 * numOfEntries - 1),
-                rlh2.readExplicitLastConfirmed());
+        assertEquals((2 * numOfEntries - 1),
+                rlh2.readExplicitLastConfirmed(),
+                "Read explicit LAC of rlh2 after bookies restart");
         bkcWithExplicitLAC.close();
     }
 
-    @Test
-    public void testReadHandleWithExplicitLAC() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void readHandleWithExplicitLAC(Class<? extends LedgerStorage> storageClass) throws Exception {
         ClientConfiguration confWithExplicitLAC = new ClientConfiguration();
         confWithExplicitLAC.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         int explicitLacIntervalMillis = 1000;
@@ -204,8 +211,8 @@ public class ExplicitLacTest extends BookKeeperClusterTestCase {
         LedgerHandle rlh = bkcWithExplicitLAC.openLedgerNoRecovery(ledgerId, digestType, "testPasswd".getBytes());
 
         assertTrue(
-                "Expected LAC of rlh: " + (numOfEntries - 2) + " actual LAC of rlh: " + rlh.getLastAddConfirmed(),
-                (rlh.getLastAddConfirmed() == (numOfEntries - 2)));
+                (rlh.getLastAddConfirmed() == (numOfEntries - 2)),
+                "Expected LAC of rlh: " + (numOfEntries - 2) + " actual LAC of rlh: " + rlh.getLastAddConfirmed());
 
         for (int i = numOfEntries; i < 2 * numOfEntries; i++) {
             wlh.addEntry(("foobar" + i).getBytes());
@@ -219,29 +226,28 @@ public class ExplicitLacTest extends BookKeeperClusterTestCase {
         TestUtils.waitUntilLacUpdated(rlh, 2 * numOfEntries - 2);
 
         assertTrue(
-                "Expected LAC of wlh: " + (2 * numOfEntries - 1) + " actual LAC of wlh: " + wlh.getLastAddConfirmed(),
-                (wlh.getLastAddConfirmed() == (2 * numOfEntries - 1)));
+                (wlh.getLastAddConfirmed() == (2 * numOfEntries - 1)),
+                "Expected LAC of wlh: " + (2 * numOfEntries - 1) + " actual LAC of wlh: " + wlh.getLastAddConfirmed());
         // readhandle's lastaddconfirmed wont be updated until readExplicitLastConfirmed call is made
         assertTrue(
-                "Expected LAC of rlh: " + (2 * numOfEntries - 2) + " actual LAC of rlh: " + rlh.getLastAddConfirmed(),
-                (rlh.getLastAddConfirmed() == (2 * numOfEntries - 2)));
+                (rlh.getLastAddConfirmed() == (2 * numOfEntries - 2)),
+                "Expected LAC of rlh: " + (2 * numOfEntries - 2) + " actual LAC of rlh: " + rlh.getLastAddConfirmed());
 
         long explicitlac = TestUtils.waitUntilExplicitLacUpdated(rlh, 2 * numOfEntries - 1);
-        assertTrue("Expected Explicit LAC of rlh: " + (2 * numOfEntries - 1)
-                + " actual ExplicitLAC of rlh: " + explicitlac,
-                (explicitlac == (2 * numOfEntries - 1)));
+        assertTrue((explicitlac == (2 * numOfEntries - 1)),
+                "Expected Explicit LAC of rlh: " + (2 * numOfEntries - 1)
+                + " actual ExplicitLAC of rlh: " + explicitlac);
         // readExplicitLastConfirmed updates the lac of rlh.
         assertTrue(
-                "Expected LAC of rlh: " + (2 * numOfEntries - 1) + " actual LAC of rlh: " + rlh.getLastAddConfirmed(),
-                (rlh.getLastAddConfirmed() == (2 * numOfEntries - 1)));
+                (rlh.getLastAddConfirmed() == (2 * numOfEntries - 1)),
+                "Expected LAC of rlh: " + (2 * numOfEntries - 1) + " actual LAC of rlh: " + rlh.getLastAddConfirmed());
 
         Enumeration<LedgerEntry> entries = rlh.readEntries(numOfEntries, 2 * numOfEntries - 1);
         int entryId = numOfEntries;
         while (entries.hasMoreElements()) {
             LedgerEntry entry = entries.nextElement();
             String entryString = new String(entry.getEntry());
-            assertTrue("Expected entry String: " + ("foobar" + entryId) + " actual entry String: " + entryString,
-                    entryString.equals("foobar" + entryId));
+            assertEquals(entryString, "foobar" + entryId, "Expected entry String: " + ("foobar" + entryId) + " actual entry String: " + entryString);
             entryId++;
         }
 
@@ -250,8 +256,9 @@ public class ExplicitLacTest extends BookKeeperClusterTestCase {
         bkcWithExplicitLAC.close();
     }
 
-    @Test
-    public void testReadHandleWithExplicitLACAndDeferredSync() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void readHandleWithExplicitLACAndDeferredSync(Class<? extends LedgerStorage> storageClass) throws Exception {
         ClientConfiguration confWithExplicitLAC = new ClientConfiguration();
         confWithExplicitLAC.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         int explicitLacIntervalMillis = 1000;
@@ -281,8 +288,8 @@ public class ExplicitLacTest extends BookKeeperClusterTestCase {
         LedgerHandle rlh = bkcWithExplicitLAC.openLedgerNoRecovery(ledgerId, digestType, "testPasswd".getBytes());
 
         assertTrue(
-                "Expected LAC of rlh: " + (numOfEntries - 2) + " actual LAC of rlh: " + rlh.getLastAddConfirmed(),
-                (rlh.getLastAddConfirmed() == (numOfEntries - 2)));
+                (rlh.getLastAddConfirmed() == (numOfEntries - 2)),
+                "Expected LAC of rlh: " + (numOfEntries - 2) + " actual LAC of rlh: " + rlh.getLastAddConfirmed());
 
         for (int i = numOfEntries; i < 2 * numOfEntries; i++) {
             wlh.addEntry(("foobar" + i).getBytes());
@@ -303,25 +310,24 @@ public class ExplicitLacTest extends BookKeeperClusterTestCase {
         TestUtils.waitUntilLacUpdated(rlh, 2 * numOfEntries - 2);
 
         assertTrue(
-                "Expected LAC of wlh: " + (2 * numOfEntries - 1) + " actual LAC of wlh: " + wlh.getLastAddConfirmed(),
-                (wlh.getLastAddConfirmed() == (2 * numOfEntries - 1)));
+                (wlh.getLastAddConfirmed() == (2 * numOfEntries - 1)),
+                "Expected LAC of wlh: " + (2 * numOfEntries - 1) + " actual LAC of wlh: " + wlh.getLastAddConfirmed());
 
         long explicitlac = TestUtils.waitUntilExplicitLacUpdated(rlh, 2 * numOfEntries - 1);
-        assertTrue("Expected Explicit LAC of rlh: " + (2 * numOfEntries - 1)
-                + " actual ExplicitLAC of rlh: " + explicitlac,
-                (explicitlac == (2 * numOfEntries - 1)));
+        assertTrue((explicitlac == (2 * numOfEntries - 1)),
+                "Expected Explicit LAC of rlh: " + (2 * numOfEntries - 1)
+                + " actual ExplicitLAC of rlh: " + explicitlac);
         // readExplicitLastConfirmed updates the lac of rlh.
         assertTrue(
-                "Expected LAC of rlh: " + (2 * numOfEntries - 1) + " actual LAC of rlh: " + rlh.getLastAddConfirmed(),
-                (rlh.getLastAddConfirmed() == (2 * numOfEntries - 1)));
+                (rlh.getLastAddConfirmed() == (2 * numOfEntries - 1)),
+                "Expected LAC of rlh: " + (2 * numOfEntries - 1) + " actual LAC of rlh: " + rlh.getLastAddConfirmed());
 
         Enumeration<LedgerEntry> entries = rlh.readEntries(numOfEntries, 2 * numOfEntries - 1);
         int entryId = numOfEntries;
         while (entries.hasMoreElements()) {
             LedgerEntry entry = entries.nextElement();
             String entryString = new String(entry.getEntry());
-            assertTrue("Expected entry String: " + ("foobar" + entryId) + " actual entry String: " + entryString,
-                    entryString.equals("foobar" + entryId));
+            assertEquals(entryString, "foobar" + entryId, "Expected entry String: " + ("foobar" + entryId) + " actual entry String: " + entryString);
             entryId++;
         }
 
@@ -330,8 +336,9 @@ public class ExplicitLacTest extends BookKeeperClusterTestCase {
         bkcWithExplicitLAC.close();
     }
 
-    @Test
-    public void fallbackV3() throws Exception {
+    @MethodSource("configs")
+    @ParameterizedTest
+    public void fallbackV3(Class<? extends LedgerStorage> storageClass) throws Exception {
         ClientConfiguration v2Conf = new ClientConfiguration();
         v2Conf.setUseV2WireProtocol(true);
         v2Conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
