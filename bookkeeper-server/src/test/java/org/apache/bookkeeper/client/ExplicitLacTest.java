@@ -32,10 +32,16 @@ import org.apache.bookkeeper.bookie.SortedLedgerStorage;
 import org.apache.bookkeeper.bookie.storage.ldb.DbLedgerStorage;
 import org.apache.bookkeeper.client.BookKeeper.DigestType;
 import org.apache.bookkeeper.client.api.WriteFlag;
+import org.apache.bookkeeper.client.test.AfterBeforeParameterResolver;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.test.BookKeeperClusterTestCase;
 import org.apache.bookkeeper.util.TestUtils;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -43,15 +49,16 @@ import org.junit.runners.Parameterized.Parameters;
 /**
  * Test cases for `Explicit Lac` feature.
  */
-@RunWith(Parameterized.class)
+@ExtendWith(AfterBeforeParameterResolver.class)
 public class ExplicitLacTest extends BookKeeperClusterTestCase {
 
     private final DigestType digestType;
 
-    public ExplicitLacTest(Class<? extends LedgerStorage> storageClass) {
+    private Class<? extends LedgerStorage> storageClass;
+
+    public ExplicitLacTest() {
         super(1);
         this.digestType = DigestType.CRC32;
-        baseConf.setLedgerStorageClass(storageClass.getName());
         /*
          * to persist explicitLac, journalFormatVersionToWrite should be atleast
          * V6 and fileInfoFormatVersionToWrite should be atleast V1
@@ -60,17 +67,17 @@ public class ExplicitLacTest extends BookKeeperClusterTestCase {
         baseConf.setFileInfoFormatVersionToWrite(1);
     }
 
-    @Parameters
-    public static Collection<Object[]> configs() {
-        return Arrays.asList(new Object[][] {
-            { InterleavedLedgerStorage.class },
-            { SortedLedgerStorage.class },
-            { DbLedgerStorage.class },
-        });
+    @BeforeEach
+    public void init(Class<? extends LedgerStorage> storageClass, TestInfo testInfo) {
+        super.testName = testInfo.getDisplayName();
+        this.storageClass = storageClass;
+        baseConf.setLedgerStorageClass(storageClass.getName());
     }
 
-    @Test
-    public void testReadHandleWithNoExplicitLAC() throws Exception {
+
+    @ValueSource(classes = {InterleavedLedgerStorage.class, SortedLedgerStorage.class, DbLedgerStorage.class})
+    @ParameterizedTest
+    public void testReadHandleWithNoExplicitLAC(Class<? extends LedgerStorage> storageClass, TestInfo testInfo) throws Exception {
         ClientConfiguration confWithNoExplicitLAC = new ClientConfiguration();
         confWithNoExplicitLAC.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         confWithNoExplicitLAC.setExplictLacInterval(0);
@@ -132,8 +139,9 @@ public class ExplicitLacTest extends BookKeeperClusterTestCase {
         bkcWithNoExplicitLAC.close();
     }
 
-    @Test
-    public void testExplicitLACIsPersisted() throws Exception {
+    @ValueSource(classes = {InterleavedLedgerStorage.class, SortedLedgerStorage.class, DbLedgerStorage.class})
+    @ParameterizedTest
+    public void testExplicitLACIsPersisted(Class<? extends LedgerStorage> storageClass) throws Exception {
         ClientConfiguration confWithNoExplicitLAC = new ClientConfiguration();
         confWithNoExplicitLAC.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         // enable explicitLacFlush by setting non-zero value for
@@ -183,8 +191,9 @@ public class ExplicitLacTest extends BookKeeperClusterTestCase {
         bkcWithExplicitLAC.close();
     }
 
-    @Test
-    public void testReadHandleWithExplicitLAC() throws Exception {
+    @ValueSource(classes = {InterleavedLedgerStorage.class, SortedLedgerStorage.class, DbLedgerStorage.class})
+    @ParameterizedTest
+    public void testReadHandleWithExplicitLAC(Class<? extends LedgerStorage> storageClass) throws Exception {
         ClientConfiguration confWithExplicitLAC = new ClientConfiguration();
         confWithExplicitLAC.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         int explicitLacIntervalMillis = 1000;
@@ -250,8 +259,9 @@ public class ExplicitLacTest extends BookKeeperClusterTestCase {
         bkcWithExplicitLAC.close();
     }
 
-    @Test
-    public void testReadHandleWithExplicitLACAndDeferredSync() throws Exception {
+    @ValueSource(classes = {InterleavedLedgerStorage.class, SortedLedgerStorage.class, DbLedgerStorage.class})
+    @ParameterizedTest
+    public void testReadHandleWithExplicitLACAndDeferredSync(Class<? extends LedgerStorage> storageClass) throws Exception {
         ClientConfiguration confWithExplicitLAC = new ClientConfiguration();
         confWithExplicitLAC.setMetadataServiceUri(zkUtil.getMetadataServiceUri());
         int explicitLacIntervalMillis = 1000;
@@ -330,8 +340,9 @@ public class ExplicitLacTest extends BookKeeperClusterTestCase {
         bkcWithExplicitLAC.close();
     }
 
-    @Test
-    public void fallbackV3() throws Exception {
+    @ValueSource(classes = {InterleavedLedgerStorage.class, SortedLedgerStorage.class, DbLedgerStorage.class})
+    @ParameterizedTest
+    public void fallbackV3(Class<? extends LedgerStorage> storageClass) throws Exception {
         ClientConfiguration v2Conf = new ClientConfiguration();
         v2Conf.setUseV2WireProtocol(true);
         v2Conf.setMetadataServiceUri(zkUtil.getMetadataServiceUri());

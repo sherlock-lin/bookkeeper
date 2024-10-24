@@ -174,10 +174,10 @@ public abstract class BookKeeperClusterTestCase {
         testName = runtime.getMethodName();
     }
 
-    @BeforeEach
-    void setTestNameJunit5(TestInfo testInfo) {
-        testName = testInfo.getDisplayName();
-    }
+//    @BeforeEach
+//    void setTestNameJunit5(TestInfo testInfo) {
+//        testName = testInfo.getDisplayName();
+//    }
 
     protected void setUp(String ledgersRootPath) throws Exception {
         LOG.info("Setting up test {}", getClass());
